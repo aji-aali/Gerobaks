@@ -4,6 +4,7 @@ import 'package:bank_sha/ui/pages/reward/reward_page.dart';
 import 'package:bank_sha/ui/pages/tracking/tracking_full_screen.dart';
 import 'package:bank_sha/ui/pages/wilayah/wilayah_full_screen.dart';
 import 'package:bank_sha/ui/pages/wilayah/wilayah_page.dart';
+import 'package:bank_sha/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -23,6 +24,15 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
   await initializeDateFormatting('id_ID', null);
+  
+  // Inisialisasi layanan notifikasi secara eksplisit
+  try {
+    await NotificationService().init();
+    print("Notifikasi berhasil diinisialisasi");
+  } catch (e) {
+    print("Error saat inisialisasi notifikasi: $e");
+  }
+  
   print('[DEBUG] ORS_API_KEY: ${dotenv.env['ORS_API_KEY']}');
   runApp(const MyApp());
 }
@@ -49,7 +59,7 @@ class MyApp extends StatelessWidget {
         '/reward': (context) => const RewardPage(),
         '/tracking_full': (context) => const TrackingFullScreen(),
         '/buatKeluhan': (context) => const BuatKeluhanPage(),
-        '/about-us': (context) => AboutUs(),
+        '/about-us': (context) => AboutUs(),0
         'wilayah_full': (context) => const WilayahFullScreen(),
       },
     );

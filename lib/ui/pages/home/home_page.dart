@@ -46,16 +46,30 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: uicolor,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const SelectAddressPage()),
-          );
-        },
-        shape: const CircleBorder(),
-        backgroundColor: greenColor,
-        child: Icon(Icons.add, color: whiteColor),
+      floatingActionButton: Container(
+        height: 60,
+        width: 60,
+        margin: const EdgeInsets.only(top: 30),
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SelectAddressPage()),
+            );
+          },
+          elevation: 4,
+          highlightElevation: 8,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+            side: BorderSide(color: Colors.white, width: 3),
+          ),
+          backgroundColor: greenColor,
+          child: Icon(
+            Icons.add_rounded,
+            color: whiteColor,
+            size: 32,
+          ),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: CustomBottomNavBar(

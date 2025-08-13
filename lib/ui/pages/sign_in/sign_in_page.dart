@@ -2,6 +2,7 @@ import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 import 'package:bank_sha/ui/widgets/shared/form.dart';
 import 'package:bank_sha/ui/widgets/shared/layout.dart';
+import 'package:bank_sha/services/notification_service.dart';
 import 'package:flutter/material.dart';
 
 class SignInPage extends StatelessWidget {
@@ -66,12 +67,27 @@ class SignInPage extends StatelessWidget {
                 const SizedBox(height: 30),
                 CustomFilledButton(
                   title: 'Sign In',
-                  onPressed: () {
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/home',
-                      (route) => false,
-                    );
+                  onPressed: () async {
+                    try {
+                      // Tampilkan notifikasi login berhasil
+                      await NotificationService().showLoginSuccessNotification();
+                      print("Notifikasi login berhasil ditampilkan");
+                      
+                      // Navigasi ke halaman home setelah notifikasi ditampilkan
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/home',
+                        (route) => false,
+                      );
+                    } catch (e) {
+                      print("Error saat menampilkan notifikasi: $e");
+                      // Tetap navigasi meski notifikasi gagal
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/home',
+                        (route) => false,
+                      );
+                    }
                   },
                 ),
               ],
