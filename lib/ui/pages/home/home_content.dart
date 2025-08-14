@@ -3,11 +3,11 @@ import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/appbar.dart';
 import 'package:bank_sha/ui/pages/address/select_address_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Untuk HapticFeedback
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:bank_sha/ui/widgets/informasi_detail_modal.dart';
+import 'package:bank_sha/models/information_model.dart';
+import 'package:bank_sha/utils/modal_helpers.dart';
 
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
@@ -166,126 +166,28 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
-  // Membuat carousel Informasi 
+  // Membuat carousel Informasi dengan modal details
   Widget buildComingSoonCarousel() {
-    // Daftar item Informasi dengan konten detail untuk modal
-    final List<Map<String, dynamic>> comingSoonItems = [
-      {
-        'image': 'assets/img_pesut.jpeg',
-        'title': 'Halo, Samarinda',
-        'description': 'Kami akan segera hadir di Kota Samarinda, Stay Tuned!',
-        'detailContent': 'Gerobaks dengan bangga mengumumkan akan segera hadir di Kota Samarinda, Kalimantan Timur. Kami berkomitmen untuk memberikan layanan pengelolaan sampah terbaik bagi masyarakat Samarinda dengan dukungan teknologi terkini. Pantau terus informasi terbaru mengenai peluncuran layanan kami di kota pesut ini.',
-        'additionalInfo': [
-          {
-            'label': 'Tanggal Peluncuran',
-            'value': 'September 2025'
-          },
-          {
-            'label': 'Area Layanan',
-            'value': 'Samarinda Kota, Samarinda Ulu, Samarinda Ilir, dan sekitarnya'
-          },
-          {
-            'label': 'Layanan Tersedia',
-            'value': 'Pengambilan Sampah, Daur Ulang, dan Penukaran Poin'
-          }
-        ]
-      },
-      {
-        'image': 'assets/img_gerobaks.png',
-        'title': 'Fitur Baru',
-        'description': 'Nikmati pengalaman baru menggunakan aplikasi Gerobaks!',
-        'detailContent': 'Kami telah memperbarui aplikasi Gerobaks dengan berbagai fitur inovatif untuk meningkatkan pengalaman pengguna. Fitur notifikasi real-time memungkinkan Anda mendapatkan pemberitahuan saat petugas pengambilan sampah tiba. Selain itu, sistem penukaran poin telah ditingkatkan dengan lebih banyak pilihan hadiah dan proses yang lebih cepat.',
-        'additionalInfo': [
-          {
-            'label': 'Fitur Utama',
-            'value': 'Notifikasi Real-time, Tracking Petugas, Penukaran Poin yang Ditingkatkan'
-          },
-          {
-            'label': 'Update Version',
-            'value': 'v2.5.0'
-          },
-          {
-            'label': 'Kapan Tersedia',
-            'value': 'Sudah tersedia, silakan update aplikasi Anda'
-          }
-        ]
-      },
-      {
-        'image': 'assets/img_card3.png',
-        'title': 'Green City',
-        'description': 'Bersama Gerobaks menuju kota yang lebih hijau dan bersih',
-        'detailContent': 'Program Green City adalah inisiatif Gerobaks bekerja sama dengan pemerintah kota untuk menciptakan lingkungan perkotaan yang lebih bersih dan hijau. Melalui program ini, kami mengajak seluruh masyarakat untuk berpartisipasi aktif dalam pemilahan sampah dan mendukung upaya daur ulang. Setiap kontribusi Anda dalam program ini akan dihargai dengan poin yang dapat ditukarkan dengan berbagai hadiah menarik.',
-        'additionalInfo': [
-          {
-            'label': 'Target Program',
-            'value': 'Pengurangan sampah perkotaan hingga 30% dalam 2 tahun'
-          },
-          {
-            'label': 'Cara Berpartisipasi',
-            'value': 'Pilah sampah, gunakan layanan Gerobaks, ajak teman dan keluarga'
-          },
-          {
-            'label': 'Rewards',
-            'value': 'Sertifikat digital, diskon layanan, dan hadiah eksklusif'
-          }
-        ]
-      }
-    ];
-
+    // Menggunakan model data dari information_model.dart
     return CarouselSlider.builder(
-      itemCount: comingSoonItems.length,
+      itemCount: informationList.length,
       options: CarouselOptions(
-        height: 200, // Sedikit lebih pendek untuk proporsi yang lebih baik
+        height: 200,
         viewportFraction: 0.92,
         autoPlay: true,
         autoPlayInterval: const Duration(seconds: 5),
         autoPlayAnimationDuration: const Duration(milliseconds: 800),
         enlargeCenterPage: true,
-        enlargeFactor: 0.15, // Sedikit lebih kecil untuk tampilan yang lebih seragam
+        enlargeFactor: 0.15,
         pauseAutoPlayOnTouch: true,
-        padEnds: true, // Memberikan padding di ujung-ujung carousel
+        padEnds: true,
       ),
       itemBuilder: (context, index, realIndex) {
-        final item = comingSoonItems[index];
-        return Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(18),
-            splashColor: Colors.white.withOpacity(0.2),
-            highlightColor: Colors.white.withOpacity(0.1),
-            onTap: () {
-              // Berikan feedback haptic
-              HapticFeedback.mediumImpact();
-              
-              // Tampilkan modal dengan animasi slide up
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                enableDrag: true,
-                backgroundColor: Colors.transparent,
-                transitionAnimationController: AnimationController(
-                  vsync: Scaffold.of(context),
-                  duration: const Duration(milliseconds: 400),
-                ),
-              builder: (context) => DraggableScrollableSheet(
-                initialChildSize: 0.92, // Hampir full screen
-                minChildSize: 0.5, // Minimum setengah layar
-                maxChildSize: 0.95, // Maksimum hampir full screen
-                expand: false,
-                builder: (context, scrollController) {
-                  return SingleChildScrollView(
-                    controller: scrollController,
-                    child: InformasiDetailModal(
-                      title: item['title'],
-                      description: item['description'],
-                      image: item['image'],
-                      content: item['detailContent'],
-                      additionalInfo: List<Map<String, String>>.from(item['additionalInfo']),
-                    ),
-                  );
-                },
-              ),
-            );
+        final item = informationList[index];
+        return GestureDetector(
+          onTap: () {
+            // Menampilkan modal dengan animasi slide up dan navigasi
+            showInformationDetailModal(context, item);
           },
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
@@ -308,7 +210,7 @@ class _HomeContentState extends State<HomeContent> {
                   // Background image dengan gradient overlay
                   Positioned.fill(
                     child: Image.asset(
-                      item['image'],
+                      item.image,
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -336,7 +238,7 @@ class _HomeContentState extends State<HomeContent> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          item['title'],
+                          item.title,
                           style: whiteTextStyle.copyWith(
                             fontSize: 22,
                             fontWeight: bold,
@@ -344,7 +246,7 @@ class _HomeContentState extends State<HomeContent> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          item['description'],
+                          item.description,
                           style: whiteTextStyle.copyWith(
                             fontSize: 13,
                             height: 1.4,
@@ -354,7 +256,7 @@ class _HomeContentState extends State<HomeContent> {
                       ],
                     ),
                   ),
-                  // Indikator "Info" dengan ikon tap
+                  // Indikator "Info"
                   Positioned(
                     top: 16,
                     right: 16,
@@ -372,41 +274,30 @@ class _HomeContentState extends State<HomeContent> {
                           ),
                         ],
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Info',
-                            style: whiteTextStyle.copyWith(
-                              fontSize: 12,
-                              fontWeight: semiBold,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.touch_app,
-                            color: Colors.white,
-                            size: 14,
-                          ),
-                        ],
+                      child: Text(
+                        'Info',
+                        style: whiteTextStyle.copyWith(
+                          fontSize: 12,
+                          fontWeight: semiBold,
+                          letterSpacing: 0.3,
+                        ),
                       ),
                     ),
                   ),
-                  // Indikator swipe-up dengan animasi
+                  // Indikator bisa diklik dengan icon kecil di pojok kiri atas
                   Positioned(
-                    bottom: 46,
-                    right: 16,
+                    top: 16,
+                    left: 16,
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.3),
+                        color: Colors.white.withOpacity(0.2),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.keyboard_arrow_up,
-                        color: Colors.white,
-                        size: 20,
+                      child: Icon(
+                        Icons.touch_app_rounded,
+                        size: 14,
+                        color: whiteColor,
                       ),
                     ),
                   ),
