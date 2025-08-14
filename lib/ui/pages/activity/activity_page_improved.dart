@@ -17,6 +17,8 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
   late TabController _tabController;
   DateTime? selectedDate;
   String currentFilter = 'Semua';
+  final TextEditingController _searchController = TextEditingController();
+  bool _showSearchField = false;
   
   // Pilihan filter kategori
   final List<String> filterOptions = [
@@ -47,7 +49,17 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+  
+  void _toggleSearch() {
+    setState(() {
+      _showSearchField = !_showSearchField;
+      if (!_showSearchField) {
+        _searchController.clear();
+      }
+    });
   }
 
   void _pickDate() async {
@@ -177,35 +189,65 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
     return Scaffold(
       backgroundColor: uicolor,
       appBar: CustomAppHeaderImproved(
-        title: 'Aktivitas',
-        imageAssetPath: 'assets/ic_calender.png',
-        onActionPressed: _pickDate,
+        title: _showSearchField ? '' : 'Aktivitas',
+        imageAssetPath: _showSearchField ? null : 'assets/ic_calender.png',
+        onActionPressed: _showSearchField ? null : _pickDate,
         actions: [
-          IconButton(
-            onPressed: _showFilterOptions,
-            icon: Stack(
-              alignment: Alignment.center,
-              children: [
-                Icon(
-                  Icons.filter_list,
-                  color: blackColor,
-                ),
-                if (currentFilter != 'Semua')
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: greenColor,
-                        shape: BoxShape.circle,
-                      ),
+          if (_showSearchField)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Cari aktivitas...',
+                    hintStyle: greyTextStyle.copyWith(fontSize: 14),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                    suffixIcon: IconButton(
+                      icon: Icon(Icons.close, color: blackColor),
+                      onPressed: _toggleSearch,
                     ),
                   ),
-              ],
+                  style: blackTextStyle.copyWith(fontSize: 14),
+                  onChanged: (value) {
+                    // Handle search
+                    setState(() {});
+                  },
+                ),
+              ),
             ),
-          ),
+          if (!_showSearchField)
+            IconButton(
+              onPressed: _toggleSearch,
+              icon: Icon(Icons.search, color: blackColor),
+            ),
+          if (!_showSearchField)
+            IconButton(
+              onPressed: _showFilterOptions,
+              icon: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Icon(
+                    Icons.filter_list,
+                    color: blackColor,
+                  ),
+                  if (currentFilter != 'Semua')
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: greenColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
         ],
         bottom: TabBar(
           controller: _tabController,
@@ -293,19 +335,36 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
           Expanded(
             child: TabBarView(
               controller: _tabController,
+              physics: const BouncingScrollPhysics(),
               children: [
                 // Active Tab
                 ActivityContentImproved(
+                  key: ValueKey('active-tab-${selectedDate?.toString() ?? ''}-$currentFilter-${_searchController.text}'),
                   showActive: true,
                   selectedDate: selectedDate,
                   filterCategory: currentFilter,
+                  searchQuery: _showSearchField ? _searchController.text : null,
+                  onRefresh: () async {
+                    // Simulate refresh
+                    await Future.delayed(const Duration(seconds: 1));
+                    setState(() {});
+                    return;
+                  },
                 ),
                 
                 // History Tab
                 ActivityContentImproved(
+                  key: ValueKey('history-tab-${selectedDate?.toString() ?? ''}-$currentFilter-${_searchController.text}'),
                   showActive: false,
                   selectedDate: selectedDate,
                   filterCategory: currentFilter,
+                  searchQuery: _showSearchField ? _searchController.text : null,
+                  onRefresh: () async {
+                    // Simulate refresh
+                    await Future.delayed(const Duration(seconds: 1));
+                    setState(() {});
+                    return;
+                  },
                 ),
               ],
             ),

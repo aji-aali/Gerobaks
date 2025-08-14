@@ -2,7 +2,7 @@ import 'package:bank_sha/ui/pages/popupiklan.dart';
 import 'package:bank_sha/ui/pages/wilayah/wilayah_page.dart';
 import 'package:flutter/material.dart';
 import 'package:bank_sha/shared/theme.dart';
-import 'package:bank_sha/ui/pages/activity/activity_page.dart';
+import 'package:bank_sha/ui/pages/activity/activity_page_improved.dart';
 import 'package:bank_sha/ui/pages/profile/profile_page.dart';
 import 'package:bank_sha/ui/pages/tambah_jadwal_page.dart';
 import 'package:bank_sha/ui/pages/home/home_content.dart';
@@ -21,7 +21,7 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = const [
     HomeContent(),
-    ActivityPage(),
+    ActivityPageImproved(),
     WilayahPage(),
     ProfilePage(),
   ];
