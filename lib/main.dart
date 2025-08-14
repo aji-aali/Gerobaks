@@ -59,7 +59,7 @@ class MyApp extends StatelessWidget {
         '/reward': (context) => const RewardPage(),
         '/tracking_full': (context) => const TrackingFullScreen(),
         '/buatKeluhan': (context) => const BuatKeluhanPage(),
-        '/about-us': (context) => AboutUs(),0
+        '/about-us': (context) => AboutUs(),
         'wilayah_full': (context) => const WilayahFullScreen(),
       },
     );
