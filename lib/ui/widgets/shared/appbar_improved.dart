@@ -8,6 +8,8 @@ class CustomAppHeaderImproved extends StatelessWidget implements PreferredSizeWi
   final VoidCallback? onActionPressed;
   final List<Widget>? actions;
   final PreferredSizeWidget? bottom;
+  final bool showIconWithTitle; // Tampilkan ikon di sebelah judul
+  final String? titleIconAsset; // Ikon yang ditampilkan di sebelah judul
 
   const CustomAppHeaderImproved({
     Key? key,
@@ -17,6 +19,8 @@ class CustomAppHeaderImproved extends StatelessWidget implements PreferredSizeWi
     this.onActionPressed,
     this.actions,
     this.bottom,
+    this.showIconWithTitle = false,
+    this.titleIconAsset,
   }) : super(key: key);
 
   @override
@@ -30,7 +34,15 @@ class CustomAppHeaderImproved extends StatelessWidget implements PreferredSizeWi
           onTap: onActionPressed,
           child: iconData != null
               ? Icon(iconData, color: blackColor, size: 24)
-              : Image.asset(imageAssetPath!, width: 32, height: 32),
+              : Container(
+                  padding: const EdgeInsets.all(4), // Padding untuk memperbaiki alignment
+                  child: Image.asset(
+                    imageAssetPath!,
+                    width: 24,  // Ukuran ikon yang lebih kecil dan konsisten
+                    height: 24, 
+                    fit: BoxFit.contain, // Pastikan ikon pas dalam container
+                  ),
+                ),
         ),
       );
     }
@@ -50,16 +62,46 @@ class CustomAppHeaderImproved extends StatelessWidget implements PreferredSizeWi
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: blackTextStyle.copyWith(
-                  fontWeight: semiBold,
-                  fontSize: 20,
-                ),
+              // Title with optional icon
+              Expanded(
+                child: showIconWithTitle && titleIconAsset != null
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            title,
+                            style: blackTextStyle.copyWith(
+                              fontWeight: semiBold,
+                              fontSize: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Image.asset(
+                            titleIconAsset!,
+                            width: 24,
+                            height: 24,
+                          ),
+                        ],
+                      )
+                    : Text(
+                        title,
+                        style: blackTextStyle.copyWith(
+                          fontWeight: semiBold,
+                          fontSize: 20,
+                        ),
+                      ),
               ),
               if (actionWidgets.isNotEmpty)
                 Row(
-                  children: actionWidgets,
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: actionWidgets.map((widget) {
+                    // Add spacing between action icons
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 12),
+                      child: widget,
+                    );
+                  }).toList(),
                 ),
             ],
           ),

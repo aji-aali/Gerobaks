@@ -72,7 +72,7 @@ class _HomeContentState extends State<HomeContent> {
               ),
               Flexible(
                 child: Text(
-                  'Akbar Bintang', // Replace with actual username from state management or shared preferences
+                  'Ghani', // Replace with actual username from state management or shared preferences
                   style: greentextstyle2.copyWith(
                     fontSize: 20,
                     fontWeight: semiBold,

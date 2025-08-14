@@ -25,6 +25,24 @@ class ActivityItemImproved extends StatelessWidget {
         return greenColor;
     }
   }
+  
+  // Format datetime string dengan benar, menangani baik '\n' atau '\\n' sebagai separator
+  String _formatDateTime(String dateTimeStr) {
+    // Cek apakah string mengandung karakter escape '\\n'
+    if (dateTimeStr.contains('\\n')) {
+      final parts = dateTimeStr.split('\\n');
+      return parts.length > 1 ? '${parts[0]}, ${parts[1]}' : dateTimeStr;
+    }
+    // Cek apakah string mengandung newline '\n'
+    else if (dateTimeStr.contains('\n')) {
+      final parts = dateTimeStr.split('\n');
+      return parts.length > 1 ? '${parts[0]}, ${parts[1]}' : dateTimeStr;
+    } 
+    // Jika tidak ada separator, kembalikan string asli
+    else {
+      return dateTimeStr;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,16 +68,22 @@ class ActivityItemImproved extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Icon dengan animasi yang lebih baik
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: statusColor.withOpacity(0.1),
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: statusColor.withOpacity(0.3),
+                  width: 1,
+                ),
               ),
               child: Image.asset(
                 activity.getIcon(),
                 width: 24,
                 height: 24,
+                color: statusColor, // Warna ikon sesuai dengan status
               ),
             ),
             const SizedBox(width: 12),
@@ -75,39 +99,98 @@ class ActivityItemImproved extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    activity.address,
-                    style: greyTextStyle.copyWith(fontSize: 12),
+                  // Tampilkan alamat dengan icon lokasi
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 12,
+                        color: greyColor,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          activity.address,
+                          style: greyTextStyle.copyWith(fontSize: 12),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    activity.dateTime.split('\n').first,
-                    style: greyTextStyle.copyWith(fontSize: 12),
-                  ),
-                  Text(
-                    activity.dateTime.split('\n').last,
-                    style: greyTextStyle.copyWith(fontSize: 12, fontWeight: medium),
+                  // Tampilkan tanggal dan waktu dalam satu baris dengan formatting yang lebih baik
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 12,
+                        color: greyColor,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatDateTime(activity.dateTime),
+                        style: greyTextStyle.copyWith(fontSize: 12),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          activity.status,
-                          style: blackTextStyle.copyWith(
-                            color: statusColor,
-                            fontSize: 10,
-                            fontWeight: medium,
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: statusColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              activity.status,
+                              style: blackTextStyle.copyWith(
+                                color: statusColor,
+                                fontSize: 10,
+                                fontWeight: medium,
+                              ),
+                            ),
                           ),
-                        ),
+                          
+                          // Tampilkan badge poin jika aktivitas sudah selesai dan memiliki total poin
+                          if (activity.status.toLowerCase() == 'selesai' && activity.totalPoints != null)
+                            Container(
+                              margin: const EdgeInsets.only(left: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: greenColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Image.asset(
+                                    'assets/ic_stars.png',
+                                    width: 10,
+                                    height: 10,
+                                  ),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    '+${activity.totalPoints}',
+                                    style: greentextstyle2.copyWith(
+                                      fontSize: 10,
+                                      fontWeight: medium,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
                       ),
                       const Spacer(),
                       TextButton(

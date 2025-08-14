@@ -17,8 +17,6 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
   late TabController _tabController;
   DateTime? selectedDate;
   String currentFilter = 'Semua';
-  final TextEditingController _searchController = TextEditingController();
-  bool _showSearchField = false;
   
   // Pilihan filter kategori
   final List<String> filterOptions = [
@@ -49,46 +47,150 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
   @override
   void dispose() {
     _tabController.dispose();
-    _searchController.dispose();
     super.dispose();
-  }
-  
-  void _toggleSearch() {
-    setState(() {
-      _showSearchField = !_showSearchField;
-      if (!_showSearchField) {
-        _searchController.clear();
-      }
-    });
   }
 
   void _pickDate() async {
-    final DateTime? picked = await showDatePicker(
+    // Tampilkan bottom sheet dengan opsi untuk reset dan pilih tanggal
+    showModalBottomSheet(
       context: context,
-      initialDate: selectedDate ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: greenColor,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Colors.black,
-            ),
-            dialogBackgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(24),
+        ),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              
+              // Title
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Text(
+                      'Filter Tanggal',
+                      style: blackTextStyle.copyWith(
+                        fontSize: 18,
+                        fontWeight: semiBold,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (selectedDate != null)
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          setState(() {
+                            selectedDate = null;
+                          });
+                        },
+                        child: Text(
+                          'Reset',
+                          style: greentextstyle2.copyWith(fontWeight: medium),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const Divider(),
+              
+              // Opsi-opsi filter tanggal
+              ListTile(
+                leading: const Icon(Icons.calendar_today),
+                title: Text(
+                  'Pilih Tanggal',
+                  style: blackTextStyle.copyWith(fontWeight: medium),
+                ),
+                subtitle: selectedDate != null 
+                    ? Text(
+                        DateFormat('d MMMM yyyy', 'id_ID').format(selectedDate!),
+                        style: greyTextStyle,
+                      )
+                    : null,
+                onTap: () async {
+                  // Tutup bottom sheet
+                  Navigator.pop(context);
+                  
+                  // Tampilkan date picker
+                  final DateTime? picked = await showDatePicker(
+                    context: context,
+                    initialDate: selectedDate ?? DateTime.now(),
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime(2030),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: ColorScheme.light(
+                            primary: greenColor,
+                            onPrimary: Colors.white,
+                            surface: Colors.white,
+                            onSurface: Colors.black,
+                          ),
+                          dialogBackgroundColor: Colors.white,
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+
+                  if (picked != null) {
+                    setState(() {
+                      selectedDate = picked;
+                    });
+                  }
+                },
+              ),
+              
+              // Opsi tanggal cepat
+              ListTile(
+                leading: Icon(Icons.today, color: greenColor),
+                title: Text(
+                  'Hari Ini',
+                  style: blackTextStyle.copyWith(fontWeight: medium),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    selectedDate = DateTime.now();
+                  });
+                },
+              ),
+              
+              ListTile(
+                leading: const Icon(Icons.date_range),
+                title: Text(
+                  'Minggu Ini',
+                  style: blackTextStyle.copyWith(fontWeight: medium),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  final now = DateTime.now();
+                  // Mencari hari Senin di minggu ini (atau hari ini jika sekarang Senin)
+                  final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+                  setState(() {
+                    // Hapus jam, menit, detik untuk mempermudah filter
+                    selectedDate = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day);
+                  });
+                },
+              ),
+            ],
           ),
-          child: child!,
         );
       },
     );
-
-    if (picked != null) {
-      setState(() {
-        selectedDate = picked;
-      });
-    }
   }
 
   void _resetFilter() {
@@ -189,49 +291,24 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
     return Scaffold(
       backgroundColor: uicolor,
       appBar: CustomAppHeaderImproved(
-        title: _showSearchField ? '' : 'Aktivitas',
-        imageAssetPath: _showSearchField ? null : 'assets/ic_calender.png',
-        onActionPressed: _showSearchField ? null : _pickDate,
+        title: 'Aktivitas',
+        // Tampilkan ikon kalender di samping judul Aktivitas
+        showIconWithTitle: false, // Tidak perlu menampilkan ikon di judul lagi
+        // Gunakan imageAssetPath untuk menampilkan ikon kalender sebagai tombol aksi
+        imageAssetPath: 'assets/ic_calender_search.png',
+        // Fungsi untuk menangani klik pada tombol kalender
+        onActionPressed: _pickDate,
         actions: [
-          if (_showSearchField)
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Cari aktivitas...',
-                    hintStyle: greyTextStyle.copyWith(fontSize: 14),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    suffixIcon: IconButton(
-                      icon: Icon(Icons.close, color: blackColor),
-                      onPressed: _toggleSearch,
-                    ),
-                  ),
-                  style: blackTextStyle.copyWith(fontSize: 14),
-                  onChanged: (value) {
-                    // Handle search
-                    setState(() {});
-                  },
+          // Hanya tampilkan tombol filter
+          IconButton(
+            onPressed: _showFilterOptions,
+            icon: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(
+                  Icons.filter_list,
+                  color: blackColor,
                 ),
-              ),
-            ),
-          if (!_showSearchField)
-            IconButton(
-              onPressed: _toggleSearch,
-              icon: Icon(Icons.search, color: blackColor),
-            ),
-          if (!_showSearchField)
-            IconButton(
-              onPressed: _showFilterOptions,
-              icon: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Icon(
-                    Icons.filter_list,
-                    color: blackColor,
-                  ),
                   if (currentFilter != 'Semua')
                     Positioned(
                       top: 0,
@@ -339,11 +416,11 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
               children: [
                 // Active Tab
                 ActivityContentImproved(
-                  key: ValueKey('active-tab-${selectedDate?.toString() ?? ''}-$currentFilter-${_searchController.text}'),
+                  key: ValueKey('active-tab-${selectedDate?.toString() ?? ''}-$currentFilter'),
                   showActive: true,
                   selectedDate: selectedDate,
                   filterCategory: currentFilter,
-                  searchQuery: _showSearchField ? _searchController.text : null,
+                  searchQuery: null, // Tidak ada pencarian
                   onRefresh: () async {
                     // Simulate refresh
                     await Future.delayed(const Duration(seconds: 1));
@@ -354,11 +431,11 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
                 
                 // History Tab
                 ActivityContentImproved(
-                  key: ValueKey('history-tab-${selectedDate?.toString() ?? ''}-$currentFilter-${_searchController.text}'),
+                  key: ValueKey('history-tab-${selectedDate?.toString() ?? ''}-$currentFilter'),
                   showActive: false,
                   selectedDate: selectedDate,
                   filterCategory: currentFilter,
-                  searchQuery: _showSearchField ? _searchController.text : null,
+                  searchQuery: null, // Tidak ada pencarian
                   onRefresh: () async {
                     // Simulate refresh
                     await Future.delayed(const Duration(seconds: 1));

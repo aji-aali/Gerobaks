@@ -26,7 +26,7 @@ class Myprofile extends StatelessWidget {
 
             // Nama
             Text(
-              'Akbar Bintang',
+              'Ghani',
               style: blackTextStyle.copyWith(
                 fontSize: 20,
                 fontWeight: semiBold,
@@ -36,7 +36,7 @@ class Myprofile extends StatelessWidget {
 
             // Email
             Text(
-              'akbarkerenz123@gmail.com',
+              'official@gerobaks.com',
               style: greyTextStyle.copyWith(fontSize: 14, fontWeight: regular),
             ),
 

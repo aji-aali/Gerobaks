@@ -71,15 +71,7 @@ class _ActivityContentImprovedState extends State<ActivityContentImproved> {
       }
     }
     
-    // Filter berdasarkan pencarian
-    if (widget.searchQuery != null && widget.searchQuery!.isNotEmpty) {
-      final searchQuery = widget.searchQuery!.toLowerCase();
-      result = result.where((activity) => 
-        activity.title.toLowerCase().contains(searchQuery) ||
-        activity.address.toLowerCase().contains(searchQuery) ||
-        activity.status.toLowerCase().contains(searchQuery)
-      ).toList();
-    }
+    // Pencarian telah dihapus, tidak perlu filter ini lagi
     
     // Urutkan berdasarkan tanggal (terbaru ke lama)
     result.sort((a, b) => b.date.compareTo(a.date));
@@ -91,57 +83,81 @@ class _ActivityContentImprovedState extends State<ActivityContentImproved> {
   Widget build(BuildContext context) {
     final filteredActivities = getFilteredActivities();
     
-    Widget contentWidget = filteredActivities.isEmpty
-        ? Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.event_busy,
-                  size: 60,
-                  color: Colors.grey[400],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Tidak ada aktivitas',
-                  style: blackTextStyle.copyWith(
-                    fontSize: 16,
-                    fontWeight: medium,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  widget.showActive
-                      ? 'Anda belum memiliki aktivitas yang aktif'
-                      : 'Anda belum memiliki riwayat aktivitas',
-                  style: greyTextStyle.copyWith(fontSize: 14),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+    // Widget untuk menampilkan tidak ada aktivitas
+    Widget emptyWidget = Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.event_busy,
+            size: 60,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Tidak ada aktivitas',
+            style: blackTextStyle.copyWith(
+              fontSize: 16,
+              fontWeight: medium,
+              color: Colors.grey[600],
             ),
-          )
-        : ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            itemCount: filteredActivities.length,
-            itemBuilder: (context, index) {
-              return ActivityItemImproved(activity: filteredActivities[index]);
-            },
-          );
+          ),
+          const SizedBox(height: 8),
+          Text(
+            widget.showActive
+                ? 'Anda belum memiliki aktivitas yang aktif'
+                : 'Anda belum memiliki riwayat aktivitas',
+            style: greyTextStyle.copyWith(fontSize: 14),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+    
+    // Widget untuk menampilkan daftar aktivitas
+    Widget listWidget = ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      physics: const AlwaysScrollableScrollPhysics(), // Pastikan bisa scroll meskipun konten sedikit
+      itemCount: filteredActivities.length,
+      itemBuilder: (context, index) {
+        return ActivityItemImproved(activity: filteredActivities[index]);
+      },
+    );
+    
+    // Tentukan widget konten yang akan ditampilkan
+    Widget contentWidget = filteredActivities.isEmpty ? emptyWidget : listWidget;
           
-    // Wrap with RefreshIndicator if onRefresh is provided
+    // Wrap dengan RefreshIndicator jika onRefresh tersedia
     if (widget.onRefresh != null) {
       return RefreshIndicator(
         onRefresh: () async {
+          // Tampilkan loading indicator jika refresh dimulai
           await _simulateLoading();
+          
+          // Panggil onRefresh dari parent jika ada
           if (widget.onRefresh != null) {
             await widget.onRefresh!();
           }
         },
         color: greenColor,
+        backgroundColor: Colors.white,
+        displacement: 40.0, // Jarak displacement yang lebih baik
+        strokeWidth: 3.0, // Lebar stroke yang lebih tebal
         child: Stack(
           children: [
-            contentWidget,
+            // Pastikan emptyWidget tetap bisa di-scroll untuk pull-to-refresh
+            filteredActivities.isEmpty 
+                ? Stack(
+                    children: [
+                      // ListView kosong untuk memungkinkan scroll
+                      ListView(),
+                      // Widget kosong di atasnya
+                      emptyWidget,
+                    ],
+                  ) 
+                : listWidget,
+            
+            // Overlay loading indicator jika sedang loading
             if (_isLoading)
               Container(
                 color: Colors.black.withOpacity(0.1),
