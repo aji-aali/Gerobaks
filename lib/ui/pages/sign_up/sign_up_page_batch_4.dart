@@ -2,6 +2,7 @@ import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/form.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 import 'package:bank_sha/ui/widgets/shared/layout.dart';
+<<<<<<< HEAD
 import 'package:bank_sha/utils/toast_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -10,6 +11,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
+=======
+import 'package:flutter/material.dart';
+>>>>>>> 02b957d (feat: adding & improve sign up)
 
 class SignUpBatch4Page extends StatefulWidget {
   const SignUpBatch4Page({super.key});
@@ -325,10 +329,17 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
                       title: 'Lanjutkan',
                       onPressed: () {
                         if (_formKey.currentState!.validate() && _selectedLocation != null) {
+<<<<<<< HEAD
                           // Pass all data to subscription page
                           Navigator.pushNamed(
                             context,
                             '/sign-up-subscription',
+=======
+                          // Pass all data to next page
+                          Navigator.pushNamed(
+                            context,
+                            '/sign-up-batch-5',
+>>>>>>> 02b957d (feat: adding & improve sign up)
                             arguments: {
                               ...?arguments,
                               'address': _addressController.text,
@@ -404,6 +415,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
   double _selectedLat = -7.2575; // Default Surabaya coordinates
   double _selectedLng = 112.7521;
   
+<<<<<<< HEAD
   // Map controller
   final MapController _mapController = MapController();
   bool _isMapReady = false;
@@ -422,12 +434,18 @@ class _MapPickerPageState extends State<MapPickerPage> {
     _orsApiKey = dotenv.env['ORS_API_KEY'];
     _getCurrentLocation();
   }
+=======
+  // Dummy search results
+  List<Map<String, dynamic>> _searchResults = [];
+  bool _isSearching = false;
+>>>>>>> 02b957d (feat: adding & improve sign up)
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
+<<<<<<< HEAD
   
   Future<void> _getCurrentLocation() async {
     setState(() {
@@ -497,6 +515,10 @@ class _MapPickerPageState extends State<MapPickerPage> {
   }
   
   Future<void> _performSearch(String query) async {
+=======
+
+  void _performSearch(String query) {
+>>>>>>> 02b957d (feat: adding & improve sign up)
     if (query.isEmpty) {
       setState(() {
         _searchResults = [];
@@ -505,6 +527,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
       return;
     }
 
+<<<<<<< HEAD
     if (_orsApiKey == null || _orsApiKey!.isEmpty) {
       ToastHelper.showToast(
         context: context,
@@ -514,10 +537,13 @@ class _MapPickerPageState extends State<MapPickerPage> {
       return;
     }
 
+=======
+>>>>>>> 02b957d (feat: adding & improve sign up)
     setState(() {
       _isSearching = true;
     });
 
+<<<<<<< HEAD
     try {
       // Perform geocoding search using ORS API
       final response = await http.get(
@@ -590,6 +616,31 @@ class _MapPickerPageState extends State<MapPickerPage> {
       print('Error getting address: $e');
       return 'Lokasi terpilih';
     }
+=======
+    // Simulate search delay
+    Future.delayed(const Duration(milliseconds: 800), () {
+      setState(() {
+        _searchResults = [
+          {
+            'address': 'Jl. Raya Darmo No. 123, Surabaya, Jawa Timur',
+            'lat': -7.2654,
+            'lng': 112.7359,
+          },
+          {
+            'address': 'Jl. Tunjungan Plaza, Surabaya, Jawa Timur',
+            'lat': -7.2639,
+            'lng': 112.7380,
+          },
+          {
+            'address': 'Universitas Airlangga, Surabaya, Jawa Timur',
+            'lat': -7.2709,
+            'lng': 112.7801,
+          },
+        ];
+        _isSearching = false;
+      });
+    });
+>>>>>>> 02b957d (feat: adding & improve sign up)
   }
 
   void _selectLocation(String address, double lat, double lng) {
@@ -599,6 +650,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
       _selectedLng = lng;
       _searchResults = [];
       _searchController.clear();
+<<<<<<< HEAD
       
       if (_isMapReady) {
         _mapController.move(LatLng(lat, lng), 15);
@@ -619,6 +671,8 @@ class _MapPickerPageState extends State<MapPickerPage> {
     setState(() {
       _selectedAddress = address;
       _isSearching = false;
+=======
+>>>>>>> 02b957d (feat: adding & improve sign up)
     });
   }
 
@@ -720,6 +774,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
               ),
             )
           else
+<<<<<<< HEAD
             // Real Map
             Expanded(
               child: Stack(
@@ -754,12 +809,19 @@ class _MapPickerPageState extends State<MapPickerPage> {
                     ],
                   ) :
                   // Loading state
+=======
+            // Map Placeholder
+            Expanded(
+              child: Stack(
+                children: [
+>>>>>>> 02b957d (feat: adding & improve sign up)
                   Container(
                     width: double.infinity,
                     color: greyColor.withOpacity(0.1),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+<<<<<<< HEAD
                         const CircularProgressIndicator(),
                         const SizedBox(height: 16),
                         Text(
@@ -790,12 +852,41 @@ class _MapPickerPageState extends State<MapPickerPage> {
                     ),
                   ),
                   
+=======
+                        Icon(
+                          Icons.map,
+                          size: 64,
+                          color: greyColor.withOpacity(0.5),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Peta akan ditampilkan di sini',
+                          style: greyTextStyle.copyWith(fontSize: 16),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Tap untuk menandai lokasi Anda',
+                          style: greyTextStyle.copyWith(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Crosshair/Pin in center
+                  Center(
+                    child: Icon(
+                      Icons.add,
+                      size: 32,
+                      color: redcolor,
+                    ),
+                  ),
+>>>>>>> 02b957d (feat: adding & improve sign up)
                   // Current location button
                   Positioned(
                     bottom: 100,
                     right: 16,
                     child: FloatingActionButton.small(
                       backgroundColor: whiteColor,
+<<<<<<< HEAD
                       onPressed: _getCurrentLocation,
                       child: _isLoadingLocation
                           ? const SizedBox(
@@ -804,6 +895,16 @@ class _MapPickerPageState extends State<MapPickerPage> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : Icon(Icons.my_location, color: greenColor),
+=======
+                      onPressed: () {
+                        _selectLocation(
+                          'Lokasi Saat Ini, Surabaya, Jawa Timur',
+                          -7.2575,
+                          112.7521,
+                        );
+                      },
+                      child: Icon(Icons.my_location, color: greenColor),
+>>>>>>> 02b957d (feat: adding & improve sign up)
                     ),
                   ),
                 ],

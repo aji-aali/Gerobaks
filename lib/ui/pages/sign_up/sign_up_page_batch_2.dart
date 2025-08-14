@@ -4,7 +4,10 @@ import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/form.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 import 'package:bank_sha/ui/widgets/shared/layout.dart';
+<<<<<<< HEAD
 import 'package:bank_sha/utils/toast_helper.dart';
+=======
+>>>>>>> 02b957d (feat: adding & improve sign up)
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

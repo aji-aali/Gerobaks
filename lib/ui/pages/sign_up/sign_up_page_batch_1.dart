@@ -2,7 +2,10 @@ import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/form.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 import 'package:bank_sha/ui/widgets/shared/layout.dart';
+<<<<<<< HEAD
 import 'package:bank_sha/utils/toast_helper.dart';
+=======
+>>>>>>> 02b957d (feat: adding & improve sign up)
 import 'package:flutter/material.dart';
 
 class SignUpBatch1Page extends StatefulWidget {
@@ -230,6 +233,7 @@ class _SignUpBatch1PageState extends State<SignUpBatch1Page> {
                       title: 'Lanjutkan',
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
+<<<<<<< HEAD
                           // Menampilkan toast validasi berhasil
                           ToastHelper.showToast(
                             context: context,
@@ -237,6 +241,8 @@ class _SignUpBatch1PageState extends State<SignUpBatch1Page> {
                             isSuccess: true,
                           );
                           
+=======
+>>>>>>> 02b957d (feat: adding & improve sign up)
                           // Pass data to next page
                           Navigator.pushNamed(
                             context,
