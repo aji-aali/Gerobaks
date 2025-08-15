@@ -5,11 +5,20 @@ class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
+  
+  // Flag untuk mencegah multiple init
+  bool _initialized = false;
 
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
+    // Cek apakah sudah diinisialisasi
+    if (_initialized) {
+      debugPrint('NotificationService sudah diinisialisasi sebelumnya');
+      return;
+    }
+    
     // Pengaturan untuk Android
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -40,6 +49,10 @@ class NotificationService {
     
     // Buat channel notifikasi dengan pengaturan suara khusus
     await _createNotificationChannel();
+    
+    // Set flag inisialisasi berhasil
+    _initialized = true;
+    debugPrint('NotificationService berhasil diinisialisasi');
   }
   
   // Membuat channel khusus untuk Android
@@ -162,6 +175,15 @@ class NotificationService {
       id: DateTime.now().millisecond, // ID unik berdasarkan waktu
       title: 'Login Berhasil',
       body: 'Anda berhasil login ke Gerobaks',
+    );
+  }
+  
+  // Fungsi untuk notifikasi pendaftaran berhasil
+  Future<void> showSignUpSuccessNotification() async {
+    await showNotification(
+      id: DateTime.now().millisecond, // ID unik berdasarkan waktu
+      title: 'Selamat Bergabung!',
+      body: 'Akun Anda telah berhasil terdaftar di Gerobaks',
     );
   }
 }
