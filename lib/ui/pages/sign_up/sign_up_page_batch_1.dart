@@ -35,7 +35,7 @@ class _SignUpBatch1PageState extends State<SignUpBatch1Page> {
       backgroundColor: whiteColor,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 26.0),
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight:
@@ -53,7 +53,7 @@ class _SignUpBatch1PageState extends State<SignUpBatch1Page> {
 
                     // Logo GEROBAKS
                     Container(
-                      width: 200,
+                      width: 250,
                       height: 60,
                       margin: const EdgeInsets.symmetric(horizontal: 24),
                       child: Image.asset(

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:bank_sha/shared/theme.dart';
-import 'package:bank_sha/ui/widgets/shared/form.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 import 'package:bank_sha/ui/widgets/shared/layout.dart';
 <<<<<<< HEAD
@@ -80,7 +79,7 @@ class _SignUpBatch2PageState extends State<SignUpBatch2Page> {
       backgroundColor: whiteColor,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 26.0),
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight:
@@ -97,7 +96,7 @@ class _SignUpBatch2PageState extends State<SignUpBatch2Page> {
 
                   // Logo GEROBAKS
                   Container(
-                    width: 200,
+                    width: 250,
                     height: 60,
                     margin: const EdgeInsets.symmetric(horizontal: 24),
                     child: Image.asset(
