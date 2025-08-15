@@ -1,7 +1,5 @@
 import 'package:bank_sha/shared/theme.dart';
-import 'package:bank_sha/ui/widgets/shared/form.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
-import 'package:bank_sha/ui/widgets/shared/layout.dart';
 import 'package:flutter/material.dart';
 
 class SignUpBatch5Page extends StatefulWidget {
@@ -57,7 +55,7 @@ class _SignUpBatch5PageState extends State<SignUpBatch5Page> {
       backgroundColor: whiteColor,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 26.0),
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight:
@@ -89,7 +87,7 @@ class _SignUpBatch5PageState extends State<SignUpBatch5Page> {
 
                   // Logo GEROBAKS
                   Container(
-                    width: 200,
+                    width: 250,
                     height: 60,
                     margin: const EdgeInsets.symmetric(horizontal: 24),
                     child: Image.asset(

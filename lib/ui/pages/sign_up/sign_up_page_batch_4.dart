@@ -1,7 +1,6 @@
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/form.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
-import 'package:bank_sha/ui/widgets/shared/layout.dart';
 import 'package:flutter/material.dart';
 
 class SignUpBatch4Page extends StatefulWidget {
@@ -14,7 +13,7 @@ class SignUpBatch4Page extends StatefulWidget {
 class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
   final _addressController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  
+
   String? _selectedLocation;
   double? _selectedLat;
   double? _selectedLng;
@@ -44,13 +43,14 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
 
   @override
   Widget build(BuildContext context) {
-    final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final arguments =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
     return Scaffold(
       backgroundColor: whiteColor,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 26.0),
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight:
@@ -68,7 +68,7 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
 
                     // Logo GEROBAKS
                     Container(
-                      width: 200,
+                      width: 250,
                       height: 60,
                       margin: const EdgeInsets.symmetric(horizontal: 24),
                       child: Image.asset(
@@ -114,19 +114,15 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
 
                     Text(
                       'Langkah 4 dari 5 - Informasi Alamat',
-                      style: greyTextStyle.copyWith(
-                        fontSize: 14,
-                      ),
+                      style: greyTextStyle.copyWith(fontSize: 14),
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
 
                     Text(
                       'Masukkan alamat dan tandai lokasi tempat tinggal Anda',
                       textAlign: TextAlign.center,
-                      style: greyTextStyle.copyWith(
-                        fontSize: 14,
-                      ),
+                      style: greyTextStyle.copyWith(fontSize: 14),
                     ),
 
                     const SizedBox(height: 30),
@@ -211,7 +207,9 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
                       width: double.infinity,
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: _selectedLocation != null ? greenColor : greyColor.withOpacity(0.5),
+                          color: _selectedLocation != null
+                              ? greenColor
+                              : greyColor.withOpacity(0.5),
                           width: _selectedLocation != null ? 2 : 1,
                         ),
                         borderRadius: BorderRadius.circular(8),
@@ -228,16 +226,22 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
                                 children: [
                                   Icon(
                                     Icons.location_on,
-                                    color: _selectedLocation != null ? greenColor : greyColor,
+                                    color: _selectedLocation != null
+                                        ? greenColor
+                                        : greyColor,
                                     size: 20,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
                                     'Pilih Lokasi di Peta',
-                                    style: (_selectedLocation != null ? greeTextStyle : greyTextStyle).copyWith(
-                                      fontSize: 14,
-                                      fontWeight: semiBold,
-                                    ),
+                                    style:
+                                        (_selectedLocation != null
+                                                ? greeTextStyle
+                                                : greyTextStyle)
+                                            .copyWith(
+                                              fontSize: 14,
+                                              fontWeight: semiBold,
+                                            ),
                                   ),
                                   const Spacer(),
                                   Icon(
@@ -257,7 +261,8 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Lokasi Terpilih:',
@@ -287,9 +292,7 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
                                 const SizedBox(height: 8),
                                 Text(
                                   'Tap untuk membuka peta dan pilih lokasi tempat tinggal Anda',
-                                  style: greyTextStyle.copyWith(
-                                    fontSize: 12,
-                                  ),
+                                  style: greyTextStyle.copyWith(fontSize: 12),
                                 ),
                               ],
                             ],
@@ -302,10 +305,7 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
                       const SizedBox(height: 8),
                       Text(
                         '* Lokasi pada peta wajib dipilih',
-                        style: TextStyle(
-                          color: redcolor,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: redcolor, fontSize: 12),
                       ),
                     ],
 
@@ -317,7 +317,8 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
                     CustomFilledButton(
                       title: 'Lanjutkan',
                       onPressed: () {
-                        if (_formKey.currentState!.validate() && _selectedLocation != null) {
+                        if (_formKey.currentState!.validate() &&
+                            _selectedLocation != null) {
                           // Pass all data to next page
                           Navigator.pushNamed(
                             context,
@@ -396,7 +397,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
   String _selectedAddress = '';
   double _selectedLat = -7.2575; // Default Surabaya coordinates
   double _selectedLng = 112.7521;
-  
+
   // Dummy search results
   List<Map<String, dynamic>> _searchResults = [];
   bool _isSearching = false;
@@ -466,30 +467,26 @@ class _MapPickerPageState extends State<MapPickerPage> {
           onPressed: () {
             Navigator.pop(context);
           },
-          icon: Icon(
-            Icons.arrow_back_ios,
-            color: blackColor,
-          ),
+          icon: Icon(Icons.arrow_back_ios, color: blackColor),
         ),
         title: Text(
           'Pilih Lokasi',
-          style: blackTextStyle.copyWith(
-            fontSize: 18,
-            fontWeight: semiBold,
-          ),
+          style: blackTextStyle.copyWith(fontSize: 18, fontWeight: semiBold),
         ),
         actions: [
           if (_selectedAddress.isNotEmpty)
             TextButton(
               onPressed: () {
-                widget.onLocationSelected(_selectedAddress, _selectedLat, _selectedLng);
+                widget.onLocationSelected(
+                  _selectedAddress,
+                  _selectedLat,
+                  _selectedLng,
+                );
                 Navigator.pop(context);
               },
               child: Text(
                 'Pilih',
-                style: greeTextStyle.copyWith(
-                  fontWeight: semiBold,
-                ),
+                style: greeTextStyle.copyWith(fontWeight: semiBold),
               ),
             ),
         ],
@@ -582,13 +579,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
                     ),
                   ),
                   // Crosshair/Pin in center
-                  Center(
-                    child: Icon(
-                      Icons.add,
-                      size: 32,
-                      color: redcolor,
-                    ),
-                  ),
+                  Center(child: Icon(Icons.add, size: 32, color: redcolor)),
                   // Current location button
                   Positioned(
                     bottom: 100,
