@@ -30,7 +30,7 @@ class ProfileContent extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Akbar Bintang',
+                'Ghani',
                 style: blackTextStyle.copyWith(
                   fontSize: 16,
                   fontWeight: semiBold,
@@ -38,7 +38,7 @@ class ProfileContent extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'akbar123@gmail.com',
+                'official@gerobaks.com',
                 style: greyTextStyle.copyWith(
                   fontSize: 14,
                   fontWeight: regular,
