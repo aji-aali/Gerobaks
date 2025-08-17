@@ -11,7 +11,7 @@ class CustomFilledButton extends StatelessWidget {
     super.key,
     required this.title,
     this.width = double.infinity,
-    this.height = 50,
+    this.height = 24,
     this.onPressed,
   });
 
@@ -19,15 +19,13 @@ class CustomFilledButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: width ?? double.infinity,
-      height: height ?? 50,
+      height: 50,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: greenColor,
-          foregroundColor: whiteColor,
-          elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(56),
           ),
         ),
         child: Text(
@@ -62,63 +60,6 @@ class CustomTextButton extends StatelessWidget {
         onPressed: onPressed,
         style: TextButton.styleFrom(padding: EdgeInsets.zero),
         child: Text(title, style: greyTextStyle.copyWith(fontSize: 16)),
-      ),
-    );
-  }
-}
-
-// Widget baru untuk Google Sign In Button dari Sign In Page
-class CustomGoogleSignInButton extends StatelessWidget {
-  final String title;
-  final VoidCallback? onPressed;
-  final double? width;
-  final double? height;
-
-  const CustomGoogleSignInButton({
-    super.key,
-    this.title = 'Log in dengan Google',
-    this.onPressed,
-    this.width = double.infinity,
-    this.height = 52,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      height: height,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: whiteColor,
-          foregroundColor: blackColor,
-          side: BorderSide(color: greyColor.withOpacity(0.5)),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          elevation: 0,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image(
-              image: const AssetImage(
-                'assets/img_logo_google.png',
-              ),
-              width: 20,
-              height: 20,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              title,
-              style: blackTextStyle.copyWith(
-                fontSize: 16,
-                fontWeight: medium,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -170,10 +111,12 @@ class CustomGoogleButton extends StatelessWidget {
   }
 }
 
+// file: profile_item.dart
+
 class CustomAppMenu extends StatelessWidget {
   final String iconURL;
   final String title;
-  final Widget? page;
+  final Widget? page; // halaman tujuan
 
   const CustomAppMenu({
     super.key,
