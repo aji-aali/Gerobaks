@@ -1,7 +1,5 @@
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
-import 'package:bank_sha/services/notification_service.dart';
-import 'package:bank_sha/utils/toast_helper.dart';
 import 'package:flutter/material.dart';
 
 class SignUpSuccessPage extends StatelessWidget {
@@ -33,21 +31,7 @@ class SignUpSuccessPage extends StatelessWidget {
             CustomFilledButton(
               title: 'Mulai',
               width: 183,
-              onPressed: () async {
-                // Menampilkan notifikasi pendaftaran berhasil
-                await NotificationService().showNotification(
-                  id: DateTime.now().millisecond,
-                  title: 'Selamat Bergabung!',
-                  body: 'Akun Anda telah berhasil terdaftar di Gerobaks',
-                );
-                
-                // Menampilkan toast pendaftaran berhasil
-                ToastHelper.showToast(
-                  context: context,
-                  message: 'Registrasi berhasil!',
-                  isSuccess: true,
-                );
-                
+              onPressed: () {
                 Navigator.pushNamedAndRemoveUntil(
                   context,
                   '/home',

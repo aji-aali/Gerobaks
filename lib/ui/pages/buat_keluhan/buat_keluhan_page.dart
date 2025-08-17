@@ -15,7 +15,7 @@ class _BuatKeluhanPageState extends State<BuatKeluhanPage> {
   final List<Map<String, dynamic>> daftarKeluhan = [
     {
       'id': '1723456789012',
-      'nama': 'Ghani',
+      'nama': 'Akbar Bintang',
       'judul': 'Sampah belum diambil',
       'kategori': 'Pengambilan Sampah',
       'prioritas': 'Tinggi',
@@ -25,7 +25,7 @@ class _BuatKeluhanPageState extends State<BuatKeluhanPage> {
     },
     {
       'id': '1723456789013',
-      'nama': 'Ghani',
+      'nama': 'Akbar Bintang',
       'judul': 'Petugas datang terlambat',
       'kategori': 'Jadwal Terlambat',
       'prioritas': 'Normal',

@@ -2,7 +2,7 @@ import 'package:bank_sha/ui/pages/popupiklan.dart';
 import 'package:bank_sha/ui/pages/wilayah/wilayah_page.dart';
 import 'package:flutter/material.dart';
 import 'package:bank_sha/shared/theme.dart';
-import 'package:bank_sha/ui/pages/activity/activity_page_improved.dart';
+import 'package:bank_sha/ui/pages/activity/activity_page.dart';
 import 'package:bank_sha/ui/pages/profile/profile_page.dart';
 import 'package:bank_sha/ui/pages/tambah_jadwal_page.dart';
 import 'package:bank_sha/ui/pages/home/home_content.dart';
@@ -21,7 +21,7 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = const [
     HomeContent(),
-    ActivityPageImproved(),
+    ActivityPage(),
     WilayahPage(),
     ProfilePage(),
   ];
@@ -46,30 +46,16 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: uicolor,
-      floatingActionButton: Container(
-        height: 60,
-        width: 60,
-        margin: const EdgeInsets.only(top: 30),
-        child: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SelectAddressPage()),
-            );
-          },
-          elevation: 4,
-          highlightElevation: 8,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-            side: BorderSide(color: Colors.white, width: 3),
-          ),
-          backgroundColor: greenColor,
-          child: Icon(
-            Icons.add_rounded,
-            color: whiteColor,
-            size: 32,
-          ),
-        ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SelectAddressPage()),
+          );
+        },
+        shape: const CircleBorder(),
+        backgroundColor: greenColor,
+        child: Icon(Icons.add, color: whiteColor),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: CustomBottomNavBar(
