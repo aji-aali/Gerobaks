@@ -12,6 +12,7 @@ class NotificationService {
 
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
   Timer? _dailyPantunTimer;
+  Timer? _routinePantunTimer;
   bool _isInitialized = false;
 
   Future<void> initialize() async {
@@ -34,6 +35,7 @@ class NotificationService {
 
     await _createNotificationChannels();
     await _scheduleDailyPantun();
+    await _startRoutinePantunNotifications();
     _isInitialized = true;
   }
 
@@ -64,6 +66,14 @@ class NotificationService {
       importance: Importance.defaultImportance,
     );
 
+    // Routine pantun channel
+    const routinePantunChannel = AndroidNotificationChannel(
+      'routine_pantun',
+      'Routine Pantun',
+      description: 'Regular motivational pantun reminders every 30-60 minutes',
+      importance: Importance.low,
+    );
+
     // Subscription notifications channel
     const subscriptionChannel = AndroidNotificationChannel(
       'subscription_notifications',
@@ -80,6 +90,9 @@ class NotificationService {
     
     await _notifications.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(pantunChannel);
+    
+    await _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(routinePantunChannel);
     
     await _notifications.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(subscriptionChannel);
@@ -320,6 +333,114 @@ class NotificationService {
     );
   }
 
+  // Start routine pantun notifications every 30-60 minutes
+  Future<void> _startRoutinePantunNotifications() async {
+    final isEnabled = await isRoutinePantunEnabled();
+    if (isEnabled) {
+      _scheduleNextRoutinePantun();
+    }
+  }
+
+  void _scheduleNextRoutinePantun() {
+    // Cancel previous timer if exists
+    _routinePantunTimer?.cancel();
+    
+    // Random interval between 30-60 minutes
+    final random = Random();
+    final minutesInterval = 30 + random.nextInt(31); // 30-60 minutes
+    final duration = Duration(minutes: minutesInterval);
+    
+    _routinePantunTimer = Timer(duration, () async {
+      // Check if routine pantun is still enabled before showing
+      final isEnabled = await isRoutinePantunEnabled();
+      if (isEnabled) {
+        await _showRoutinePantunNotification();
+        _scheduleNextRoutinePantun(); // Schedule next one
+      }
+    });
+  }
+
+  Future<void> _showRoutinePantunNotification() async {
+    if (!_isInitialized) return;
+    
+    final pantunList = [
+      // Pantun tentang kebersihan lingkungan
+      'Bunga melati harum semerbak\nPagi hari burung berkicau\nSampah dipilah jangan abaikan\nLingkungan bersih hati pun rau',
+      
+      'Kupu kupu hinggap di bunga\nWarna warni sangat indah\nGerobaks hadir untuk kita\nSampah teratur hidup berubah',
+      
+      'Anak ayam turun sepuluh\nMati satu tinggal sembilan\nJadwal sampah jangan terlupa\nGerobaks siap setiap hari',
+      
+      'Burung merpati terbang tinggi\nHinggap di dahan beringin\nYuk gunakan aplikasi ini\nSampah bersih jadi rejeki',
+      
+      'Bintang di langit berkelip\nCahayanya sangat terang\nSampah organik dan plastik\nPilah yuk jangan bercampur',
+      
+      // Pantun motivasi menggunakan aplikasi
+      'Pisang emas dibawa berlayar\nMasak dibeli dari negeri\nGerobaks mudah untuk diandalkan\nBuka aplikasi sekarang juga',
+      
+      'Kalau ada jarum patah\nJangan disimpan dalam peti\nKalau sampah sudah menumpuk\nSegera buat jadwal di Gerobaks',
+      
+      'Tepung tapioka dibuat onde\nRasanya manis sangat enak\nJangan lupa buka Gerobaks\nJadwal sampah mudah dibuat',
+      
+      'Ikan paus berenang di laut\nGelombang besar tak mengapa\nSampah menumpuk jangan biarkan\nGerobaks solusi terdepan',
+      
+      'Pohon mangga berbuah lebat\nRasanya manis menyegarkan\nRutin pakai aplikasi ini\nSampah bersih lingkungan sehat',
+      
+      // Pantun reward dan manfaat
+      'Burung elang terbang melayang\nSayapnya lebar mengembang\nKumpulkan poin dari Gerobaks\nReward menarik siap menanti',
+      
+      'Mentimun muda dimakan ulat\nDaunnya layu tak berbunga\nSemakin rajin pakai Gerobaks\nPoin reward semakin bertambah',
+      
+      'Kapal layar berlayar jauh\nAngin kencang mendorong cepat\nGerobaks bantu kelola sampah\nLingkungan bersih hidup sehat',
+      
+      'Bebek berenang di kolam\nAirnya jernih tak beriak\nRajin jadwal angkut sampah\nHidup bersih jadi berkah',
+      
+      'Sinar matahari sangat terang\nMenyinari bumi penuh kasih\nGerobaks hadir solusi lengkap\nSampah teratur hidup bersih'
+    ];
+    
+    final random = Random();
+    final selectedPantun = pantunList[random.nextInt(pantunList.length)];
+    
+    final androidDetails = AndroidNotificationDetails(
+      'routine_pantun',
+      'Routine Pantun',
+      channelDescription: 'Regular motivational pantun reminders every 30-60 minutes',
+      importance: Importance.low,
+      priority: Priority.low,
+      styleInformation: BigTextStyleInformation(
+        selectedPantun,
+        htmlFormatBigText: true,
+        contentTitle: '🌿 Pantun Motivasi Gerobaks',
+        htmlFormatContentTitle: true,
+      ),
+      color: Colors.green[300],
+      colorized: true,
+      autoCancel: true,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: false, // Don't add badge for routine notifications
+      presentSound: false, // Silent notification
+    );
+
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    // Use different ID each time to avoid overwriting
+    final notificationId = DateTime.now().millisecondsSinceEpoch % 1000000;
+    
+    await _notifications.show(
+      notificationId,
+      '🌿 Pantun Motivasi Gerobaks',
+      selectedPantun.split('\n').join(' • '), // Convert to single line for preview
+      details,
+      payload: 'routine_pantun',
+    );
+  }
+
   // Subscription notification
   Future<void> showSubscriptionNotification({
     required String title,
@@ -556,7 +677,31 @@ class NotificationService {
     await _notifications.cancel(id);
   }
 
+  // Enable/disable routine pantun notifications
+  Future<void> enableRoutinePantun() async {
+    final storage = await LocalStorageService.getInstance();
+    await storage.saveBool('routine_pantun_enabled', true);
+    await _startRoutinePantunNotifications();
+  }
+
+  Future<void> disableRoutinePantun() async {
+    final storage = await LocalStorageService.getInstance();
+    await storage.saveBool('routine_pantun_enabled', false);
+    _routinePantunTimer?.cancel();
+  }
+
+  Future<bool> isRoutinePantunEnabled() async {
+    final storage = await LocalStorageService.getInstance();
+    return await storage.getBool('routine_pantun_enabled', defaultValue: true);
+  }
+
+  // Test method to show routine pantun immediately
+  Future<void> showTestRoutinePantun() async {
+    await _showRoutinePantunNotification();
+  }
+
   void dispose() {
     _dailyPantunTimer?.cancel();
+    _routinePantunTimer?.cancel();
   }
 }

@@ -1,7 +1,9 @@
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/appbar.dart';
 import 'package:bank_sha/ui/pages/address/select_address_page.dart';
-import 'package:bank_sha/utils/subscription_guard.dart';
+import 'package:bank_sha/services/subscription_service.dart';
+import 'package:bank_sha/models/subscription_model.dart';
+import 'package:bank_sha/ui/pages/subscription/subscription_plans_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -17,19 +19,16 @@ class HomeContent extends StatefulWidget {
 }
 
 class _HomeContentState extends State<HomeContent> {
-  // Status berlangganan
-  bool isSubscribed = true; // Ganti dengan data real dari state management atau API
+  final SubscriptionService _subscriptionService = SubscriptionService();
   
   // Cache untuk greeting agar tidak perlu hitung ulang setiap build
   late String _cachedGreeting;
   late String _cachedDate;
   late DateTime _lastCacheUpdate;
   
-  // Method untuk toggle status berlangganan (hanya untuk demo)
-  void _toggleSubscription() {
-    setState(() {
-      isSubscribed = !isSubscribed;
-    });
+  // Method untuk mendapatkan status subscription
+  Future<UserSubscription?> _getSubscriptionStatus() async {
+    return await _subscriptionService.getCurrentSubscription();
   }
   
   void _updateGreetingCache() {
@@ -141,12 +140,6 @@ class _HomeContentState extends State<HomeContent> {
             padding: const EdgeInsets.only(bottom: 30),
             child: Column(
               children: [
-                // Subscription Banner
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
-                  child: SubscriptionGuard.buildSubscriptionBanner(context),
-                ),
-                
                 // Greeting dengan padding yang lebih seimbang
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
@@ -369,54 +362,67 @@ class _HomeContentState extends State<HomeContent> {
             ],
           ),
           const SizedBox(height: 6),
-          // Badge Status Berlangganan dan Tanggal dalam satu row
+          // Subscription Badge dan Tanggal dalam satu row
           Container(
             margin: const EdgeInsets.only(bottom: 6),
             child: Row(
               children: [
-                // Badge Subscription - Flexible untuk text yang panjang
-                Flexible(
-                  child: GestureDetector(
-                    onTap: _toggleSubscription, // Untuk demo/testing
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: isSubscribed 
-                            ? greenColor.withOpacity(0.1)
-                            : Colors.orange.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          isSubscribed
-                              ? Icon(Icons.check_circle, size: 16, color: greenColor)
-                              : const Icon(Icons.info_outline, size: 16, color: Colors.orange),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              isSubscribed ? 'Anda telah berlangganan' : 'Anda belum berlangganan',
-                              style: isSubscribed
-                                  ? greentextstyle2.copyWith(
-                                      fontSize: 12,
-                                      fontWeight: medium,
-                                    )
-                                  : TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: medium,
-                                      color: Colors.orange,
-                                    ),
-                              overflow: TextOverflow.ellipsis,
+                // Subscription badge yang sebenarnya dari localStorage
+                Expanded(
+                  child: FutureBuilder<UserSubscription?>(
+                    future: _getSubscriptionStatus(),
+                    builder: (context, snapshot) {
+                      final hasSubscription = snapshot.data != null;
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SubscriptionPlansPage(),
                             ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: hasSubscription 
+                                ? greenColor.withOpacity(0.1)
+                                : Colors.orange.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        ],
-                      ),
-                    ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              hasSubscription
+                                  ? Icon(Icons.check_circle, size: 16, color: greenColor)
+                                  : const Icon(Icons.info_outline, size: 16, color: Colors.orange),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  hasSubscription ? 'Anda telah berlangganan' : 'Anda belum berlangganan',
+                                  style: hasSubscription
+                                      ? greentextstyle2.copyWith(
+                                          fontSize: 12,
+                                          fontWeight: medium,
+                                        )
+                                      : TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: medium,
+                                          color: Colors.orange,
+                                        ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 
                 // Spacer antara badge dan tanggal
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 
                 // Container untuk tanggal
                 Container(

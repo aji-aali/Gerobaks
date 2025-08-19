@@ -211,6 +211,16 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> {
   }
 
   Widget _buildPaymentMethods() {
+    // Group payment methods by category
+    final Map<String, List<PaymentMethod>> groupedMethods = {};
+    for (final method in _paymentMethods) {
+      final category = method.category;
+      if (!groupedMethods.containsKey(category)) {
+        groupedMethods[category] = [];
+      }
+      groupedMethods[category]!.add(method);
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -221,9 +231,111 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> {
             fontWeight: semiBold,
           ),
         ),
-        const SizedBox(height: 12),
-        ...(_paymentMethods.map((method) => _buildPaymentMethodItem(method))),
+        const SizedBox(height: 16),
+        
+        // Build sections for each category
+        ...groupedMethods.entries.map((entry) {
+          final category = entry.key;
+          final methods = entry.value;
+          
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Category header
+              Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(
+                      _getCategoryIcon(category),
+                      size: 18,
+                      color: greenColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      category,
+                      style: blackTextStyle.copyWith(
+                        fontSize: 14,
+                        fontWeight: semiBold,
+                        color: greenColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Payment methods in this category
+              ...methods.map((method) => _buildPaymentMethodItem(method)),
+              
+              const SizedBox(height: 16),
+            ],
+          );
+        }).toList(),
       ],
+    );
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category) {
+      case 'E-Wallet':
+        return Icons.account_balance_wallet;
+      case 'Bank Transfer':
+        return Icons.account_balance;
+      default:
+        return Icons.payment;
+    }
+  }
+
+  Widget _getPaymentIcon(String paymentId) {
+    IconData iconData;
+    Color iconColor;
+    
+    switch (paymentId) {
+      case 'qris':
+        iconData = Icons.qr_code;
+        iconColor = Colors.blue[600]!;
+        break;
+      case 'shopeepay':
+        iconData = Icons.shopping_bag;
+        iconColor = Colors.orange[600]!;
+        break;
+      case 'dana':
+        iconData = Icons.account_balance_wallet;
+        iconColor = Colors.blue[800]!;
+        break;
+      case 'gopay':
+        iconData = Icons.motorcycle;
+        iconColor = Colors.green[600]!;
+        break;
+      case 'ovo':
+        iconData = Icons.circle;
+        iconColor = Colors.purple[600]!;
+        break;
+      case 'bca':
+        iconData = Icons.account_balance;
+        iconColor = Colors.blue[700]!;
+        break;
+      case 'mandiri':
+        iconData = Icons.account_balance;
+        iconColor = Colors.yellow[700]!;
+        break;
+      case 'bni':
+        iconData = Icons.account_balance;
+        iconColor = Colors.orange[700]!;
+        break;
+      case 'ocbc':
+        iconData = Icons.account_balance;
+        iconColor = Colors.red[700]!;
+        break;
+      default:
+        iconData = Icons.payment;
+        iconColor = Colors.grey[600]!;
+    }
+    
+    return Icon(
+      iconData,
+      color: iconColor,
+      size: 28,
     );
   }
 
@@ -270,15 +382,9 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> {
                         method.icon,
                         width: 32,
                         height: 32,
-                        errorBuilder: (context, error, stackTrace) => Icon(
-                          Icons.payment,
-                          color: Colors.grey[600],
-                        ),
+                        errorBuilder: (context, error, stackTrace) => _getPaymentIcon(method.id),
                       )
-                    : Icon(
-                        Icons.payment,
-                        color: Colors.grey[600],
-                      ),
+                    : _getPaymentIcon(method.id),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -375,20 +481,49 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> {
 
   String _getPaymentInstructions(PaymentMethod method) {
     switch (method.id) {
+      case 'qris':
+        return '1. Scan QR Code yang akan muncul setelah konfirmasi\n'
+               '2. Buka aplikasi e-wallet atau mobile banking favorit Anda\n'
+               '3. Scan QR Code dan konfirmasi pembayaran\n'
+               '4. Pembayaran akan diverifikasi otomatis\n'
+               '5. Langganan aktif dalam 1-3 menit';
+      
+      case 'shopeepay':
+        return '1. Anda akan diarahkan ke aplikasi ShopeePay\n'
+               '2. Login ke akun ShopeePay Anda\n'
+               '3. Konfirmasi detail pembayaran\n'
+               '4. Masukkan PIN ShopeePay\n'
+               '5. Langganan akan aktif secara otomatis';
+      
+      case 'dana':
+        return '1. Anda akan diarahkan ke aplikasi DANA\n'
+               '2. Login ke akun DANA Anda\n'
+               '3. Konfirmasi pembayaran dengan PIN/biometrik\n'
+               '4. Langganan akan aktif dalam hitungan detik';
+      
+      case 'gopay':
+        return '1. Anda akan diarahkan ke aplikasi Gojek\n'
+               '2. Konfirmasi pembayaran dengan PIN/biometrik\n'
+               '3. Langganan akan aktif secara otomatis';
+      
+      case 'ovo':
+        return '1. Anda akan diarahkan ke aplikasi OVO\n'
+               '2. Login ke akun OVO Anda\n'
+               '3. Konfirmasi pembayaran dengan PIN/biometrik\n'
+               '4. Langganan akan aktif secara otomatis';
+      
       case 'bca':
       case 'mandiri':
       case 'bni':
+      case 'ocbc':
         return '1. Setelah konfirmasi, Anda akan mendapat nomor Virtual Account\n'
                '2. Transfer sesuai nominal yang tertera\n'
                '3. Pembayaran akan diverifikasi otomatis\n'
-               '4. Langganan akan aktif dalam 1-5 menit';
-      case 'gopay':
-      case 'ovo':
-        return '1. Anda akan diarahkan ke aplikasi ${method.name}\n'
-               '2. Konfirmasi pembayaran di aplikasi\n'
-               '3. Langganan akan aktif secara otomatis';
+               '4. Langganan akan aktif dalam 1-5 menit\n'
+               '5. Simpan bukti transfer untuk referensi';
+      
       default:
-        return 'Ikuti instruksi pembayaran yang akan muncul.';
+        return 'Ikuti instruksi pembayaran yang akan muncul setelah konfirmasi.';
     }
   }
 

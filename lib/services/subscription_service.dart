@@ -23,9 +23,16 @@ class SubscriptionService {
 
   Future<void> _loadSubscription() async {
     final subscriptionData = await _localStorage.getSubscription();
+    print('DEBUG: LocalStorage subscription data = $subscriptionData');
+    
     if (subscriptionData != null) {
       _currentSubscription = UserSubscription.fromJson(subscriptionData);
       _subscriptionController.add(_currentSubscription);
+      print('DEBUG: Loaded subscription = $_currentSubscription');
+    } else {
+      print('DEBUG: No subscription data found in localStorage');
+      _currentSubscription = null;
+      _subscriptionController.add(null);
     }
   }
 
@@ -87,35 +94,70 @@ class SubscriptionService {
   // Get available payment methods
   List<PaymentMethod> getPaymentMethods() {
     return [
+      // E-Wallet Methods
+      PaymentMethod(
+        id: 'qris',
+        name: 'QRIS',
+        icon: 'assets/ic_qris.png',
+        description: 'Scan QR Code untuk pembayaran instant',
+        category: 'E-Wallet',
+      ),
+      PaymentMethod(
+        id: 'shopeepay',
+        name: 'ShopeePay',
+        icon: 'assets/ic_shopeepay.png',
+        description: 'Bayar dengan ShopeePay',
+        category: 'E-Wallet',
+      ),
+      PaymentMethod(
+        id: 'dana',
+        name: 'DANA',
+        icon: 'assets/ic_dana.png',
+        description: 'Bayar dengan DANA',
+        category: 'E-Wallet',
+      ),
+      PaymentMethod(
+        id: 'gopay',
+        name: 'GoPay',
+        icon: 'assets/ic_gopay.png',
+        description: 'Bayar dengan GoPay',
+        category: 'E-Wallet',
+      ),
+      PaymentMethod(
+        id: 'ovo',
+        name: 'OVO',
+        icon: 'assets/ic_ovo.png',
+        description: 'Bayar dengan OVO',
+        category: 'E-Wallet',
+      ),
+      // Bank Transfer Methods
       PaymentMethod(
         id: 'bca',
         name: 'BCA Virtual Account',
         icon: 'assets/img_bank_bca.png',
         description: 'Transfer melalui BCA Virtual Account',
+        category: 'Bank Transfer',
       ),
       PaymentMethod(
         id: 'mandiri',
         name: 'Mandiri Virtual Account',
         icon: 'assets/img_bank_mandiri.png',
         description: 'Transfer melalui Mandiri Virtual Account',
+        category: 'Bank Transfer',
       ),
       PaymentMethod(
         id: 'bni',
         name: 'BNI Virtual Account',
         icon: 'assets/img_bank_bni.png',
         description: 'Transfer melalui BNI Virtual Account',
+        category: 'Bank Transfer',
       ),
       PaymentMethod(
-        id: 'gopay',
-        name: 'GoPay',
-        icon: 'assets/ic_wallet.png',
-        description: 'Bayar dengan GoPay',
-      ),
-      PaymentMethod(
-        id: 'ovo',
-        name: 'OVO',
-        icon: 'assets/ic_wallet.png',
-        description: 'Bayar dengan OVO',
+        id: 'ocbc',
+        name: 'OCBC Virtual Account',
+        icon: 'assets/img_bank_ocbc.png',
+        description: 'Transfer melalui OCBC Virtual Account',
+        category: 'Bank Transfer',
       ),
     ];
   }
@@ -153,6 +195,14 @@ class SubscriptionService {
   // Get current subscription
   UserSubscription? getCurrentSubscription() {
     return _currentSubscription;
+  }
+
+  // Clear subscription (for testing)
+  Future<void> clearSubscription() async {
+    await _localStorage.clearSubscription();
+    _currentSubscription = null;
+    _subscriptionController.add(null);
+    print('DEBUG: Subscription cleared');
   }
 
   // Check if user has active subscription

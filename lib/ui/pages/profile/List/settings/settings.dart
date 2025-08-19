@@ -1,5 +1,6 @@
 import 'package:bank_sha/ui/pages/profile/List/settings/change_password.dart';
 import 'package:bank_sha/ui/pages/profile/List/settings/terms_and_condtions.dart';
+import 'package:bank_sha/ui/pages/profile/List/settings/notification_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/appbar.dart';
@@ -19,6 +20,11 @@ class Settings extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            CustomAppMenu(
+              iconURL: 'assets/ic_notification.png',
+              title: 'Pengaturan Notifikasi',
+              page: const NotificationSettings(),
+            ),
             CustomAppMenu(
               iconURL: 'assets/ic_setting.png',
               title: 'Ganti Password',

@@ -62,6 +62,10 @@ class LocalStorageService {
     return null;
   }
 
+  Future<void> clearSubscription() async {
+    await _preferences!.remove(_subscriptionKey);
+  }
+
   // User Data Storage
   Future<void> saveUserData(Map<String, dynamic> userData) async {
     final String userJson = jsonEncode(userData);

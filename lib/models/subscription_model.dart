@@ -142,6 +142,7 @@ class PaymentMethod {
   final String name;
   final String icon;
   final String description;
+  final String category;
   final bool isActive;
 
   PaymentMethod({
@@ -149,6 +150,7 @@ class PaymentMethod {
     required this.name,
     required this.icon,
     required this.description,
+    this.category = 'Other',
     this.isActive = true,
   });
 
@@ -158,6 +160,7 @@ class PaymentMethod {
       name: json['name'],
       icon: json['icon'],
       description: json['description'],
+      category: json['category'] ?? 'Other',
       isActive: json['isActive'] ?? true,
     );
   }
@@ -168,6 +171,7 @@ class PaymentMethod {
       'name': name,
       'icon': icon,
       'description': description,
+      'category': category,
       'isActive': isActive,
     };
   }
