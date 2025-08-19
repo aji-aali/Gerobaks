@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/pages/activity/activity_page_improved.dart';
 import 'package:bank_sha/ui/pages/profile/profile_page.dart';
-import 'package:bank_sha/ui/pages/tambah_jadwal_page.dart';
 import 'package:bank_sha/ui/pages/home/home_content.dart';
 import 'package:bank_sha/ui/widgets/shared/navbar.dart';
 import 'package:bank_sha/ui/pages/address/select_address_page.dart';
