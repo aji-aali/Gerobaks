@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/appbar.dart';
 import 'package:bank_sha/ui/pages/address/select_address_page.dart';
@@ -18,26 +17,13 @@ class HomeContent extends StatefulWidget {
 }
 
 class _HomeContentState extends State<HomeContent> {
-  // String untuk menyimpan waktu yang akan ditampilkan
-  String _currentTimeString = "";
-  // Timer untuk update waktu secara berkala
-  late Timer _timer;
-  
   // Status berlangganan
   bool isSubscribed = true; // Ganti dengan data real dari state management atau API
   
-  // Method untuk memperbarui string waktu
-  void _updateTime() {
-    final now = DateTime.now();
-    final String formattedTime = DateFormat('HH:mm:ss').format(now);
-    
-    // Hanya setState jika component masih mounted
-    if (mounted) {
-      setState(() {
-        _currentTimeString = formattedTime;
-      });
-    }
-  }
+  // Cache untuk greeting agar tidak perlu hitung ulang setiap build
+  late String _cachedGreeting;
+  late String _cachedDate;
+  late DateTime _lastCacheUpdate;
   
   // Method untuk toggle status berlangganan (hanya untuk demo)
   void _toggleSubscription() {
@@ -46,23 +32,48 @@ class _HomeContentState extends State<HomeContent> {
     });
   }
   
+  void _updateGreetingCache() {
+    DateTime now = DateTime.now();
+    
+    // Update greeting berdasarkan waktu
+    int hour = now.hour;
+    if (hour < 12) {
+      _cachedGreeting = 'Selamat Pagi';
+    } else if (hour < 15) {
+      _cachedGreeting = 'Selamat Siang';
+    } else if (hour < 18) {
+      _cachedGreeting = 'Selamat Sore';
+    } else {
+      _cachedGreeting = 'Selamat Malam';
+    }
+    
+    _cachedDate = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(now);
+    _lastCacheUpdate = now;
+  }
+  
+  String get greeting {
+    // Update cache jika sudah lebih dari 5 menit atau belum pernah diupdate
+    DateTime now = DateTime.now();
+    if (now.difference(_lastCacheUpdate).inMinutes > 5) {
+      _updateGreetingCache();
+    }
+    return _cachedGreeting;
+  }
+  
+  String get formattedDate {
+    DateTime now = DateTime.now();
+    if (now.difference(_lastCacheUpdate).inMinutes > 5) {
+      _updateGreetingCache();
+    }
+    return _cachedDate;
+  }
+  
   @override
   void initState() {
     super.initState();
     initializeDateFormatting('id_ID', null);
-    
-    // Inisialisasi waktu pertama kali
-    _updateTime();
-    
-    // Set timer untuk memperbarui waktu setiap detik
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
-  }
-  
-  @override
-  void dispose() {
-    // Membersihkan timer saat widget dihancurkan
-    _timer.cancel();
-    super.dispose();
+    _lastCacheUpdate = DateTime.now().subtract(const Duration(minutes: 10)); // Force first update
+    _updateGreetingCache();
   }
   
   // Helper method untuk membuat poin fitur dengan icon dalam bagian Tentang Kami
@@ -328,25 +339,6 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   Widget buildGreeting() {
-    // Get current time untuk setiap build
-    DateTime now = DateTime.now();
-    String greeting = '';
-    
-    // Determine the appropriate greeting based on time of day
-    int hour = now.hour;
-    if (hour < 12) {
-      greeting = 'Selamat Pagi';
-    } else if (hour < 15) {
-      greeting = 'Selamat Siang';
-    } else if (hour < 18) {
-      greeting = 'Selamat Sore';
-    } else {
-      greeting = 'Selamat Malam';
-    }
-    
-    // Format the date: e.g., "Senin, 15 April 2023"
-    String formattedDate = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(now);
-    
     return Container(
       margin: const EdgeInsets.only(bottom: 20, top: 14),
       child: Column(
@@ -437,32 +429,6 @@ class _HomeContentState extends State<HomeContent> {
                     const SizedBox(width: 6),
                     Text(
                       formattedDate,
-                      style: greyTextStyle.copyWith(
-                        fontSize: 14,
-                        fontWeight: medium,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              // Spacer antara tanggal dan jam
-              const SizedBox(width: 8),
-              
-              // Container untuk jam
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.access_time_rounded, size: 14, color: greyColor),
-                    const SizedBox(width: 6),
-                    Text(
-                      _currentTimeString,
                       style: greyTextStyle.copyWith(
                         fontSize: 14,
                         fontWeight: medium,
