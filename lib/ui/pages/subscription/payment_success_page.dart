@@ -5,10 +5,12 @@ import 'package:intl/intl.dart';
 
 class PaymentSuccessPage extends StatelessWidget {
   final UserSubscription subscription;
+  final bool isFromSignup;
 
   const PaymentSuccessPage({
     super.key,
     required this.subscription,
+    this.isFromSignup = false,
   });
 
   @override
@@ -139,11 +141,16 @@ class PaymentSuccessPage extends StatelessWidget {
           height: 50,
           child: ElevatedButton(
             onPressed: () {
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/home',
-                (route) => false,
-              );
+              if (isFromSignup) {
+                // Return true to indicate successful payment
+                Navigator.pop(context, true);
+              } else {
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/home',
+                  (route) => false,
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: greenColor,
@@ -152,7 +159,7 @@ class PaymentSuccessPage extends StatelessWidget {
               ),
             ),
             child: Text(
-              'Kembali ke Beranda',
+              isFromSignup ? 'Lanjutkan' : 'Kembali ke Beranda',
               style: whiteTextStyle.copyWith(
                 fontSize: 16,
                 fontWeight: semiBold,
@@ -160,30 +167,32 @@ class PaymentSuccessPage extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: OutlinedButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/my-subscription');
-            },
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: greenColor),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+        if (!isFromSignup) ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: OutlinedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/my-subscription');
+              },
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: greenColor),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-            ),
-            child: Text(
-              'Lihat Langganan Saya',
-              style: blackTextStyle.copyWith(
-                fontSize: 16,
-                fontWeight: semiBold,
-                color: greenColor,
+              child: Text(
+                'Lihat Langganan Saya',
+                style: blackTextStyle.copyWith(
+                  fontSize: 16,
+                  fontWeight: semiBold,
+                  color: greenColor,
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ],
     );
   }

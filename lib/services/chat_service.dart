@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import '../models/chat_model.dart';
 import '../services/local_storage_service.dart';
+import '../services/gemini_ai_service.dart';
 
 class ChatService {
   static final ChatService _instance = ChatService._internal();
@@ -125,21 +126,79 @@ class ChatService {
       _conversationsController.add(_conversations);
       await _saveConversationsToStorage();
 
-      // Simulate admin response after 2 seconds
-      Timer(const Duration(seconds: 2), () {
-        _simulateAdminResponse(conversationId);
+      // Generate AI response using conversation history
+      Timer(const Duration(seconds: 1), () {
+        _generateAIResponse(conversationId, message);
       });
     }
   }
 
-  // Simulate admin response
-  void _simulateAdminResponse(String conversationId) async {
+  // Generate AI response using Gemini
+  void _generateAIResponse(String conversationId, String userMessage) async {
+    try {
+      final geminiService = GeminiAIService();
+      
+      // Get conversation history for context
+      final conversationIndex = _conversations.indexWhere((c) => c.id == conversationId);
+      if (conversationIndex == -1) return;
+      
+      final conversation = _conversations[conversationIndex];
+      final recentMessages = conversation.messages
+          .where((m) => m.type == MessageType.text)
+          .take(10)
+          .map((m) => '${m.isFromUser ? "User" : "Admin"}: ${m.message}')
+          .toList();
+      
+      // Generate AI response
+      final aiResponse = await geminiService.generateResponse(
+        userMessage,
+        conversationHistory: recentMessages,
+      );
+      
+      final adminMessage = ChatMessage(
+        id: _generateId(),
+        message: aiResponse,
+        timestamp: DateTime.now(),
+        isFromUser: false,
+      );
+
+      // Add AI response to conversation
+      final updatedMessages = List<ChatMessage>.from(conversation.messages)..add(adminMessage);
+      
+      _conversations[conversationIndex] = ChatConversation(
+        id: conversation.id,
+        title: conversation.title,
+        lastMessage: aiResponse.length > 50 
+            ? '${aiResponse.substring(0, 50)}...' 
+            : aiResponse,
+        lastMessageTime: DateTime.now(),
+        isUnread: true,
+        unreadCount: conversation.unreadCount + 1,
+        adminName: conversation.adminName,
+        adminAvatar: conversation.adminAvatar,
+        messages: updatedMessages,
+      );
+
+      _currentMessages = updatedMessages;
+      _messagesController.add(_currentMessages);
+      _conversationsController.add(_conversations);
+      await _saveConversationsToStorage();
+      
+    } catch (e) {
+      print('Error generating AI response: $e');
+      // Fallback to simple response if AI fails
+      _generateFallbackResponse(conversationId);
+    }
+  }
+
+  // Fallback response if AI service fails
+  void _generateFallbackResponse(String conversationId) async {
     final responses = [
-      'Terima kasih atas pertanyaannya. Tim kami akan segera menindaklanjuti.',
-      'Baik, saya akan membantu Anda mengatasi masalah ini.',
+      'Terima kasih atas pertanyaannya. Tim customer service Gerobaks siap membantu Anda! 😊',
+      'Hai! Saya akan membantu Anda dengan layanan pengelolaan sampah Gerobaks.',
       'Mohon tunggu sebentar, saya akan cek informasinya untuk Anda.',
-      'Apakah ada hal lain yang bisa saya bantu?',
-      'Tim teknis kami akan segera menangani masalah tersebut.',
+      'Ada yang bisa saya bantu terkait layanan Gerobaks hari ini?',
+      'Tim Gerobaks selalu siap memberikan solusi terbaik untuk pengelolaan sampah Anda.',
     ];
 
     final randomResponse = responses[Random().nextInt(responses.length)];

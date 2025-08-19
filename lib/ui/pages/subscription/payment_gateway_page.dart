@@ -8,10 +8,12 @@ import 'package:bank_sha/ui/pages/subscription/payment_success_page.dart';
 
 class PaymentGatewayPage extends StatefulWidget {
   final SubscriptionPlan plan;
+  final bool isFromSignup;
 
   const PaymentGatewayPage({
     super.key,
     required this.plan,
+    this.isFromSignup = false,
   });
 
   @override
@@ -55,7 +57,10 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => PaymentSuccessPage(subscription: subscription),
+            builder: (context) => PaymentSuccessPage(
+              subscription: subscription,
+              isFromSignup: widget.isFromSignup,
+            ),
           ),
         );
       }

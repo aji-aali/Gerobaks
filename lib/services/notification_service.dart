@@ -1,189 +1,562 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
+import '../services/gemini_ai_service.dart';
+import '../services/local_storage_service.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
-  
-  // Flag untuk mencegah multiple init
-  bool _initialized = false;
 
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  Timer? _dailyPantunTimer;
+  bool _isInitialized = false;
 
-  Future<void> init() async {
-    // Cek apakah sudah diinisialisasi
-    if (_initialized) {
-      debugPrint('NotificationService sudah diinisialisasi sebelumnya');
-      return;
-    }
-    
-    // Pengaturan untuk Android
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-        
-    // Pengaturan untuk iOS
-    final DarwinInitializationSettings initializationSettingsIOS =
-        DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
+  Future<void> initialize() async {
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosSettings = DarwinInitializationSettings(
       requestSoundPermission: true,
-      onDidReceiveLocalNotification: (id, title, body, payload) async {},
-    );
-
-    // Inisialisasi pengaturan
-    final InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
-
-    // Inisialisasi plugin
-    await flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
-      onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) async {
-        // Callback saat notifikasi ditekan
-        debugPrint('Notifikasi ditekan: ${notificationResponse.payload}');
-      },
+      requestBadgePermission: true,
+      requestAlertPermission: true,
     );
     
-    // Buat channel notifikasi dengan pengaturan suara khusus
-    await _createNotificationChannel();
-    
-    // Set flag inisialisasi berhasil
-    _initialized = true;
-    debugPrint('NotificationService berhasil diinisialisasi');
+    const initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+
+    await _notifications.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: _onNotificationTapped,
+    );
+
+    await _createNotificationChannels();
+    await _scheduleDailyPantun();
+    _isInitialized = true;
   }
-  
-  // Membuat channel khusus untuk Android
-  Future<void> _createNotificationChannel() async {
-    const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      'gerobaks_channel', // id
-      'Gerobaks Notifications', // name
-      description: 'Notifikasi untuk aplikasi Gerobaks', // description
-      importance: Importance.max,
-      playSound: true,
+
+  Future<void> _createNotificationChannels() async {
+    // Chat notifications channel
+    const chatChannel = AndroidNotificationChannel(
+      'chat_notifications',
+      'Chat Notifications',
+      description: 'Notifications for new chat messages',
+      importance: Importance.high,
       sound: RawResourceAndroidNotificationSound('notification_sound'),
     );
 
+    // Pickup notifications channel
+    const pickupChannel = AndroidNotificationChannel(
+      'pickup_notifications',
+      'Pickup Notifications',
+      description: 'Notifications for waste pickup schedules',
+      importance: Importance.max,
+      sound: RawResourceAndroidNotificationSound('pickup_sound'),
+    );
+
+    // Daily pantun channel
+    const pantunChannel = AndroidNotificationChannel(
+      'daily_pantun',
+      'Daily Pantun',
+      description: 'Daily motivational pantun about waste management',
+      importance: Importance.defaultImportance,
+    );
+
+    // Subscription notifications channel
+    const subscriptionChannel = AndroidNotificationChannel(
+      'subscription_notifications',
+      'Subscription Notifications',
+      description: 'Notifications about subscription status and renewals',
+      importance: Importance.high,
+    );
+
+    await _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(chatChannel);
+    
+    await _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(pickupChannel);
+    
+    await _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(pantunChannel);
+    
+    await _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(subscriptionChannel);
+  }
+
+  Future<void> _onNotificationTapped(NotificationResponse response) async {
+    final payload = response.payload;
+    if (payload != null) {
+      if (payload.startsWith('chat:')) {
+        // Navigate to specific chat
+        // This will be handled by main app navigation
+      } else if (payload.startsWith('pickup:')) {
+        // Navigate to tracking page
+      } else if (payload.startsWith('subscription:')) {
+        // Navigate to subscription page
+      }
+    }
+  }
+
+  // Chat notification with subscription badge
+  Future<void> showChatNotification({
+    required String conversationId,
+    required String senderName,
+    required String message,
+    required String userSubscriptionStatus,
+  }) async {
+    if (!_isInitialized) return;
+
+    final subscriptionBadge = _getSubscriptionBadge(userSubscriptionStatus);
+    String title;
+    
+    if (userSubscriptionStatus.toLowerCase() == 'none' || userSubscriptionStatus.toLowerCase() == '') {
+      title = '$subscriptionBadge $senderName (Anda belum berlangganan)';
+    } else {
+      title = '$subscriptionBadge $senderName';
+    }
+    
+    final androidDetails = AndroidNotificationDetails(
+      'chat_notifications',
+      'Chat Notifications',
+      channelDescription: 'Notifications for new chat messages',
+      importance: Importance.high,
+      priority: Priority.high,
+      showWhen: true,
+      styleInformation: BigTextStyleInformation(
+        message,
+        htmlFormatBigText: true,
+        contentTitle: title,
+        htmlFormatContentTitle: true,
+      ),
+      color: _getSubscriptionColor(userSubscriptionStatus),
+      colorized: true,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notifications.show(
+      conversationId.hashCode,
+      title,
+      message.length > 100 ? '${message.substring(0, 100)}...' : message,
+      details,
+      payload: 'chat:$conversationId',
+    );
+  }
+
+  // Pickup notification
+  Future<void> showPickupNotification({
+    required String title,
+    required String message,
+    required DateTime scheduledTime,
+    String? address,
+  }) async {
+    if (!_isInitialized) return;
+
+    final androidDetails = AndroidNotificationDetails(
+      'pickup_notifications',
+      'Pickup Notifications',
+      channelDescription: 'Notifications for waste pickup schedules',
+      importance: Importance.max,
+      priority: Priority.high,
+      showWhen: true,
+      when: scheduledTime.millisecondsSinceEpoch,
+      styleInformation: BigTextStyleInformation(
+        message,
+        htmlFormatBigText: true,
+        contentTitle: '🚛 $title',
+        htmlFormatContentTitle: true,
+        summaryText: address,
+      ),
+      color: Colors.green,
+      colorized: true,
+      actions: [
+        const AndroidNotificationAction(
+          'track_pickup',
+          'Track Pickup',
+          showsUserInterface: true,
+        ),
+        const AndroidNotificationAction(
+          'reschedule',
+          'Reschedule',
+          showsUserInterface: true,
+        ),
+      ],
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notifications.show(
+      scheduledTime.hashCode,
+      '🚛 $title',
+      message,
+      details,
+      payload: 'pickup:${scheduledTime.toIso8601String()}',
+    );
+  }
+
+  // Daily pantun notification
+  Future<void> _scheduleDailyPantun() async {
+    final storage = await LocalStorageService.getInstance();
+    final lastPantunDate = await storage.getString('last_pantun_date');
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    
+    if (lastPantunDate != today) {
+      // Show pantun immediately instead of scheduling
+      await _showDailyPantunNow();
+    }
+  }
+
+  Future<void> _showDailyPantunNow() async {
     try {
-      // Membuat channel notifikasi khusus
-      await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-          ?.createNotificationChannel(channel);
-          
-      print('Channel notifikasi berhasil dibuat: ${channel.id}');
-      print('Sound file yang digunakan: notification_sound.wav');
+      final geminiService = GeminiAIService();
+      final pantun = await geminiService.generateDailyPantun();
+      
+      final androidDetails = AndroidNotificationDetails(
+        'daily_pantun',
+        'Daily Pantun',
+        channelDescription: 'Daily motivational pantun about waste management',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        styleInformation: BigTextStyleInformation(
+          pantun,
+          htmlFormatBigText: true,
+          contentTitle: '🌱 Pantun Hari Ini dari Gerobaks',
+          htmlFormatContentTitle: true,
+        ),
+        color: Colors.green[400],
+        colorized: true,
+      );
+
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+
+      final details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _notifications.show(
+        'daily_pantun'.hashCode,
+        '🌱 Pantun Hari Ini dari Gerobaks',
+        pantun,
+        details,
+      );
+
+      // Mark today as pantun sent
+      final storage = await LocalStorageService.getInstance();
+      final today = DateTime.now().toIso8601String().split('T')[0];
+      await storage.saveString('last_pantun_date', today);
+      
     } catch (e) {
-      print('Error saat membuat notification channel: $e');
+      print('Error showing pantun notification: $e');
+      // Fallback with simple pantun
+      await _showFallbackPantun();
     }
   }
 
-  // Fungsi untuk meminta izin notifikasi
-  Future<bool> _requestPermissions() async {
-    if (flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>() !=
-        null) {
-      final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-          flutterLocalNotificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                  AndroidFlutterLocalNotificationsPlugin>();
-                  
-      // Meminta izin untuk Android 13 ke atas
-      final bool? granted = await androidImplementation?.requestNotificationsPermission();
-      return granted ?? false;
-    }
-    return true;
+  Future<void> _showFallbackPantun() async {
+    final pantuns = [
+      'Bunga melati harum semerbak\nPagi hari burung berkicau\nSampah dipilah jangan sepak\nLingkungan bersih hati pun rau',
+      'Gerobaks hadir solusi besar\nSampah terkelola hidup makin pas\nDaur ulang sampah jadi guna\nBumi lestari untuk nanti',
+    ];
+    
+    final randomPantun = pantuns[Random().nextInt(pantuns.length)];
+    
+    final androidDetails = AndroidNotificationDetails(
+      'daily_pantun',
+      'Daily Pantun',
+      channelDescription: 'Daily motivational pantun about waste management',
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+      styleInformation: BigTextStyleInformation(
+        randomPantun,
+        htmlFormatBigText: true,
+        contentTitle: '🌱 Pantun Hari Ini dari Gerobaks',
+        htmlFormatContentTitle: true,
+      ),
+      color: Colors.green[400],
+      colorized: true,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notifications.show(
+      'daily_pantun'.hashCode,
+      '🌱 Pantun Hari Ini dari Gerobaks',
+      randomPantun,
+      details,
+    );
   }
 
-  // Fungsi untuk menampilkan notifikasi
+  // Subscription notification
+  Future<void> showSubscriptionNotification({
+    required String title,
+    required String message,
+    required String subscriptionStatus,
+    String? actionUrl,
+  }) async {
+    if (!_isInitialized) return;
+
+    final badge = _getSubscriptionBadge(subscriptionStatus);
+    String finalTitle;
+    
+    if (subscriptionStatus.toLowerCase() == 'none' || subscriptionStatus.toLowerCase() == '') {
+      finalTitle = '$badge $title - Anda belum berlangganan';
+    } else {
+      finalTitle = '$badge $title';
+    }
+    
+    final androidDetails = AndroidNotificationDetails(
+      'subscription_notifications',
+      'Subscription Notifications',
+      channelDescription: 'Notifications about subscription status and renewals',
+      importance: Importance.high,
+      priority: Priority.high,
+      styleInformation: BigTextStyleInformation(
+        message,
+        htmlFormatBigText: true,
+        contentTitle: finalTitle,
+        htmlFormatContentTitle: true,
+      ),
+      color: _getSubscriptionColor(subscriptionStatus),
+      colorized: true,
+      actions: actionUrl != null ? [
+        const AndroidNotificationAction(
+          'open_subscription',
+          'Kelola Langganan',
+          showsUserInterface: true,
+        ),
+      ] : null,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notifications.show(
+      title.hashCode,
+      '$badge $title',
+      message,
+      details,
+      payload: actionUrl != null ? 'subscription:$actionUrl' : null,
+    );
+  }
+
+  String _getSubscriptionBadge(String status) {
+    switch (status.toLowerCase()) {
+      case 'basic':
+        return '🏠';
+      case 'premium':
+        return '⭐';
+      case 'pro':
+        return '🏢';
+      default:
+        return '!'; // Warning icon for no subscription
+    }
+  }
+
+  Color _getSubscriptionColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'basic':
+        return Colors.blue;
+      case 'premium':
+        return Colors.purple;
+      case 'pro':
+        return Colors.amber;
+      default:
+        return Colors.red; // Red for no subscription to draw attention
+    }
+  }
+
+  // Schedule pickup reminder (immediate notification)
+  Future<void> schedulePickupReminder({
+    required DateTime pickupTime,
+    required String address,
+  }) async {
+    final reminderTime = pickupTime.subtract(const Duration(minutes: 30));
+    
+    if (reminderTime.isAfter(DateTime.now())) {
+      // Show immediate notification instead of scheduling
+      await _notifications.show(
+        pickupTime.hashCode,
+        '🚛 Pickup Reminder',
+        'Your waste pickup is scheduled for ${pickupTime.hour}:${pickupTime.minute.toString().padLeft(2, '0')} at $address',
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'pickup_notifications',
+            'Pickup Notifications',
+            channelDescription: 'Notifications for waste pickup schedules',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+        payload: 'pickup:${pickupTime.toIso8601String()}',
+      );
+    }
+  }
+
+  // Legacy methods for backward compatibility
+  Future<void> init() async {
+    await initialize();
+  }
+
   Future<void> showNotification({
     required int id,
     required String title,
     required String body,
     String? payload,
   }) async {
-    // Debug info
-    print('===== DEBUG NOTIFIKASI =====');
-    print('ID Notifikasi: $id');
-    print('Judul: $title');
-    print('Isi: $body');
-    
-    // Meminta izin terlebih dahulu
-    bool permissionGranted = await _requestPermissions();
-    print('Izin notifikasi diberikan: $permissionGranted');
-    
-    if (!permissionGranted) {
-      print('Izin notifikasi tidak diberikan, notifikasi mungkin tidak akan muncul');
-    }
+    if (!_isInitialized) return;
 
-    // Channel untuk Android
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-      'gerobaks_channel', // ID channel
-      'Gerobaks Notifications', // Nama channel
+    const androidDetails = AndroidNotificationDetails(
+      'gerobaks_channel',
+      'Gerobaks Notifications',
       channelDescription: 'Notifikasi untuk aplikasi Gerobaks',
       importance: Importance.max,
       priority: Priority.high,
       sound: RawResourceAndroidNotificationSound('notification_sound'),
-      playSound: true,
-      enableVibration: true,
-      enableLights: true,
-      channelShowBadge: true,
-      channelAction: AndroidNotificationChannelAction.createIfNotExists,
     );
-    
-    print('Android sound file: notification_sound.wav di folder raw');
 
-    // Channel untuk iOS
-    final DarwinNotificationDetails iOSPlatformChannelSpecifics =
-        DarwinNotificationDetails(
+    const iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
-      sound: 'notification_sound.wav',
-    );
-    
-    print('iOS sound file: notification_sound.wav di folder Resources');
-
-    // Pengaturan platform
-    final NotificationDetails platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-      iOS: iOSPlatformChannelSpecifics,
     );
 
-    try {
-      // Tampilkan notifikasi
-      await flutterLocalNotificationsPlugin.show(
-        id,
-        title,
-        body,
-        platformChannelSpecifics,
-        payload: payload,
-      );
-      print('Notifikasi berhasil ditampilkan');
-    } catch (e) {
-      print('Error menampilkan notifikasi: $e');
-      print('Stack trace: ${StackTrace.current}');
-    }
-    print('===== END DEBUG NOTIFIKASI =====');
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notifications.show(id, title, body, details, payload: payload);
   }
 
-  // Fungsi untuk notifikasi login berhasil
   Future<void> showLoginSuccessNotification() async {
     await showNotification(
-      id: DateTime.now().millisecond, // ID unik berdasarkan waktu
+      id: DateTime.now().millisecond,
       title: 'Login Berhasil',
       body: 'Anda berhasil login ke Gerobaks',
     );
   }
-  
-  // Fungsi untuk notifikasi pendaftaran berhasil
+
   Future<void> showSignUpSuccessNotification() async {
     await showNotification(
-      id: DateTime.now().millisecond, // ID unik berdasarkan waktu
+      id: DateTime.now().millisecond,
       title: 'Selamat Bergabung!',
-      body: 'Akun Anda telah berhasil terdaftar di Gerobaks',
+      body: 'Akun Gerobaks Anda berhasil dibuat. Selamat menjadi bagian dari komunitas hijau!',
     );
+  }
+
+  // Show subscription reminder for non-subscribed users
+  Future<void> showSubscriptionReminder() async {
+    if (!_isInitialized) return;
+
+    const title = 'Dapatkan Pengalaman Terbaik!';
+    const message = 'Berlangganan sekarang untuk akses penuh ke semua fitur Gerobaks dan layanan premium.';
+    
+    final androidDetails = AndroidNotificationDetails(
+      'subscription_notifications',
+      'Subscription Notifications',
+      channelDescription: 'Notifications about subscription status and renewals',
+      importance: Importance.high,
+      priority: Priority.high,
+      styleInformation: const BigTextStyleInformation(
+        message,
+        htmlFormatBigText: true,
+        contentTitle: '! $title - Anda belum berlangganan',
+        htmlFormatContentTitle: true,
+      ),
+      color: Colors.red,
+      colorized: true,
+      actions: const [
+        AndroidNotificationAction(
+          'open_subscription',
+          'Berlangganan Sekarang',
+          showsUserInterface: true,
+        ),
+        AndroidNotificationAction(
+          'remind_later',
+          'Ingatkan Nanti',
+          showsUserInterface: false,
+        ),
+      ],
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notifications.show(
+      'subscription_reminder'.hashCode,
+      '! $title',
+      message,
+      details,
+      payload: 'subscription:/subscription-plans',
+    );
+  }
+
+  // Cancel all notifications
+  Future<void> cancelAllNotifications() async {
+    await _notifications.cancelAll();
+  }
+
+  // Cancel specific notification
+  Future<void> cancelNotification(int id) async {
+    await _notifications.cancel(id);
+  }
+
+  void dispose() {
+    _dailyPantunTimer?.cancel();
   }
 }

@@ -325,10 +325,10 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
                       title: 'Lanjutkan',
                       onPressed: () {
                         if (_formKey.currentState!.validate() && _selectedLocation != null) {
-                          // Pass all data to next page
+                          // Pass all data to subscription page
                           Navigator.pushNamed(
                             context,
-                            '/sign-up-batch-5',
+                            '/sign-up-subscription',
                             arguments: {
                               ...?arguments,
                               'address': _addressController.text,
