@@ -1,5 +1,6 @@
 import 'package:bank_sha/ui/pages/popupiklan.dart';
 import 'package:bank_sha/ui/pages/wilayah/wilayah_page.dart';
+import 'package:bank_sha/utils/subscription_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/pages/activity/activity_page_improved.dart';
@@ -51,11 +52,14 @@ class _HomePageState extends State<HomePage> {
         width: 60,
         margin: const EdgeInsets.only(top: 30),
         child: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SelectAddressPage()),
-            );
+          onPressed: () async {
+            final hasSubscription = await SubscriptionGuard.checkSubscriptionAndShowDialog(context);
+            if (hasSubscription && mounted) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SelectAddressPage()),
+              );
+            }
           },
           elevation: 4,
           highlightElevation: 8,

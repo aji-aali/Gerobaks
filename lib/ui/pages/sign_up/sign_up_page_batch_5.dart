@@ -567,13 +567,13 @@ class _SignUpBatch5PageState extends State<SignUpBatch5Page> {
             SizedBox(
               width: double.infinity,
               child: CustomFilledButton(
-                title: 'Mulai Belanja',
+                title: 'Lanjutkan ke Berlangganan',
                 onPressed: () {
                   Navigator.of(context).pop();
-                  // Navigate to home page
+                  // Navigate to subscription plans page
                   Navigator.pushNamedAndRemoveUntil(
                     context,
-                    '/sign-up-success',
+                    '/subscription-plans',
                     (route) => false,
                   );
                 },

@@ -174,19 +174,23 @@ class CustomAppMenu extends StatelessWidget {
   final String iconURL;
   final String title;
   final Widget? page;
+  final VoidCallback? onTap;
 
   const CustomAppMenu({
     super.key,
     required this.iconURL,
     required this.title,
     this.page,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        if (page != null) {
+        if (onTap != null) {
+          onTap!();
+        } else if (page != null) {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => page!),

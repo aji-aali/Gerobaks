@@ -1,5 +1,6 @@
 import 'package:bank_sha/ui/pages/tracking/tracking_full_screen.dart';
 import 'package:bank_sha/ui/pages/wilayah/wilayah_full_screen.dart';
+import 'package:bank_sha/ui/widgets/shared/chat_icon_with_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:bank_sha/shared/theme.dart';
 
@@ -150,38 +151,50 @@ class CustomAppBarHome extends StatelessWidget implements PreferredSizeWidget {
                 ],
               ),
 
-              // Notification icon
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, '/notif');
-                },
-                child: Stack(
-                  children: [
-                    Image.asset(
-                      'assets/ic_notification.png',
-                      width: 32,
-                      height: 32,
-                    ),
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: redcolor,
-                          shape: BoxShape.circle,
+              // Actions Row - Notification and Chat icons
+              Row(
+                children: [
+                  // Chat icon with badge
+                  ChatIconWithBadge(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/chat');
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  // Notification icon
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/notif');
+                    },
+                    child: Stack(
+                      children: [
+                        Image.asset(
+                          'assets/ic_notification.png',
+                          width: 32,
+                          height: 32,
                         ),
-                        child: Text(
-                          '3',
-                          style: whiteTextStyle.copyWith(
-                            fontSize: 10,
-                            fontWeight: bold,
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: redcolor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              '3',
+                              style: whiteTextStyle.copyWith(
+                                fontSize: 10,
+                                fontWeight: bold,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),

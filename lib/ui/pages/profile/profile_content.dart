@@ -56,6 +56,14 @@ class ProfileContent extends StatelessWidget {
             page: Myprofile(), // ganti dengan halaman yang sesuai
           ),
           CustomAppMenu(
+            iconURL: 'assets/ic_my_rewards.png',
+            title: 'Langganan Saya',
+            page: Container(), // Will be handled with navigation
+            onTap: () {
+              Navigator.pushNamed(context, '/my-subscription');
+            },
+          ),
+          CustomAppMenu(
             iconURL: 'assets/ic_kebijakan.png',
             title: 'Privacy policy',
             page: PrivacyPolicy(),

@@ -4,6 +4,9 @@ import 'package:bank_sha/ui/pages/reward/reward_page.dart';
 import 'package:bank_sha/ui/pages/tracking/tracking_full_screen.dart';
 import 'package:bank_sha/ui/pages/wilayah/wilayah_full_screen.dart';
 import 'package:bank_sha/ui/pages/wilayah/wilayah_page.dart';
+import 'package:bank_sha/ui/pages/chat/chat_list_page.dart';
+import 'package:bank_sha/ui/pages/subscription/subscription_plans_page.dart';
+import 'package:bank_sha/ui/pages/subscription/my_subscription_page.dart';
 import 'package:bank_sha/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -64,6 +67,9 @@ class MyApp extends StatelessWidget {
         '/sign-up-success': (context) => SignUpSuccessPage(),
         '/home': (context) => HomePage(),
         '/notif': (context) => NotificationPage(),
+        '/chat': (context) => ChatListPage(),
+        '/subscription-plans': (context) => SubscriptionPlansPage(),
+        '/my-subscription': (context) => MySubscriptionPage(),
         '/tambah-jadwal': (context) => const TambahJadwalPage(),
         '/tracking': (context) => const TrackingPage(),
         '/wilayah': (context) => const WilayahPage(),

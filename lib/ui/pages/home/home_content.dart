@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/appbar.dart';
 import 'package:bank_sha/ui/pages/address/select_address_page.dart';
+import 'package:bank_sha/utils/subscription_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -22,6 +23,9 @@ class _HomeContentState extends State<HomeContent> {
   // Timer untuk update waktu secara berkala
   late Timer _timer;
   
+  // Status berlangganan
+  bool isSubscribed = true; // Ganti dengan data real dari state management atau API
+  
   // Method untuk memperbarui string waktu
   void _updateTime() {
     final now = DateTime.now();
@@ -33,6 +37,13 @@ class _HomeContentState extends State<HomeContent> {
         _currentTimeString = formattedTime;
       });
     }
+  }
+  
+  // Method untuk toggle status berlangganan (hanya untuk demo)
+  void _toggleSubscription() {
+    setState(() {
+      isSubscribed = !isSubscribed;
+    });
   }
   
   @override
@@ -119,6 +130,12 @@ class _HomeContentState extends State<HomeContent> {
             padding: const EdgeInsets.only(bottom: 30),
             child: Column(
               children: [
+                // Subscription Banner
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  child: SubscriptionGuard.buildSubscriptionBanner(context),
+                ),
+                
                 // Greeting dengan padding yang lebih seimbang
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
@@ -358,6 +375,49 @@ class _HomeContentState extends State<HomeContent> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 6),
+          // Badge Status Berlangganan
+          Container(
+            margin: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: _toggleSubscription, // Untuk demo/testing
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: isSubscribed 
+                          ? greenColor.withOpacity(0.1)
+                          : Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        isSubscribed
+                            ? Icon(Icons.check_circle, size: 16, color: greenColor)
+                            : const Icon(Icons.info_outline, size: 16, color: Colors.orange),
+                        const SizedBox(width: 6),
+                        Text(
+                          isSubscribed ? 'Anda telah berlangganan' : 'Anda belum berlangganan',
+                          style: isSubscribed
+                              ? greentextstyle2.copyWith(
+                                  fontSize: 12,
+                                  fontWeight: medium,
+                                )
+                              : TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: medium,
+                                  color: Colors.orange,
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 8),
           // Tanggal dan jam dengan layout yang lebih seimbang
