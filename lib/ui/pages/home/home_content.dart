@@ -369,75 +369,79 @@ class _HomeContentState extends State<HomeContent> {
             ],
           ),
           const SizedBox(height: 6),
-          // Badge Status Berlangganan
+          // Badge Status Berlangganan dan Tanggal dalam satu row
           Container(
             margin: const EdgeInsets.only(bottom: 6),
             child: Row(
               children: [
-                GestureDetector(
-                  onTap: _toggleSubscription, // Untuk demo/testing
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: isSubscribed 
-                          ? greenColor.withOpacity(0.1)
-                          : Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                // Badge Subscription - Flexible untuk text yang panjang
+                Flexible(
+                  child: GestureDetector(
+                    onTap: _toggleSubscription, // Untuk demo/testing
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: isSubscribed 
+                            ? greenColor.withOpacity(0.1)
+                            : Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          isSubscribed
+                              ? Icon(Icons.check_circle, size: 16, color: greenColor)
+                              : const Icon(Icons.info_outline, size: 16, color: Colors.orange),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              isSubscribed ? 'Anda telah berlangganan' : 'Anda belum berlangganan',
+                              style: isSubscribed
+                                  ? greentextstyle2.copyWith(
+                                      fontSize: 12,
+                                      fontWeight: medium,
+                                    )
+                                  : TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: medium,
+                                      color: Colors.orange,
+                                    ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        isSubscribed
-                            ? Icon(Icons.check_circle, size: 16, color: greenColor)
-                            : const Icon(Icons.info_outline, size: 16, color: Colors.orange),
-                        const SizedBox(width: 6),
-                        Text(
-                          isSubscribed ? 'Anda telah berlangganan' : 'Anda belum berlangganan',
-                          style: isSubscribed
-                              ? greentextstyle2.copyWith(
-                                  fontSize: 12,
-                                  fontWeight: medium,
-                                )
-                              : TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: medium,
-                                  color: Colors.orange,
-                                ),
+                  ),
+                ),
+                
+                // Spacer antara badge dan tanggal
+                const SizedBox(width: 12),
+                
+                // Container untuk tanggal
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.calendar_today, size: 14, color: greyColor),
+                      const SizedBox(width: 6),
+                      Text(
+                        formattedDate,
+                        style: greyTextStyle.copyWith(
+                          fontSize: 12,
+                          fontWeight: medium,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 8),
-          // Tanggal dan jam dengan layout yang lebih seimbang
-          Row(
-            children: [
-              // Container untuk tanggal
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.calendar_today, size: 14, color: greyColor),
-                    const SizedBox(width: 6),
-                    Text(
-                      formattedDate,
-                      style: greyTextStyle.copyWith(
-                        fontSize: 14,
-                        fontWeight: medium,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ),
         ],
       ),
