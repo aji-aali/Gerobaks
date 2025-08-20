@@ -10,6 +10,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:bank_sha/models/information_model.dart';
 import 'package:bank_sha/utils/modal_helpers.dart';
+import 'package:bank_sha/ui/widgets/skeleton/skeleton_items.dart';
 
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
@@ -20,6 +21,10 @@ class HomeContent extends StatefulWidget {
 
 class _HomeContentState extends State<HomeContent> {
   final SubscriptionService _subscriptionService = SubscriptionService();
+  
+  // State for skeleton loading
+  bool _isLoading = true;
+  bool _isLoadingSubscription = true;
   
   // Cache untuk greeting agar tidak perlu hitung ulang setiap build
   late String _cachedGreeting;
@@ -73,6 +78,110 @@ class _HomeContentState extends State<HomeContent> {
     initializeDateFormatting('id_ID', null);
     _lastCacheUpdate = DateTime.now().subtract(const Duration(minutes: 10)); // Force first update
     _updateGreetingCache();
+    
+    // Simulate loading data
+    _loadInitialData();
+  }
+  
+  Future<void> _loadInitialData() async {
+    // Simulate network delay
+    await Future.delayed(const Duration(seconds: 2));
+    
+    // Check subscription status
+    await _subscriptionService.initialize();
+    
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        _isLoadingSubscription = false;
+      });
+    }
+  }
+  
+  // Skeleton loading untuk seluruh halaman home
+  Widget _buildSkeletonLoading(double horizontalPadding) {
+    return ListView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      children: [
+        // Skeleton untuk greeting
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SkeletonItems.text(height: 30, width: 200),
+              const SizedBox(height: 8),
+              SkeletonItems.text(height: 18, width: 160),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(child: SkeletonItems.text(height: 30)),
+                  const SizedBox(width: 10),
+                  SkeletonItems.text(width: 100, height: 30),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        
+        // Skeleton untuk quick picks
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SkeletonItems.text(height: 24, width: 150),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  for (int i = 0; i < 4; i++) ...[
+                    if (i > 0) const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          SkeletonItems.circle(size: 50),
+                          const SizedBox(height: 8),
+                          SkeletonItems.text(height: 14, width: 60),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 28),
+        
+        // Skeleton untuk carousel
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+          child: SkeletonItems.text(height: 24, width: 120),
+        ),
+        const SizedBox(height: 16),
+        SkeletonItems.card(height: 180),
+        
+        const SizedBox(height: 28),
+        
+        // Skeleton untuk menu item list
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SkeletonItems.text(height: 24, width: 150),
+              const SizedBox(height: 16),
+              for (int i = 0; i < 3; i++) ...[
+                SkeletonItems.listItem(),
+                const SizedBox(height: 12),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
   }
   
   // Helper method untuk membuat poin fitur dengan icon dalam bagian Tentang Kami
@@ -132,9 +241,11 @@ class _HomeContentState extends State<HomeContent> {
     return Scaffold(
       appBar: const CustomAppBarHome(),
       backgroundColor: uicolor,
-      body: ListView(
-        physics: const BouncingScrollPhysics(), // Smooth bouncy scroll effect
-        children: [
+      body: _isLoading 
+        ? _buildSkeletonLoading(horizontalPadding)
+        : ListView(
+          physics: const BouncingScrollPhysics(), // Smooth bouncy scroll effect
+          children: [
           // Container untuk semua konten dengan padding yang konsisten
           Container(
             padding: const EdgeInsets.only(bottom: 30),
@@ -189,6 +300,25 @@ class _HomeContentState extends State<HomeContent> {
 
   // Membuat carousel Informasi dengan modal details
   Widget buildComingSoonCarousel() {
+    // Show skeleton loading if data is loading
+    if (_isLoading) {
+      return CarouselSlider.builder(
+        itemCount: 3,
+        options: CarouselOptions(
+          height: 200,
+          viewportFraction: 0.92,
+          autoPlay: false,
+          enableInfiniteScroll: false,
+        ),
+        itemBuilder: (context, index, realIndex) {
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 6),
+            child: SkeletonItems.card(height: 200),
+          );
+        },
+      );
+    }
+    
     // Menggunakan model data dari information_model.dart
     return CarouselSlider.builder(
       itemCount: informationList.length,
@@ -367,9 +497,14 @@ class _HomeContentState extends State<HomeContent> {
             margin: const EdgeInsets.only(bottom: 6),
             child: Row(
               children: [
-                // Subscription badge yang sebenarnya dari localStorage
+                // Subscription badge dengan skeleton loading
                 Expanded(
-                  child: FutureBuilder<UserSubscription?>(
+                  child: _isLoadingSubscription 
+                  ? SkeletonItems.card(
+                      height: 30,
+                      borderRadius: 12,
+                    )
+                  : FutureBuilder<UserSubscription?>(
                     future: _getSubscriptionStatus(),
                     builder: (context, snapshot) {
                       final hasSubscription = snapshot.data != null;
@@ -631,6 +766,32 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   Widget buildQuickPicks(BuildContext context) {
+    // Show skeleton loading if data is loading
+    if (_isLoading) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SkeletonItems.text(height: 24, width: 150),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(4, (index) => 
+              SizedBox(
+                width: 70,
+                child: Column(
+                  children: [
+                    SkeletonItems.circle(size: 50),
+                    const SizedBox(height: 8),
+                    SkeletonItems.text(height: 14),
+                  ],
+                ),
+              )
+            ),
+          ),
+        ],
+      );
+    }
+  
     List<Map<String, dynamic>> quickItems = [
       {
         'icon': Icons.note_add_outlined,
