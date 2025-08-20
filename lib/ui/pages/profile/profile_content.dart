@@ -2,7 +2,11 @@ import 'package:bank_sha/ui/pages/profile/List/about_us.dart';
 import 'package:bank_sha/ui/pages/profile/List/myprofile.dart';
 import 'package:bank_sha/ui/pages/profile/List/privacy_policy.dart';
 import 'package:bank_sha/ui/pages/profile/List/settings/settings.dart';
+<<<<<<< HEAD
 import 'package:bank_sha/ui/pages/profile/points_history_page.dart';
+=======
+import 'package:bank_sha/services/local_storage_service.dart';
+>>>>>>> 31182ad (feat: Enhance user data management by implementing LocalStorageService for profile and home content)
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:bank_sha/shared/theme.dart';
@@ -19,6 +23,7 @@ class ProfileContent extends StatefulWidget {
 }
 
 class _ProfileContentState extends State<ProfileContent> {
+<<<<<<< HEAD
   bool _isLoading = true;
   UserModel? _user;
   late UserService _userService;
@@ -96,6 +101,25 @@ class _ProfileContentState extends State<ProfileContent> {
       ),
     );
   }
+=======
+  Map<String, dynamic>? userData;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final storage = await LocalStorageService.getInstance();
+    final data = await storage.getUserData();
+    if (mounted) {
+      setState(() {
+        userData = data;
+      });
+    }
+  }
+>>>>>>> 31182ad (feat: Enhance user data management by implementing LocalStorageService for profile and home content)
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +141,7 @@ class _ProfileContentState extends State<ProfileContent> {
             children: [
               CircleAvatar(
                 radius: 60,
+<<<<<<< HEAD
                 backgroundImage: _user?.profilePicUrl != null 
                     ? NetworkImage(_user!.profilePicUrl!) as ImageProvider
                     : const AssetImage('assets/img_profile.png'),
@@ -124,6 +149,15 @@ class _ProfileContentState extends State<ProfileContent> {
               const SizedBox(height: 12),
               Text(
                 _user?.name ?? 'Pengguna',
+=======
+                backgroundImage: AssetImage(
+                  userData?['profile_picture'] ?? 'assets/img_profile.png',
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                userData?['name'] ?? 'Loading...',
+>>>>>>> 31182ad (feat: Enhance user data management by implementing LocalStorageService for profile and home content)
                 style: blackTextStyle.copyWith(
                   fontSize: 16,
                   fontWeight: semiBold,
@@ -131,7 +165,11 @@ class _ProfileContentState extends State<ProfileContent> {
               ),
               const SizedBox(height: 4),
               Text(
+<<<<<<< HEAD
                 _user?.email ?? 'email@gerobaks.com',
+=======
+                userData?['email'] ?? 'Loading...',
+>>>>>>> 31182ad (feat: Enhance user data management by implementing LocalStorageService for profile and home content)
                 style: greyTextStyle.copyWith(
                   fontSize: 14,
                   fontWeight: regular,

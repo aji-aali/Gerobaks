@@ -1,6 +1,7 @@
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/appbar.dart';
 import 'package:bank_sha/ui/pages/address/select_address_page.dart';
+import 'package:bank_sha/services/local_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -13,12 +14,25 @@ class HomeContent extends StatefulWidget {
 }
 
 class _HomeContentState extends State<HomeContent> {
+  Map<String, dynamic>? userData;
+
   @override
   void initState() {
     super.initState();
     initializeDateFormatting('id_ID', null);
+    _loadUserData();
   }
-  
+
+  Future<void> _loadUserData() async {
+    final storage = await LocalStorageService.getInstance();
+    final data = await storage.getUserData();
+    if (mounted) {
+      setState(() {
+        userData = data;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +54,7 @@ class _HomeContentState extends State<HomeContent> {
     // Get current time
     DateTime now = DateTime.now();
     String greeting = '';
-    
+
     // Determine the appropriate greeting based on time of day
     int hour = now.hour;
     if (hour < 12) {
@@ -52,10 +66,10 @@ class _HomeContentState extends State<HomeContent> {
     } else {
       greeting = 'Selamat Malam';
     }
-    
+
     // Format the date: e.g., "Senin, 15 April 2023"
     String formattedDate = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(now);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 24, top: 12),
       child: Column(
@@ -72,7 +86,7 @@ class _HomeContentState extends State<HomeContent> {
               ),
               Flexible(
                 child: Text(
-                  'Ghani', // Replace with actual username from state management or shared preferences
+                  userData?['name'] ?? 'Loading...', // Replace with actual username from state management or shared preferences
                   style: greentextstyle2.copyWith(
                     fontSize: 20,
                     fontWeight: semiBold,
@@ -87,12 +101,7 @@ class _HomeContentState extends State<HomeContent> {
             children: [
               Icon(Icons.calendar_today, size: 14, color: greyColor),
               const SizedBox(width: 6),
-              Text(
-                formattedDate,
-                style: greyTextStyle.copyWith(
-                  fontSize: 14,
-                ),
-              ),
+              Text(formattedDate, style: greyTextStyle.copyWith(fontSize: 14)),
             ],
           ),
         ],
@@ -149,10 +158,7 @@ class _HomeContentState extends State<HomeContent> {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
-                        greenColor.withOpacity(0.8),
-                        greenColor,
-                      ],
+                      colors: [greenColor.withOpacity(0.8), greenColor],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
@@ -285,7 +291,7 @@ class _HomeContentState extends State<HomeContent> {
               ),
             ),
           ),
-          
+
           // Coming Soon Section - Enhanced UI
           Container(
             margin: const EdgeInsets.only(bottom: 24),
@@ -347,14 +353,17 @@ class _HomeContentState extends State<HomeContent> {
               ],
             ),
           ),
-          
+
           // Header for Menu Pilihan
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Pilihan',
-                style: blackTextStyle.copyWith(fontSize: 16, fontWeight: semiBold),
+                style: blackTextStyle.copyWith(
+                  fontSize: 16,
+                  fontWeight: semiBold,
+                ),
               ),
               TextButton(
                 onPressed: () {
@@ -376,7 +385,7 @@ class _HomeContentState extends State<HomeContent> {
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // More Compact Menu Grid with just icons and names
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -398,7 +407,9 @@ class _HomeContentState extends State<HomeContent> {
                 },
                 borderRadius: BorderRadius.circular(8),
                 child: SizedBox(
-                  width: (MediaQuery.of(context).size.width - 48 - 24) / 4, // 4 items per row, minus padding
+                  width:
+                      (MediaQuery.of(context).size.width - 48 - 24) /
+                      4, // 4 items per row, minus padding
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -453,7 +464,10 @@ class _HomeContentState extends State<HomeContent> {
             children: [
               Text(
                 'Tentang Kami',
-                style: blackTextStyle.copyWith(fontWeight: semiBold, fontSize: 16),
+                style: blackTextStyle.copyWith(
+                  fontWeight: semiBold,
+                  fontSize: 16,
+                ),
               ),
               TextButton(
                 onPressed: () {
@@ -580,8 +594,8 @@ class _HomeContentState extends State<HomeContent> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Icon(
-                                Icons.emoji_nature, 
-                                size: 20, 
+                                Icons.emoji_nature,
+                                size: 20,
                                 color: greenColor,
                               ),
                             ),
