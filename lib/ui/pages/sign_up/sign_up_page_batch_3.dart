@@ -17,7 +17,7 @@ class _SignUpBatch3PageState extends State<SignUpBatch3Page> {
   final _formKey = GlobalKey<FormState>();
 
   bool _isPasswordVisible = false;
-  final bool _isConfirmPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   @override
   void dispose() {
@@ -50,7 +50,7 @@ class _SignUpBatch3PageState extends State<SignUpBatch3Page> {
       backgroundColor: whiteColor,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 26.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight:
@@ -68,7 +68,7 @@ class _SignUpBatch3PageState extends State<SignUpBatch3Page> {
 
                     // Logo GEROBAKS
                     Container(
-                      width: 250,
+                      width: 200,
                       height: 60,
                       margin: const EdgeInsets.symmetric(horizontal: 24),
                       child: Image.asset(
@@ -117,7 +117,7 @@ class _SignUpBatch3PageState extends State<SignUpBatch3Page> {
                       style: greyTextStyle.copyWith(fontSize: 14),
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
 
                     Text(
                       'Buat password yang kuat untuk mengamankan akun Anda',

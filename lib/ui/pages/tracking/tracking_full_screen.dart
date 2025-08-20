@@ -3,6 +3,7 @@ import 'dart:math' as Math;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:bank_sha/ui/widgets/shared/dialog_helper.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'package:bank_sha/shared/theme.dart'; // pastikan path ini sesuai
@@ -730,45 +731,16 @@ class _TrackingFullScreenState extends State<TrackingFullScreen> {
   }
 
   void _showCancelDialog() {
-    showDialog(
+    DialogHelper.showDeleteConfirmDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Batalkan Penjemputan?',
-            style: blackTextStyle.copyWith(fontSize: 16, fontWeight: semiBold),
-          ),
-          content: Text(
-            'Apakah Anda yakin ingin membatalkan penjemputan sampah ini?',
-            style: greyTextStyle.copyWith(fontSize: 14),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Tidak',
-                style: TextStyle(color: greenColor, fontWeight: medium),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                // Implementasi logika pembatalan
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: whiteColor,
-              ),
-              child: Text(
-                'Ya, Batalkan',
-                style: whiteTextStyle.copyWith(fontWeight: medium),
-              ),
-            ),
-          ],
-        );
-      },
-    );
+      title: 'Batalkan Penjemputan?',
+      message: 'Apakah Anda yakin ingin membatalkan penjemputan sampah ini?',
+      confirmText: 'Ya, Batalkan',
+      cancelText: 'Tidak',
+    ).then((confirmed) {
+      if (confirmed) {
+        // Implementasi logika pembatalan jika pengguna mengkonfirmasi
+      }
+    });
   }
 }

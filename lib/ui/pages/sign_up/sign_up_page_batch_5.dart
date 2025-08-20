@@ -1,5 +1,9 @@
 import 'package:bank_sha/shared/theme.dart';
+import 'package:bank_sha/ui/widgets/shared/form.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
+import 'package:bank_sha/ui/widgets/shared/layout.dart';
+import 'package:bank_sha/utils/toast_helper.dart';
+import 'package:bank_sha/ui/widgets/shared/dialog_helper.dart';
 import 'package:flutter/material.dart';
 
 class SignUpBatch5Page extends StatefulWidget {
@@ -55,7 +59,7 @@ class _SignUpBatch5PageState extends State<SignUpBatch5Page> {
       backgroundColor: whiteColor,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 26.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight:
@@ -87,7 +91,7 @@ class _SignUpBatch5PageState extends State<SignUpBatch5Page> {
 
                   // Logo GEROBAKS
                   Container(
-                    width: 250,
+                    width: 200,
                     height: 60,
                     margin: const EdgeInsets.symmetric(horizontal: 24),
                     child: Image.asset(
@@ -395,15 +399,21 @@ class _SignUpBatch5PageState extends State<SignUpBatch5Page> {
                   CustomFilledButton(
                     title: 'Langganan Sekarang',
                     onPressed: () {
-                      // Navigate to payment method
-                      Navigator.pushNamed(
-                        context,
-                        '/payment-method',
-                        arguments: {
-                          ...?arguments,
-                          'selectedPlan': _selectedPlan,
-                          'planDetails': _subscriptionPlans.firstWhere((plan) => plan['id'] == _selectedPlan),
-                        },
+                      // Show alpha version message
+                      ToastHelper.showToast(
+                        context: context,
+                        message: 'Fitur langganan sedang dalam versi alpha dan belum tersedia.',
+                        isSuccess: false,
+                        duration: const Duration(seconds: 3),
+                      );
+                      
+                      // Show dialog explaining alpha version using custom dialog
+                      DialogHelper.showInfoDialog(
+                        context: context,
+                        title: 'Versi Alpha',
+                        message: 'Fitur langganan masih dalam tahap pengembangan (versi alpha) dan belum tersedia saat ini. Anda dapat melanjutkan pendaftaran tanpa berlangganan.',
+                        buttonText: 'Mengerti',
+                        icon: Icons.info_outline,
                       );
                     },
                   ),
@@ -531,13 +541,13 @@ class _SignUpBatch5PageState extends State<SignUpBatch5Page> {
             SizedBox(
               width: double.infinity,
               child: CustomFilledButton(
-                title: 'Mulai Belanja',
+                title: 'Lanjutkan ke Berlangganan',
                 onPressed: () {
                   Navigator.of(context).pop();
-                  // Navigate to home page
+                  // Navigate to subscription plans page
                   Navigator.pushNamedAndRemoveUntil(
                     context,
-                    '/sign-up-success',
+                    '/subscription-plans',
                     (route) => false,
                   );
                 },

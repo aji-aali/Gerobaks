@@ -1,7 +1,15 @@
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/form.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
+import 'package:bank_sha/ui/widgets/shared/layout.dart';
+import 'package:bank_sha/utils/toast_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:geolocator/geolocator.dart';
 
 class SignUpBatch4Page extends StatefulWidget {
   const SignUpBatch4Page({super.key});
@@ -13,7 +21,7 @@ class SignUpBatch4Page extends StatefulWidget {
 class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
   final _addressController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-
+  
   String? _selectedLocation;
   double? _selectedLat;
   double? _selectedLng;
@@ -43,14 +51,13 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
 
   @override
   Widget build(BuildContext context) {
-    final arguments =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
     return Scaffold(
       backgroundColor: whiteColor,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 26.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight:
@@ -68,7 +75,7 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
 
                     // Logo GEROBAKS
                     Container(
-                      width: 250,
+                      width: 200,
                       height: 60,
                       margin: const EdgeInsets.symmetric(horizontal: 24),
                       child: Image.asset(
@@ -114,15 +121,19 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
 
                     Text(
                       'Langkah 4 dari 5 - Informasi Alamat',
-                      style: greyTextStyle.copyWith(fontSize: 14),
+                      style: greyTextStyle.copyWith(
+                        fontSize: 14,
+                      ),
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
 
                     Text(
                       'Masukkan alamat dan tandai lokasi tempat tinggal Anda',
                       textAlign: TextAlign.center,
-                      style: greyTextStyle.copyWith(fontSize: 14),
+                      style: greyTextStyle.copyWith(
+                        fontSize: 14,
+                      ),
                     ),
 
                     const SizedBox(height: 30),
@@ -207,9 +218,7 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
                       width: double.infinity,
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: _selectedLocation != null
-                              ? greenColor
-                              : greyColor.withOpacity(0.5),
+                          color: _selectedLocation != null ? greenColor : greyColor.withOpacity(0.5),
                           width: _selectedLocation != null ? 2 : 1,
                         ),
                         borderRadius: BorderRadius.circular(8),
@@ -226,22 +235,16 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
                                 children: [
                                   Icon(
                                     Icons.location_on,
-                                    color: _selectedLocation != null
-                                        ? greenColor
-                                        : greyColor,
+                                    color: _selectedLocation != null ? greenColor : greyColor,
                                     size: 20,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
                                     'Pilih Lokasi di Peta',
-                                    style:
-                                        (_selectedLocation != null
-                                                ? greeTextStyle
-                                                : greyTextStyle)
-                                            .copyWith(
-                                              fontSize: 14,
-                                              fontWeight: semiBold,
-                                            ),
+                                    style: (_selectedLocation != null ? greeTextStyle : greyTextStyle).copyWith(
+                                      fontSize: 14,
+                                      fontWeight: semiBold,
+                                    ),
                                   ),
                                   const Spacer(),
                                   Icon(
@@ -261,8 +264,7 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Lokasi Terpilih:',
@@ -292,7 +294,9 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
                                 const SizedBox(height: 8),
                                 Text(
                                   'Tap untuk membuka peta dan pilih lokasi tempat tinggal Anda',
-                                  style: greyTextStyle.copyWith(fontSize: 12),
+                                  style: greyTextStyle.copyWith(
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ],
                             ],
@@ -305,7 +309,10 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
                       const SizedBox(height: 8),
                       Text(
                         '* Lokasi pada peta wajib dipilih',
-                        style: TextStyle(color: redcolor, fontSize: 12),
+                        style: TextStyle(
+                          color: redcolor,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
 
@@ -317,12 +324,11 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
                     CustomFilledButton(
                       title: 'Lanjutkan',
                       onPressed: () {
-                        if (_formKey.currentState!.validate() &&
-                            _selectedLocation != null) {
-                          // Pass all data to next page
+                        if (_formKey.currentState!.validate() && _selectedLocation != null) {
+                          // Pass all data to subscription page
                           Navigator.pushNamed(
                             context,
-                            '/sign-up-batch-5',
+                            '/sign-up-subscription',
                             arguments: {
                               ...?arguments,
                               'address': _addressController.text,
@@ -397,18 +403,100 @@ class _MapPickerPageState extends State<MapPickerPage> {
   String _selectedAddress = '';
   double _selectedLat = -7.2575; // Default Surabaya coordinates
   double _selectedLng = 112.7521;
-
-  // Dummy search results
+  
+  // Map controller
+  final MapController _mapController = MapController();
+  bool _isMapReady = false;
+  
+  // Search results
   List<Map<String, dynamic>> _searchResults = [];
   bool _isSearching = false;
+  bool _isLoadingLocation = false;
+  
+  // ORS API
+  String? _orsApiKey;
+
+  @override
+  void initState() {
+    super.initState();
+    _orsApiKey = dotenv.env['ORS_API_KEY'];
+    _getCurrentLocation();
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
-
-  void _performSearch(String query) {
+  
+  Future<void> _getCurrentLocation() async {
+    setState(() {
+      _isLoadingLocation = true;
+    });
+    
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          // Permissions are denied, show error
+          ToastHelper.showToast(
+            context: context,
+            message: 'Izin lokasi ditolak. Gunakan pin manual untuk menandai lokasi.',
+            isSuccess: false,
+          );
+          setState(() {
+            _isLoadingLocation = false;
+          });
+          return;
+        }
+      }
+      
+      if (permission == LocationPermission.deniedForever) {
+        // Permissions are denied forever
+        ToastHelper.showToast(
+          context: context,
+          message: 'Izin lokasi ditolak permanen. Buka pengaturan untuk mengubahnya.',
+          isSuccess: false,
+        );
+        setState(() {
+          _isLoadingLocation = false;
+        });
+        return;
+      }
+      
+      // Get current position
+      Position position = await Geolocator.getCurrentPosition();
+      
+      // Get address from coordinates
+      final address = await _getAddressFromCoordinates(position.latitude, position.longitude);
+      
+      setState(() {
+        _selectedLat = position.latitude;
+        _selectedLng = position.longitude;
+        _selectedAddress = address;
+        _isLoadingLocation = false;
+        _isMapReady = true;
+      });
+      
+      // Update map center
+      _mapController.move(LatLng(_selectedLat, _selectedLng), 15);
+      
+    } catch (e) {
+      print('Error getting location: $e');
+      ToastHelper.showToast(
+        context: context,
+        message: 'Gagal mendapatkan lokasi. Gunakan pin manual.',
+        isSuccess: false,
+      );
+      setState(() {
+        _isLoadingLocation = false;
+        _isMapReady = true;
+      });
+    }
+  }
+  
+  Future<void> _performSearch(String query) async {
     if (query.isEmpty) {
       setState(() {
         _searchResults = [];
@@ -417,33 +505,91 @@ class _MapPickerPageState extends State<MapPickerPage> {
       return;
     }
 
+    if (_orsApiKey == null || _orsApiKey!.isEmpty) {
+      ToastHelper.showToast(
+        context: context,
+        message: 'API key tidak ditemukan. Gunakan pin manual.',
+        isSuccess: false,
+      );
+      return;
+    }
+
     setState(() {
       _isSearching = true;
     });
 
-    // Simulate search delay
-    Future.delayed(const Duration(milliseconds: 800), () {
+    try {
+      // Perform geocoding search using ORS API
+      final response = await http.get(
+        Uri.parse('https://api.openrouteservice.org/geocode/search?api_key=$_orsApiKey&text=$query&boundary.country=ID'),
+        headers: {'Accept': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        
+        // Process results
+        List<Map<String, dynamic>> results = [];
+        if (data['features'] != null) {
+          for (var feature in data['features']) {
+            final props = feature['properties'];
+            final geometry = feature['geometry'];
+            final coordinates = geometry['coordinates'];
+            
+            if (props['label'] != null && coordinates != null) {
+              results.add({
+                'address': props['label'],
+                'lng': coordinates[0],
+                'lat': coordinates[1],
+              });
+            }
+          }
+        }
+        
+        setState(() {
+          _searchResults = results;
+          _isSearching = false;
+        });
+      } else {
+        throw Exception('Failed to load search results');
+      }
+    } catch (e) {
+      print('Error searching locations: $e');
+      ToastHelper.showToast(
+        context: context,
+        message: 'Gagal mencari lokasi. Coba lagi nanti.',
+        isSuccess: false,
+      );
       setState(() {
-        _searchResults = [
-          {
-            'address': 'Jl. Raya Darmo No. 123, Surabaya, Jawa Timur',
-            'lat': -7.2654,
-            'lng': 112.7359,
-          },
-          {
-            'address': 'Jl. Tunjungan Plaza, Surabaya, Jawa Timur',
-            'lat': -7.2639,
-            'lng': 112.7380,
-          },
-          {
-            'address': 'Universitas Airlangga, Surabaya, Jawa Timur',
-            'lat': -7.2709,
-            'lng': 112.7801,
-          },
-        ];
         _isSearching = false;
       });
-    });
+    }
+  }
+  
+  Future<String> _getAddressFromCoordinates(double lat, double lng) async {
+    if (_orsApiKey == null || _orsApiKey!.isEmpty) {
+      return 'Lokasi terpilih';
+    }
+    
+    try {
+      final response = await http.get(
+        Uri.parse('https://api.openrouteservice.org/geocode/reverse?api_key=$_orsApiKey&point.lon=$lng&point.lat=$lat'),
+        headers: {'Accept': 'application/json'},
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        
+        if (data['features'] != null && data['features'].isNotEmpty) {
+          return data['features'][0]['properties']['label'] ?? 'Lokasi terpilih';
+        }
+      }
+      
+      return 'Lokasi terpilih';
+    } catch (e) {
+      print('Error getting address: $e');
+      return 'Lokasi terpilih';
+    }
   }
 
   void _selectLocation(String address, double lat, double lng) {
@@ -453,6 +599,26 @@ class _MapPickerPageState extends State<MapPickerPage> {
       _selectedLng = lng;
       _searchResults = [];
       _searchController.clear();
+      
+      if (_isMapReady) {
+        _mapController.move(LatLng(lat, lng), 15);
+      }
+    });
+  }
+  
+  Future<void> _handleMapTap(LatLng tappedPoint) async {
+    setState(() {
+      _selectedLat = tappedPoint.latitude;
+      _selectedLng = tappedPoint.longitude;
+      _isSearching = true;
+    });
+    
+    // Get address from coordinates
+    final address = await _getAddressFromCoordinates(_selectedLat, _selectedLng);
+    
+    setState(() {
+      _selectedAddress = address;
+      _isSearching = false;
     });
   }
 
@@ -467,26 +633,30 @@ class _MapPickerPageState extends State<MapPickerPage> {
           onPressed: () {
             Navigator.pop(context);
           },
-          icon: Icon(Icons.arrow_back_ios, color: blackColor),
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: blackColor,
+          ),
         ),
         title: Text(
           'Pilih Lokasi',
-          style: blackTextStyle.copyWith(fontSize: 18, fontWeight: semiBold),
+          style: blackTextStyle.copyWith(
+            fontSize: 18,
+            fontWeight: semiBold,
+          ),
         ),
         actions: [
           if (_selectedAddress.isNotEmpty)
             TextButton(
               onPressed: () {
-                widget.onLocationSelected(
-                  _selectedAddress,
-                  _selectedLat,
-                  _selectedLng,
-                );
+                widget.onLocationSelected(_selectedAddress, _selectedLat, _selectedLng);
                 Navigator.pop(context);
               },
               child: Text(
                 'Pilih',
-                style: greeTextStyle.copyWith(fontWeight: semiBold),
+                style: greeTextStyle.copyWith(
+                  fontWeight: semiBold,
+                ),
               ),
             ),
         ],
@@ -550,50 +720,90 @@ class _MapPickerPageState extends State<MapPickerPage> {
               ),
             )
           else
-            // Map Placeholder
+            // Real Map
             Expanded(
               child: Stack(
                 children: [
+                  _isMapReady ? 
+                  FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(
+                      initialCenter: LatLng(_selectedLat, _selectedLng),
+                      initialZoom: 15.0,
+                      onTap: (tapPosition, LatLng point) {
+                        _handleMapTap(point);
+                      },
+                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        subdomains: const ['a', 'b', 'c'],
+                      ),
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: LatLng(_selectedLat, _selectedLng),
+                            child: Icon(
+                              Icons.location_on,
+                              color: redcolor,
+                              size: 40,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ) :
+                  // Loading state
                   Container(
                     width: double.infinity,
                     color: greyColor.withOpacity(0.1),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.map,
-                          size: 64,
-                          color: greyColor.withOpacity(0.5),
-                        ),
+                        const CircularProgressIndicator(),
                         const SizedBox(height: 16),
                         Text(
-                          'Peta akan ditampilkan di sini',
+                          'Memuat peta...',
                           style: greyTextStyle.copyWith(fontSize: 16),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Tap untuk menandai lokasi Anda',
-                          style: greyTextStyle.copyWith(fontSize: 12),
                         ),
                       ],
                     ),
                   ),
-                  // Crosshair/Pin in center
-                  Center(child: Icon(Icons.add, size: 32, color: redcolor)),
+                  
+                  // Map overlay instructions
+                  if (_isMapReady)
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    right: 16,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.8),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Tap pada peta untuk menandai lokasi Anda',
+                        style: blackTextStyle.copyWith(fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                  
                   // Current location button
                   Positioned(
                     bottom: 100,
                     right: 16,
                     child: FloatingActionButton.small(
                       backgroundColor: whiteColor,
-                      onPressed: () {
-                        _selectLocation(
-                          'Lokasi Saat Ini, Surabaya, Jawa Timur',
-                          -7.2575,
-                          112.7521,
-                        );
-                      },
-                      child: Icon(Icons.my_location, color: greenColor),
+                      onPressed: _getCurrentLocation,
+                      child: _isLoadingLocation
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Icon(Icons.my_location, color: greenColor),
                     ),
                   ),
                 ],

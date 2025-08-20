@@ -2,6 +2,8 @@ import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/form.dart';
 import 'package:bank_sha/ui/widgets/shared/layout.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
+import 'package:bank_sha/utils/toast_helper.dart';
+import 'package:bank_sha/services/notification_service.dart';
 import 'package:flutter/material.dart';
 
 class SignInPage extends StatelessWidget {
@@ -13,7 +15,7 @@ class SignInPage extends StatelessWidget {
       backgroundColor: whiteColor,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 26.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight:
@@ -110,7 +112,22 @@ class SignInPage extends StatelessWidget {
                   CustomFilledButton(
                     title: 'Sign In',
                     height: 48,
-                    onPressed: () {
+                    onPressed: () async {
+                      // Menampilkan notifikasi login berhasil
+                      await NotificationService().showNotification(
+                        id: DateTime.now().millisecond,
+                        title: 'Login Berhasil',
+                        body: 'Selamat datang di Gerobaks!',
+                      );
+
+                      // Menampilkan toast login berhasil
+                      ToastHelper.showToast(
+                        context: context,
+                        message: 'Login berhasil!',
+                        isSuccess: true,
+                      );
+                      
+                      // Navigasi ke halaman home
                       Navigator.pushNamedAndRemoveUntil(
                         context,
                         '/home',

@@ -21,8 +21,8 @@ class _EditProfileState extends State<EditProfile> {
   void initState() {
     super.initState();
     // Isi form dengan data saat ini
-    _nameController.text = 'Akbar Bintang';
-    _emailController.text = 'akbarkerenz123@gmail.com';
+    _nameController.text = 'Ghani';
+    _emailController.text = 'official@gerobaks.com';
     _phoneController.text = '081234567890';
     _addressController.text = 'Samarinda, Indonesia';
   }
