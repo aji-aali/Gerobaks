@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bank_sha/models/activity_model_improved.dart';
 import 'package:bank_sha/ui/pages/activity/activity_item_improved.dart';
 import 'package:bank_sha/shared/theme.dart';
+import 'package:bank_sha/ui/widgets/skeleton/skeleton_items.dart';
 
 class ActivityContentImproved extends StatefulWidget {
   final DateTime? selectedDate;
@@ -24,21 +25,57 @@ class ActivityContentImproved extends StatefulWidget {
 }
 
 class _ActivityContentImprovedState extends State<ActivityContentImproved> {
-  bool _isLoading = false;
+  bool _isLoading = true;
+  
+  @override
+  void initState() {
+    super.initState();
+    // Simulate loading data
+    _simulateLoading();
+  }
+  
+  @override
+  void didUpdateWidget(ActivityContentImproved oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // When filters change, reload with skeleton loading
+    if (oldWidget.selectedDate != widget.selectedDate ||
+        oldWidget.filterCategory != widget.filterCategory ||
+        oldWidget.showActive != widget.showActive ||
+        oldWidget.searchQuery != widget.searchQuery) {
+      _simulateLoading();
+    }
+  }
   
   Future<void> _simulateLoading() async {
-    if (_isLoading) return;
+    // Remove the early return which causes the loading to never complete
+    // if (_isLoading) return;
     
     setState(() {
       _isLoading = true;
     });
     
-    // Simulate loading delay
-    await Future.delayed(const Duration(milliseconds: 800));
+    // Simulate loading delay - reduced to 500ms for better UX
+    await Future.delayed(const Duration(milliseconds: 500));
     
-    setState(() {
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+  
+  // Build skeleton loading for activity items
+  Widget _buildSkeletonLoading() {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      itemCount: 6,  // Show 6 skeleton items
+      itemBuilder: (context, index) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          child: SkeletonItems.card(height: 110),
+        );
+      },
+    );
   }
   
   List<ActivityModel> getFilteredActivities() {
@@ -81,6 +118,11 @@ class _ActivityContentImprovedState extends State<ActivityContentImproved> {
 
   @override
   Widget build(BuildContext context) {
+    // Show skeleton loading when loading data
+    if (_isLoading) {
+      return _buildSkeletonLoading();
+    }
+    
     final filteredActivities = getFilteredActivities();
     
     // Widget untuk menampilkan tidak ada aktivitas
@@ -131,44 +173,29 @@ class _ActivityContentImprovedState extends State<ActivityContentImproved> {
     if (widget.onRefresh != null) {
       return RefreshIndicator(
         onRefresh: () async {
-          // Tampilkan loading indicator jika refresh dimulai
-          await _simulateLoading();
-          
           // Panggil onRefresh dari parent jika ada
           if (widget.onRefresh != null) {
             await widget.onRefresh!();
           }
+          
+          // Tampilkan loading indicator jika refresh dimulai
+          // Use a short delay so users see that something happened
+          await Future.delayed(const Duration(milliseconds: 300));
         },
         color: greenColor,
         backgroundColor: Colors.white,
         displacement: 40.0, // Jarak displacement yang lebih baik
         strokeWidth: 3.0, // Lebar stroke yang lebih tebal
-        child: Stack(
-          children: [
-            // Pastikan emptyWidget tetap bisa di-scroll untuk pull-to-refresh
-            filteredActivities.isEmpty 
-                ? Stack(
-                    children: [
-                      // ListView kosong untuk memungkinkan scroll
-                      ListView(),
-                      // Widget kosong di atasnya
-                      emptyWidget,
-                    ],
-                  ) 
-                : listWidget,
-            
-            // Overlay loading indicator jika sedang loading
-            if (_isLoading)
-              Container(
-                color: Colors.black.withOpacity(0.1),
-                child: Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(greenColor),
-                  ),
-                ),
-              ),
-          ],
-        ),
+        child: filteredActivities.isEmpty 
+            ? Stack(
+                children: [
+                  // ListView kosong untuk memungkinkan scroll
+                  ListView(),
+                  // Widget kosong di atasnya
+                  emptyWidget,
+                ],
+              ) 
+            : listWidget,
       );
     }
     

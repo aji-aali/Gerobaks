@@ -7,6 +7,7 @@ import '../../../blocs/tracking/tracking_bloc.dart';
 import '../../../blocs/tracking/tracking_event.dart';
 import '../../../blocs/tracking/tracking_state.dart';
 import 'dart:math' as math;
+import 'package:bank_sha/ui/widgets/skeleton/skeleton_items.dart';
 
 class WilayahContent extends StatefulWidget {
   const WilayahContent({super.key});
@@ -16,14 +17,60 @@ class WilayahContent extends StatefulWidget {
 }
 
 class _WilayahContentState extends State<WilayahContent> {
+  bool _isLoading = true;
+  
   @override
   void initState() {
     super.initState();
     context.read<TrackingBloc>().add(FetchRoute());
+    _simulateLoading();
+  }
+  
+  Future<void> _simulateLoading() async {
+    setState(() {
+      _isLoading = true;
+    });
+    
+    // Simulate map data loading
+    await Future.delayed(const Duration(seconds: 2));
+    
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+  
+  // Map skeleton loader
+  Widget _buildMapSkeletonLoader() {
+    return Container(
+      color: Colors.white,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SkeletonItems.card(
+              height: 400,
+              width: MediaQuery.of(context).size.width * 0.85,
+              borderRadius: 12,
+            ),
+            const SizedBox(height: 20),
+            SkeletonItems.text(width: 180, height: 20),
+            const SizedBox(height: 8),
+            SkeletonItems.text(width: 240, height: 14),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    // Show skeleton loading
+    if (_isLoading) {
+      return _buildMapSkeletonLoader();
+    }
+    
     return BlocBuilder<TrackingBloc, TrackingState>(
       builder: (context, state) {
         // Titik-titik polygon zona hijau

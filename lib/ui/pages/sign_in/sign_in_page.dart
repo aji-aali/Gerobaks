@@ -6,6 +6,7 @@ import 'package:bank_sha/ui/widgets/shared/layout.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 import 'package:bank_sha/utils/toast_helper.dart';
 import 'package:bank_sha/services/notification_service.dart';
+import 'package:bank_sha/services/user_service.dart';
 import 'package:flutter/material.dart';
 
 class SignInPage extends StatefulWidget {
@@ -18,26 +19,30 @@ class SignInPage extends StatefulWidget {
 class _SignInPageState extends State<SignInPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  late LocalStorageService _localStorageService;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
+  bool _isPasswordVisible = false;
+  UserService? _userService;
 
   @override
   void initState() {
     super.initState();
-    _initLocalStorage();
+    _initializeServices();
   }
 
-  Future<void> _initLocalStorage() async {
-    _localStorageService = await LocalStorageService.getInstance();
-    _loadCredentials();
-  }
-
-  Future<void> _loadCredentials() async {
-    final credentials = await _localStorageService.getCredentials();
-    if (credentials != null) {
-      setState(() {
-        _emailController.text = credentials['email']!;
-        _passwordController.text = credentials['password']!;
-      });
+  Future<void> _initializeServices() async {
+    try {
+      _userService = await UserService.getInstance();
+      await _userService!.init();
+      
+      // Check if user is already logged in
+      final isLoggedIn = await _userService!.getCurrentUser() != null;
+      if (isLoggedIn && mounted) {
+        // If already logged in, navigate to home page
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } catch (e) {
+      print("Error initializing services: $e");
     }
   }
 
@@ -46,6 +51,79 @@ class _SignInPageState extends State<SignInPage> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+
+
+  // Handle sign in
+  Future<void> _handleSignIn() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+    
+    try {
+      // Make sure service is initialized
+      if (_userService == null) {
+        await _initializeServices();
+      }
+      
+      // Login using UserService
+      final user = await _userService?.loginUser(
+        email: _emailController.text, 
+        password: _passwordController.text
+      );
+      
+      if (user != null) {
+        // Menampilkan notifikasi login berhasil
+        await NotificationService().showNotification(
+          id: DateTime.now().millisecond,
+          title: 'Login Berhasil',
+          body: 'Selamat datang di Gerobaks!',
+        );
+
+        // Menampilkan toast login berhasil dengan poin
+        if (mounted) {
+          ToastHelper.showToast(
+            context: context,
+            message: 'Login berhasil! Poin Anda: ${user.points}',
+            isSuccess: true,
+          );
+          
+          // Navigasi ke halaman home
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/home',
+            (route) => false,
+          );
+        }
+      } else {
+        if (mounted) {
+          ToastHelper.showToast(
+            context: context,
+            message: 'Email atau password salah!',
+            isSuccess: false,
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ToastHelper.showToast(
+          context: context,
+          message: 'Terjadi kesalahan: ${e.toString()}',
+          isSuccess: false,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -119,20 +197,58 @@ class _SignInPageState extends State<SignInPage> {
 
                   const SizedBox(height: 24),
 
-                  // Email Input menggunakan CustomFormField
-                  CustomFormField(
-                    title: 'Email Address',
-                    keyboardType: TextInputType.emailAddress,
-                    controller: _emailController,
-                  ),
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        // Email Input menggunakan CustomFormField
+                        CustomFormField(
+                          title: 'Email Address',
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Email tidak boleh kosong';
+                            }
+                            if (!value.contains('@')) {
+                              return 'Email tidak valid';
+                            }
+                            return null;
+                          },
+                        ),
 
-                  const SizedBox(height: 16),
+                        const SizedBox(height: 16),
 
-                  // Password Input menggunakan CustomFormField
-                  CustomFormField(
-                    title: 'Password',
-                    obscureText: true,
-                    controller: _passwordController,
+                        // Password Input menggunakan CustomFormField
+                        CustomFormField(
+                          title: 'Password',
+                          controller: _passwordController,
+                          obscureText: !_isPasswordVisible,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Password tidak boleh kosong';
+                            }
+                            if (value.length < 6) {
+                              return 'Password minimal 6 karakter';
+                            }
+                            return null;
+                          },
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _isPasswordVisible
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: greyColor,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _isPasswordVisible = !_isPasswordVisible;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
 
                   // Forgot Password Link
@@ -152,60 +268,14 @@ class _SignInPageState extends State<SignInPage> {
 
                   const SizedBox(height: 24),
 
-                  // Sign In Button - menggunakan CustomFilledButton
-                  CustomFilledButton(
-                    title: 'Sign In',
-                    height: 48,
-                    onPressed: () async {
-                      final email = _emailController.text;
-                      final password = _passwordController.text;
-
-                      if (email.isNotEmpty && password.isNotEmpty) {
-                        final user = UserDataMock.getUserByEmail(email);
-
-                        if (user != null && user['password'] == password) {
-                          // Save user data to local storage
-                          await _localStorageService.saveUserData(user);
-                          await _localStorageService.saveCredentials(email, password);
-
-                          // Menampilkan notifikasi login berhasil
-                          await NotificationService().showNotification(
-                            id: DateTime.now().millisecond,
-                            title: 'Login Berhasil',
-                            body: 'Selamat datang di Gerobaks, ${user['name']}!',
-                          );
-
-                          // Menampilkan toast login berhasil
-                          ToastHelper.showToast(
-                            context: context,
-                            message: 'Login berhasil!',
-                            isSuccess: true,
-                          );
-
-                          // Navigasi ke halaman home
-                          Navigator.pushNamedAndRemoveUntil(
-                            context,
-                            '/home',
-                            (route) => false,
-                          );
-                        } else {
-                          // Menampilkan toast jika kredensial salah
-                          ToastHelper.showToast(
-                            context: context,
-                            message: 'Email atau password salah',
-                            isSuccess: false,
-                          );
-                        }
-                      } else {
-                        // Menampilkan toast jika email atau password kosong
-                        ToastHelper.showToast(
-                          context: context,
-                          message: 'Email dan password harus diisi',
-                          isSuccess: false,
-                        );
-                      }
-                    },
-                  ),
+                  // Sign In Button with loading state
+                  _isLoading
+                      ? const CircularProgressIndicator()
+                      : CustomFilledButton(
+                          title: 'Sign In',
+                          height: 48,
+                          onPressed: _handleSignIn,
+                        ),
 
                   const SizedBox(height: 12),
 

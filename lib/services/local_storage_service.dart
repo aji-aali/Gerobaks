@@ -1,13 +1,17 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:bank_sha/utils/user_data_mock.dart';
+import 'package:bank_sha/models/user_model.dart';
 
 class LocalStorageService {
   static const String _chatKey = 'chat_conversations';
   static const String _notificationKey = 'notifications';
   static const String _subscriptionKey = 'user_subscription';
   static const String _userKey = 'user_data';
-  static const String _credentialsKey = 'user_credentials';
+  static const String _pointsKey = 'user_points';
+  static const String _isLoggedInKey = 'is_logged_in';
+  static const String _lastLoginKey = 'last_login';
+  static const String _addressesKey = 'saved_addresses';
+  static const String _settingsKey = 'app_settings';
 
   static LocalStorageService? _instance;
   static SharedPreferences? _preferences;
@@ -97,12 +101,67 @@ class LocalStorageService {
   Future<Map<String, dynamic>?> getUserData() async {
     final String? userJson = _preferences!.getString(_userKey);
     if (userJson != null) {
-      final Map<String, dynamic> userData = jsonDecode(userJson);
-      // Get the user data from UserDataMock to ensure we have complete data
-      final mockUser = UserDataMock.getUserByEmail(userData['email']);
-      return mockUser ?? userData;
+      return jsonDecode(userJson);
     }
     return null;
+  }
+  
+  // Enhanced User Management
+  Future<void> saveUser(UserModel user) async {
+    await saveUserData(user.toJson());
+    await saveBool(_isLoggedInKey, true);
+    await saveString(_lastLoginKey, DateTime.now().toIso8601String());
+  }
+  
+  Future<UserModel?> getUser() async {
+    final userData = await getUserData();
+    if (userData != null) {
+      return UserModel.fromJson(userData);
+    }
+    return null;
+  }
+  
+  Future<void> updateUserPoints(int points) async {
+    final user = await getUser();
+    if (user != null) {
+      final updatedUser = user.copyWith(points: points);
+      await saveUser(updatedUser);
+    }
+  }
+  
+  Future<int> getUserPoints() async {
+    final user = await getUser();
+    return user?.points ?? 0;
+  }
+  
+  Future<void> addPoints(int amount) async {
+    final currentPoints = await getUserPoints();
+    await updateUserPoints(currentPoints + amount);
+  }
+  
+  Future<void> saveAddress(String address) async {
+    final user = await getUser();
+    if (user != null) {
+      List<String> savedAddresses = user.savedAddresses ?? [];
+      if (!savedAddresses.contains(address)) {
+        savedAddresses.add(address);
+        await saveUser(user.copyWith(savedAddresses: savedAddresses));
+      }
+    }
+  }
+  
+  Future<List<String>> getSavedAddresses() async {
+    final user = await getUser();
+    return user?.savedAddresses ?? [];
+  }
+  
+  Future<bool> isLoggedIn() async {
+    return await getBool(_isLoggedInKey, defaultValue: false);
+  }
+  
+  Future<void> logout() async {
+    await remove(_isLoggedInKey);
+    await remove(_userKey);
   }
 
   // Generic storage methods
