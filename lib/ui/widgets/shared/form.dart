@@ -7,6 +7,7 @@ class CustomFormField extends StatefulWidget {
   final TextEditingController? controller;
   final String? hintText;
   final IconData? prefixIcon;
+  final Widget? suffixIcon;
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
   final VoidCallback? onTap;
@@ -19,6 +20,7 @@ class CustomFormField extends StatefulWidget {
     this.controller,
     this.hintText,
     this.prefixIcon,
+    this.suffixIcon,
     this.keyboardType,
     this.validator,
     this.onTap,
@@ -109,7 +111,7 @@ class _CustomFormFieldState extends State<CustomFormField> {
               color: greyColor,
               size: 20,
             ),
-            suffixIcon: widget.obscureText
+            suffixIcon: widget.suffixIcon ?? (widget.obscureText
                 ? IconButton(
                     icon: Icon(
                       isObscured ? Icons.visibility_off : Icons.visibility,
@@ -122,7 +124,7 @@ class _CustomFormFieldState extends State<CustomFormField> {
                       });
                     },
                   )
-                : null,
+                : null),
             filled: true,
             fillColor: lightBackgroundColor,
             border: OutlineInputBorder(
