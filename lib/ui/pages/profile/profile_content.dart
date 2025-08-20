@@ -2,13 +2,37 @@ import 'package:bank_sha/ui/pages/profile/List/about_us.dart';
 import 'package:bank_sha/ui/pages/profile/List/myprofile.dart';
 import 'package:bank_sha/ui/pages/profile/List/privacy_policy.dart';
 import 'package:bank_sha/ui/pages/profile/List/settings/settings.dart';
+import 'package:bank_sha/services/local_storage_service.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/pages/sign_in/sign_in_page.dart';
 
-class ProfileContent extends StatelessWidget {
+class ProfileContent extends StatefulWidget {
   const ProfileContent({super.key});
+
+  @override
+  State<ProfileContent> createState() => _ProfileContentState();
+}
+
+class _ProfileContentState extends State<ProfileContent> {
+  Map<String, dynamic>? userData;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final storage = await LocalStorageService.getInstance();
+    final data = await storage.getUserData();
+    if (mounted) {
+      setState(() {
+        userData = data;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,13 +48,15 @@ class ProfileContent extends StatelessWidget {
           // Profile Info
           Column(
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 60,
-                backgroundImage: AssetImage('assets/img_profile.png'),
+                backgroundImage: AssetImage(
+                  userData?['profile_picture'] ?? 'assets/img_profile.png',
+                ),
               ),
               const SizedBox(height: 12),
               Text(
-                'Ghani',
+                userData?['name'] ?? 'Loading...',
                 style: blackTextStyle.copyWith(
                   fontSize: 16,
                   fontWeight: semiBold,
@@ -38,7 +64,7 @@ class ProfileContent extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'official@gerobaks.com',
+                userData?['email'] ?? 'Loading...',
                 style: greyTextStyle.copyWith(
                   fontSize: 14,
                   fontWeight: regular,

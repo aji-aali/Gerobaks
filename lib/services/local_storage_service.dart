@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bank_sha/utils/user_data_mock.dart';
 
 class LocalStorageService {
   static const String _chatKey = 'chat_conversations';
   static const String _notificationKey = 'notifications';
   static const String _subscriptionKey = 'user_subscription';
   static const String _userKey = 'user_data';
+  static const String _credentialsKey = 'user_credentials';
 
   static LocalStorageService? _instance;
   static SharedPreferences? _preferences;
@@ -19,7 +21,9 @@ class LocalStorageService {
   }
 
   // Chat Storage
-  Future<void> saveConversations(List<Map<String, dynamic>> conversations) async {
+  Future<void> saveConversations(
+    List<Map<String, dynamic>> conversations,
+  ) async {
     final String conversationsJson = jsonEncode(conversations);
     await _preferences!.setString(_chatKey, conversationsJson);
   }
@@ -34,7 +38,9 @@ class LocalStorageService {
   }
 
   // Notification Storage
-  Future<void> saveNotifications(List<Map<String, dynamic>> notifications) async {
+  Future<void> saveNotifications(
+    List<Map<String, dynamic>> notifications,
+  ) async {
     final String notificationsJson = jsonEncode(notifications);
     await _preferences!.setString(_notificationKey, notificationsJson);
   }
@@ -66,6 +72,22 @@ class LocalStorageService {
     await _preferences!.remove(_subscriptionKey);
   }
 
+  // Credentials Storage
+  Future<void> saveCredentials(String email, String password) async {
+    final credentials = {'email': email, 'password': password};
+    final String credentialsJson = jsonEncode(credentials);
+    await _preferences!.setString(_credentialsKey, credentialsJson);
+  }
+
+  Future<Map<String, String>?> getCredentials() async {
+    final String? credentialsJson = _preferences!.getString(_credentialsKey);
+    if (credentialsJson != null) {
+      final Map<String, dynamic> decoded = jsonDecode(credentialsJson);
+      return {'email': decoded['email'], 'password': decoded['password']};
+    }
+    return null;
+  }
+
   // User Data Storage
   Future<void> saveUserData(Map<String, dynamic> userData) async {
     final String userJson = jsonEncode(userData);
@@ -75,7 +97,10 @@ class LocalStorageService {
   Future<Map<String, dynamic>?> getUserData() async {
     final String? userJson = _preferences!.getString(_userKey);
     if (userJson != null) {
-      return jsonDecode(userJson);
+      final Map<String, dynamic> userData = jsonDecode(userJson);
+      // Get the user data from UserDataMock to ensure we have complete data
+      final mockUser = UserDataMock.getUserByEmail(userData['email']);
+      return mockUser ?? userData;
     }
     return null;
   }
@@ -117,7 +142,7 @@ class LocalStorageService {
   Future<bool> hasActiveSubscription() async {
     final subscription = await getSubscription();
     if (subscription == null) return false;
-    
+
     final endDate = DateTime.parse(subscription['endDate']);
     return DateTime.now().isBefore(endDate);
   }

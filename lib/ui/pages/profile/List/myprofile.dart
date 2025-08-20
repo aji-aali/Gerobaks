@@ -1,11 +1,35 @@
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/appbar.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
+import 'package:bank_sha/services/local_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'edit_profile.dart';
 
-class Myprofile extends StatelessWidget {
+class Myprofile extends StatefulWidget {
   const Myprofile({super.key});
+
+  @override
+  State<Myprofile> createState() => _MyprofileState();
+}
+
+class _MyprofileState extends State<Myprofile> {
+  Map<String, dynamic>? userData;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final storage = await LocalStorageService.getInstance();
+    final data = await storage.getUserData();
+    if (mounted) {
+      setState(() {
+        userData = data;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,15 +42,17 @@ class Myprofile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Foto Profil
-            const CircleAvatar(
+            CircleAvatar(
               radius: 60,
-              backgroundImage: AssetImage('assets/img_profile.png'),
+              backgroundImage: AssetImage(
+                userData?['profile_picture'] ?? 'assets/img_profile.png',
+              ),
             ),
             const SizedBox(height: 16),
 
             // Nama
             Text(
-              'Ghani',
+              userData?['name'] ?? 'Loading...',
               style: blackTextStyle.copyWith(
                 fontSize: 20,
                 fontWeight: semiBold,
@@ -36,7 +62,7 @@ class Myprofile extends StatelessWidget {
 
             // Email
             Text(
-              'official@gerobaks.com',
+              userData?['email'] ?? 'Loading...',
               style: greyTextStyle.copyWith(fontSize: 14, fontWeight: regular),
             ),
 
@@ -51,7 +77,7 @@ class Myprofile extends StatelessWidget {
                   style: blackTextStyle.copyWith(fontSize: 14),
                 ),
                 Text(
-                  '081234567890',
+                  userData?['phone'] ?? 'Loading...',
                   style: greyTextStyle.copyWith(fontSize: 14),
                 ),
               ],
@@ -62,7 +88,7 @@ class Myprofile extends StatelessWidget {
               children: [
                 Text('Alamat', style: blackTextStyle.copyWith(fontSize: 14)),
                 Text(
-                  'Samarinda, Indonesia',
+                  userData?['address'] ?? 'Loading...',
                   style: greyTextStyle.copyWith(fontSize: 14),
                 ),
               ],
