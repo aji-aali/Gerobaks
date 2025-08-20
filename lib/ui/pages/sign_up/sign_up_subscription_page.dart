@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/models/subscription_model.dart';
 import 'package:bank_sha/services/subscription_service.dart';
+import 'package:bank_sha/services/local_storage_service.dart';
 import 'package:bank_sha/ui/pages/subscription/payment_gateway_page.dart';
 
 class SignUpSubscriptionPage extends StatefulWidget {
@@ -382,7 +383,21 @@ class _SignUpSubscriptionPageState extends State<SignUpSubscriptionPage> {
     _completeSignup(hasSubscription: false);
   }
 
-  void _completeSignup({required bool hasSubscription}) {
+  Future<void> _completeSignup({required bool hasSubscription}) async {
+    // Get all user data passed from previous pages
+    final Map<String, dynamic> userData = 
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+    
+    // Add subscription status and registration date
+    userData['hasSubscription'] = hasSubscription;
+    userData['registrationDate'] = DateTime.now().toIso8601String();
+    
+    // Initialize localStorage service
+    final localStorage = await LocalStorageService.getInstance();
+    
+    // Save user data to localStorage
+    await localStorage.saveUserData(userData);
+    
     // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

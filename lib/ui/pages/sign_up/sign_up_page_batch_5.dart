@@ -3,6 +3,7 @@ import 'package:bank_sha/ui/widgets/shared/form.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 import 'package:bank_sha/ui/widgets/shared/layout.dart';
 import 'package:bank_sha/utils/toast_helper.dart';
+import 'package:bank_sha/ui/widgets/shared/dialog_helper.dart';
 import 'package:flutter/material.dart';
 
 class SignUpBatch5Page extends StatefulWidget {
@@ -406,40 +407,13 @@ class _SignUpBatch5PageState extends State<SignUpBatch5Page> {
                         duration: const Duration(seconds: 3),
                       );
                       
-                      // Show dialog explaining alpha version
-                      showDialog(
+                      // Show dialog explaining alpha version using custom dialog
+                      DialogHelper.showInfoDialog(
                         context: context,
-                        builder: (context) => AlertDialog(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          title: Text(
-                            'Versi Alpha',
-                            style: blackTextStyle.copyWith(
-                              fontSize: 18,
-                              fontWeight: bold,
-                            ),
-                          ),
-                          content: Text(
-                            'Fitur langganan masih dalam tahap pengembangan (versi alpha) dan belum tersedia saat ini. Anda dapat melanjutkan pendaftaran tanpa berlangganan.',
-                            style: greyTextStyle.copyWith(
-                              fontSize: 14,
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: Text(
-                                'Mengerti',
-                                style: greeTextStyle.copyWith(
-                                  fontWeight: semiBold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                        title: 'Versi Alpha',
+                        message: 'Fitur langganan masih dalam tahap pengembangan (versi alpha) dan belum tersedia saat ini. Anda dapat melanjutkan pendaftaran tanpa berlangganan.',
+                        buttonText: 'Mengerti',
+                        icon: Icons.info_outline,
                       );
                     },
                   ),

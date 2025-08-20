@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:bank_sha/models/activity_model_improved.dart';
 import 'package:bank_sha/utils/hero_tag_generator.dart';
 import 'package:bank_sha/utils/toast_helper.dart';
+import 'package:bank_sha/ui/widgets/shared/dialog_helper.dart';
+import 'package:bank_sha/ui/widgets/shared/custom_dialog.dart';
 
 class ActivityDetailModal extends StatelessWidget {
   final ActivityModel activity;

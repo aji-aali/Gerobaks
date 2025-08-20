@@ -23,17 +23,30 @@ import 'package:bank_sha/ui/pages/sign_up/sign_up_page_batch_1.dart';
 import 'package:bank_sha/ui/pages/sign_up/sign_up_page_batch_2.dart';
 import 'package:bank_sha/ui/pages/sign_up/sign_up_page_batch_3.dart';
 import 'package:bank_sha/ui/pages/sign_up/sign_up_page_batch_4.dart';
-import 'package:bank_sha/ui/pages/sign_up/sign_up_page_batch_5.dart';
 import 'package:bank_sha/ui/pages/sign_up/sign_up_subscription_page.dart';
 import 'package:bank_sha/ui/pages/splash_onboard/splash_page.dart';
 import 'package:bank_sha/ui/pages/tambah_jadwal_page.dart';
 
 import 'package:bank_sha/services/gemini_ai_service.dart';
+import 'package:bank_sha/services/local_storage_service.dart';
+import 'package:bank_sha/services/subscription_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
   await initializeDateFormatting('id_ID', null);
+  
+  // Inisialisasi LocalStorage Service
+  try {
+    await LocalStorageService.getInstance();
+    print("LocalStorage berhasil diinisialisasi");
+    
+    // Inisialisasi SubscriptionService setelah LocalStorage
+    await SubscriptionService().initialize();
+    print("SubscriptionService berhasil diinisialisasi");
+  } catch (e) {
+    print("Error saat inisialisasi services: $e");
+  }
   
   // Inisialisasi layanan notifikasi secara eksplisit
   try {
@@ -72,7 +85,7 @@ class MyApp extends StatelessWidget {
         '/sign-up-batch-3': (context) => const SignUpBatch3Page(),
         '/sign-up-batch-4': (context) => const SignUpBatch4Page(),
         '/sign-up-subscription': (context) => const SignUpSubscriptionPage(),
-        '/sign-up-batch-5': (context) => const SignUpBatch5Page(), // Keep for legacy
+        // Batch 5 removed - redirect to subscription page after batch 4
         // Redirect old sign-up route to the new batch flow
         '/sign-up': (context) => const SignUpBatch1Page(), // Redirect ke halaman batch 1
         '/sign-up-uplod-profile': (context) => const SignUpUplodProfilePage(),

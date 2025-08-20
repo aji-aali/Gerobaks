@@ -25,11 +25,28 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> {
   PaymentMethod? _selectedPaymentMethod;
   bool _isProcessing = false;
   List<PaymentMethod> _paymentMethods = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _paymentMethods = _subscriptionService.getPaymentMethods();
+    _initializeService();
+  }
+  
+  Future<void> _initializeService() async {
+    try {
+      // Make sure service is initialized
+      await _subscriptionService.initialize();
+      _paymentMethods = _subscriptionService.getPaymentMethods();
+    } catch (e) {
+      print('Error initializing subscription service: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> _processPayment() async {
@@ -90,22 +107,33 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> {
         showBackButton: true,
       ),
       backgroundColor: uicolor,
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildOrderSummary(),
-                  const SizedBox(height: 24),
-                  _buildPaymentMethods(),
-                  const SizedBox(height: 24),
-                  _buildPaymentInstructions(),
-                ],
-              ),
+      body: _isLoading 
+        ? Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text("Memuat metode pembayaran...", style: TextStyle(fontSize: 16)),
+              ],
             ),
+          )
+        : Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildOrderSummary(),
+                    const SizedBox(height: 24),
+                    _buildPaymentMethods(),
+                    const SizedBox(height: 24),
+                    _buildPaymentInstructions(),
+                  ],
+                ),
+              ),
           ),
           _buildBottomAction(),
         ],
