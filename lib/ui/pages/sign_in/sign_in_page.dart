@@ -1,13 +1,52 @@
+import 'package:bank_sha/services/local_storage_service.dart';
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/form.dart';
+import 'package:bank_sha/utils/user_data_mock.dart';
 import 'package:bank_sha/ui/widgets/shared/layout.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 import 'package:bank_sha/utils/toast_helper.dart';
 import 'package:bank_sha/services/notification_service.dart';
 import 'package:flutter/material.dart';
 
-class SignInPage extends StatelessWidget {
+class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
+
+  @override
+  State<SignInPage> createState() => _SignInPageState();
+}
+
+class _SignInPageState extends State<SignInPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  late LocalStorageService _localStorageService;
+
+  @override
+  void initState() {
+    super.initState();
+    _initLocalStorage();
+  }
+
+  Future<void> _initLocalStorage() async {
+    _localStorageService = await LocalStorageService.getInstance();
+    _loadCredentials();
+  }
+
+  Future<void> _loadCredentials() async {
+    final credentials = await _localStorageService.getCredentials();
+    if (credentials != null) {
+      setState(() {
+        _emailController.text = credentials['email']!;
+        _passwordController.text = credentials['password']!;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,15 +120,20 @@ class SignInPage extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Email Input menggunakan CustomFormField
-                  const CustomFormField(
+                  CustomFormField(
                     title: 'Email Address',
                     keyboardType: TextInputType.emailAddress,
+                    controller: _emailController,
                   ),
 
                   const SizedBox(height: 16),
 
                   // Password Input menggunakan CustomFormField
-                  const CustomFormField(title: 'Password', obscureText: true),
+                  CustomFormField(
+                    title: 'Password',
+                    obscureText: true,
+                    controller: _passwordController,
+                  ),
 
                   // Forgot Password Link
                   Align(
@@ -113,26 +157,53 @@ class SignInPage extends StatelessWidget {
                     title: 'Sign In',
                     height: 48,
                     onPressed: () async {
-                      // Menampilkan notifikasi login berhasil
-                      await NotificationService().showNotification(
-                        id: DateTime.now().millisecond,
-                        title: 'Login Berhasil',
-                        body: 'Selamat datang di Gerobaks!',
-                      );
+                      final email = _emailController.text;
+                      final password = _passwordController.text;
 
-                      // Menampilkan toast login berhasil
-                      ToastHelper.showToast(
-                        context: context,
-                        message: 'Login berhasil!',
-                        isSuccess: true,
-                      );
-                      
-                      // Navigasi ke halaman home
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        '/home',
-                        (route) => false,
-                      );
+                      if (email.isNotEmpty && password.isNotEmpty) {
+                        final user = UserDataMock.getUserByEmail(email);
+
+                        if (user != null && user['password'] == password) {
+                          // Save user data to local storage
+                          await _localStorageService.saveUserData(user);
+                          await _localStorageService.saveCredentials(email, password);
+
+                          // Menampilkan notifikasi login berhasil
+                          await NotificationService().showNotification(
+                            id: DateTime.now().millisecond,
+                            title: 'Login Berhasil',
+                            body: 'Selamat datang di Gerobaks, ${user['name']}!',
+                          );
+
+                          // Menampilkan toast login berhasil
+                          ToastHelper.showToast(
+                            context: context,
+                            message: 'Login berhasil!',
+                            isSuccess: true,
+                          );
+
+                          // Navigasi ke halaman home
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            '/home',
+                            (route) => false,
+                          );
+                        } else {
+                          // Menampilkan toast jika kredensial salah
+                          ToastHelper.showToast(
+                            context: context,
+                            message: 'Email atau password salah',
+                            isSuccess: false,
+                          );
+                        }
+                      } else {
+                        // Menampilkan toast jika email atau password kosong
+                        ToastHelper.showToast(
+                          context: context,
+                          message: 'Email dan password harus diisi',
+                          isSuccess: false,
+                        );
+                      }
                     },
                   ),
 
