@@ -4,8 +4,7 @@ import 'package:bank_sha/ui/widgets/shared/layout.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 import 'package:bank_sha/utils/toast_helper.dart';
 import 'package:bank_sha/services/notification_service.dart';
-import 'package:bank_sha/services/local_storage_service.dart';
-import 'package:bank_sha/ui/widgets/skeleton/skeleton_items.dart';
+import 'package:bank_sha/services/user_service.dart';
 import 'package:flutter/material.dart';
 
 class SignInPage extends StatefulWidget {
@@ -21,19 +20,27 @@ class _SignInPageState extends State<SignInPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _isPasswordVisible = false;
-  LocalStorageService? _localStorage;
+  UserService? _userService;
 
   @override
   void initState() {
     super.initState();
-    _initializeLocalStorage();
+    _initializeServices();
   }
 
-  Future<void> _initializeLocalStorage() async {
+  Future<void> _initializeServices() async {
     try {
-      _localStorage = await LocalStorageService.getInstance();
+      _userService = await UserService.getInstance();
+      await _userService!.init();
+      
+      // Check if user is already logged in
+      final isLoggedIn = await _userService!.getCurrentUser() != null;
+      if (isLoggedIn && mounted) {
+        // If already logged in, navigate to home page
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     } catch (e) {
-      print("Error initializing localStorage: $e");
+      print("Error initializing services: $e");
     }
   }
 
@@ -44,19 +51,7 @@ class _SignInPageState extends State<SignInPage> {
     super.dispose();
   }
 
-  // Validate user credentials against localStorage
-  Future<bool> _validateCredentials(String email, String password) async {
-    if (_localStorage == null) {
-      await _initializeLocalStorage();
-    }
-    
-    final userData = await _localStorage?.getUserData();
-    if (userData == null) {
-      return false;
-    }
-    
-    return userData['email'] == email && userData['password'] == password;
-  }
+
 
   // Handle sign in
   Future<void> _handleSignIn() async {
@@ -69,12 +64,18 @@ class _SignInPageState extends State<SignInPage> {
     });
     
     try {
-      final isValid = await _validateCredentials(
-        _emailController.text, 
-        _passwordController.text
+      // Make sure service is initialized
+      if (_userService == null) {
+        await _initializeServices();
+      }
+      
+      // Login using UserService
+      final user = await _userService?.loginUser(
+        email: _emailController.text, 
+        password: _passwordController.text
       );
       
-      if (isValid) {
+      if (user != null) {
         // Menampilkan notifikasi login berhasil
         await NotificationService().showNotification(
           id: DateTime.now().millisecond,
@@ -82,11 +83,11 @@ class _SignInPageState extends State<SignInPage> {
           body: 'Selamat datang di Gerobaks!',
         );
 
-        // Menampilkan toast login berhasil
+        // Menampilkan toast login berhasil dengan poin
         if (mounted) {
           ToastHelper.showToast(
             context: context,
-            message: 'Login berhasil!',
+            message: 'Login berhasil! Poin Anda: ${user.points}',
             isSuccess: true,
           );
           
