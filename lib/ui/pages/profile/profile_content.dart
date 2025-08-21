@@ -4,6 +4,7 @@ import 'package:bank_sha/ui/pages/profile/List/privacy_policy.dart';
 import 'package:bank_sha/ui/pages/profile/List/settings/settings.dart';
 import 'package:bank_sha/ui/pages/profile/points_history_page.dart';
 import 'package:bank_sha/services/local_storage_service.dart';
+import 'package:bank_sha/ui/widgets/shared/profile_picture_picker.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:bank_sha/shared/theme.dart';
@@ -107,20 +108,32 @@ class _ProfileContentState extends State<ProfileContent> {
     return Container(
       color: uicolor,
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(height: 24),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 24),
 
-          // Profile Info
-          Column(
-            children: [
-              CircleAvatar(
-                radius: 60,
-                backgroundImage: _user?.profilePicUrl != null 
-                    ? NetworkImage(_user!.profilePicUrl!) as ImageProvider
-                    : const AssetImage('assets/img_profile.png'),
+            // Profile Info
+            Column(
+              children: [
+              ProfilePicturePicker(
+                currentPicture: _user?.profilePicUrl ?? 'assets/img_profile.png',
+                onPictureSelected: (String newPicture) async {
+                  try {
+                    await _userService.updateUserProfile(
+                      profilePicUrl: newPicture,
+                    );
+                    _loadUserData(); // Refresh data
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Gagal mengubah foto profil: $e')),
+                      );
+                    }
+                  }
+                },
               ),
               const SizedBox(height: 12),
               Text(
@@ -169,11 +182,17 @@ class _ProfileContentState extends State<ProfileContent> {
 
           const SizedBox(height: 32),
 
-          // Menu Items
-          CustomAppMenu(
+            // Menu Items
+            CustomAppMenu(
             iconURL: 'assets/ic_profile_profile.png',
             title: 'My profile',
-            page: Myprofile(), // ganti dengan halaman yang sesuai
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const Myprofile()),
+              );
+            },
+            page: Container(),
           ),
           CustomAppMenu(
             iconURL: 'assets/ic_stars.png',
@@ -191,25 +210,43 @@ class _ProfileContentState extends State<ProfileContent> {
           CustomAppMenu(
             iconURL: 'assets/ic_my_rewards.png',
             title: 'Langganan Saya',
-            page: Container(), // Will be handled with navigation
             onTap: () {
               Navigator.pushNamed(context, '/my-subscription');
             },
+            page: Container(),
           ),
           CustomAppMenu(
             iconURL: 'assets/ic_kebijakan.png',
             title: 'Privacy policy',
-            page: PrivacyPolicy(),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PrivacyPolicy()),
+              );
+            },
+            page: Container(),
           ),
           CustomAppMenu(
             iconURL: 'assets/ic_aboutus.png',
             title: 'About us',
-            page: AboutUs(),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AboutUs()),
+              );
+            },
+            page: Container(),
           ),
           CustomAppMenu(
             iconURL: 'assets/ic_setting.png',
             title: 'Settings',
-            page: const Settings(),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const Settings()),
+              );
+            },
+            page: Container(),
           ),
           CustomAppMenu(
             iconURL: 'assets/ic_logout_profile.png',
@@ -261,8 +298,9 @@ class _ProfileContentState extends State<ProfileContent> {
             page: const SignInPage(),
           ),
 
-          const SizedBox(height: 32),
-        ],
+            const SizedBox(height: 32),
+          ],
+        ),
       ),
     );
   }

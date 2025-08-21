@@ -2,6 +2,8 @@ import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/appbar.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 import 'package:bank_sha/services/local_storage_service.dart';
+import 'package:bank_sha/ui/widgets/shared/profile_picture_picker.dart';
+import 'package:bank_sha/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'edit_profile.dart';
 
@@ -42,11 +44,21 @@ class _MyprofileState extends State<Myprofile> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Foto Profil
-            CircleAvatar(
-              radius: 60,
-              backgroundImage: AssetImage(
-                userData?['profile_picture'] ?? 'assets/img_profile.png',
-              ),
+            ProfilePicturePicker(
+              currentPicture: userData?['profile_picture'] ?? 'assets/img_profile.png',
+              onPictureSelected: (String newPicture) async {
+                final userService = await UserService.getInstance();
+                await userService.updateUserProfile(
+                  profilePicUrl: newPicture,
+                );
+                if (mounted) {
+                  setState(() {
+                    if (userData != null) {
+                      userData!['profile_picture'] = newPicture;
+                    }
+                  });
+                }
+              },
             ),
             const SizedBox(height: 16),
 
