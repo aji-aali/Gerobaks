@@ -19,13 +19,10 @@ class SignInPage extends StatefulWidget {
 class _SignInPageState extends State<SignInPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  late LocalStorageService _localStorageService;
-
-  void _togglePasswordVisibility() {
-    setState(() {
-      _isPasswordVisible = !_isPasswordVisible;
-    });
-  }
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
+  bool _isPasswordVisible = false;
+  UserService? _userService;
 
   @override
   void initState() {
@@ -48,23 +45,6 @@ class _SignInPageState extends State<SignInPage> {
       });
 =======
     _initializeServices();
-
-    // Handle auto-fill credentials from sign up
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final args =
-          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-      if (args != null) {
-        setState(() {
-          _emailController.text = args['email'] ?? '';
-          _passwordController.text = args['password'] ?? '';
-        });
-        // Auto login if credentials are provided
-        if (_emailController.text.isNotEmpty &&
-            _passwordController.text.isNotEmpty) {
-          _handleSignIn();
-        }
-      }
-    });
   }
 
   Future<void> _initializeServices() async {
@@ -91,8 +71,8 @@ class _SignInPageState extends State<SignInPage> {
     super.dispose();
   }
 
-<<<<<<< HEAD
-=======
+
+
   // Handle sign in
   Future<void> _handleSignIn() async {
     if (!_formKey.currentState!.validate()) {
@@ -252,7 +232,7 @@ class _SignInPageState extends State<SignInPage> {
                         CustomFormField(
                           title: 'Password',
                           controller: _passwordController,
-                          obscureText: true,
+                          obscureText: !_isPasswordVisible,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Password tidak boleh kosong';

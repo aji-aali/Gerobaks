@@ -88,6 +88,24 @@ class LocalStorageService {
     await _preferences!.remove(_subscriptionKey);
   }
 
+<<<<<<< HEAD
+=======
+  // Credentials Storage
+  Future<void> saveCredentials(String email, String password) async {
+    final credentials = {'email': email, 'password': password};
+    final String credentialsJson = jsonEncode(credentials);
+    await _preferences!.setString(_credentialsKey, credentialsJson);
+  }
+
+  Future<Map<String, String>?> getCredentials() async {
+    final String? credentialsJson = _preferences!.getString(_credentialsKey);
+    if (credentialsJson != null) {
+      final Map<String, dynamic> decoded = jsonDecode(credentialsJson);
+      return {'email': decoded['email'], 'password': decoded['password']};
+    }
+    return null;
+  }
+>>>>>>> acba58a040fb6da781db35c748178afc5837a3f6
 
   // User Data Storage
   Future<void> saveUserData(Map<String, dynamic> userData) async {

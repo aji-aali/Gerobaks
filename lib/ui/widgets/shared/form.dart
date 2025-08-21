@@ -32,12 +32,18 @@ class CustomFormField extends StatefulWidget {
 }
 
 class _CustomFormFieldState extends State<CustomFormField> {
-  bool isObscured = false;
+  late bool isObscured;
 
   @override
   void initState() {
     super.initState();
     isObscured = widget.obscureText;
+  }
+
+  void _toggleObscured() {
+    setState(() {
+      isObscured = !isObscured;
+    });
   }
 
   // Method untuk mendapatkan icon berdasarkan title
@@ -118,11 +124,7 @@ class _CustomFormFieldState extends State<CustomFormField> {
                       color: greyColor,
                       size: 20,
                     ),
-                    onPressed: () {
-                      setState(() {
-                        isObscured = !isObscured;
-                      });
-                    },
+                    onPressed: _toggleObscured,
                   )
                 : null),
             filled: true,

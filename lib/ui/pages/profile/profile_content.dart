@@ -4,9 +4,13 @@ import 'package:bank_sha/ui/pages/profile/List/privacy_policy.dart';
 import 'package:bank_sha/ui/pages/profile/List/settings/settings.dart';
 <<<<<<< HEAD
 import 'package:bank_sha/ui/pages/profile/points_history_page.dart';
+<<<<<<< HEAD
 =======
 import 'package:bank_sha/services/local_storage_service.dart';
 >>>>>>> 31182ad (feat: Enhance user data management by implementing LocalStorageService for profile and home content)
+=======
+import 'package:bank_sha/services/local_storage_service.dart';
+>>>>>>> acba58a040fb6da781db35c748178afc5837a3f6
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:bank_sha/shared/theme.dart';

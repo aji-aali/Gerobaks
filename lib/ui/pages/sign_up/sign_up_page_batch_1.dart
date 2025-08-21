@@ -4,11 +4,14 @@ import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 import 'package:bank_sha/ui/widgets/shared/layout.dart';
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import 'package:bank_sha/utils/toast_helper.dart';
 =======
 >>>>>>> 02b957d (feat: adding & improve sign up)
 =======
 >>>>>>> 31182ad (feat: Enhance user data management by implementing LocalStorageService for profile and home content)
+=======
+>>>>>>> acba58a040fb6da781db35c748178afc5837a3f6
 import 'package:flutter/material.dart';
 
 class SignUpBatch1Page extends StatefulWidget {
@@ -237,6 +240,7 @@ class _SignUpBatch1PageState extends State<SignUpBatch1Page> {
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
 <<<<<<< HEAD
+<<<<<<< HEAD
                           // Menampilkan toast validasi berhasil
                           ToastHelper.showToast(
                             context: context,
@@ -246,6 +250,8 @@ class _SignUpBatch1PageState extends State<SignUpBatch1Page> {
                           
 =======
 >>>>>>> 02b957d (feat: adding & improve sign up)
+=======
+>>>>>>> acba58a040fb6da781db35c748178afc5837a3f6
                           // Pass data to next page
                           Navigator.pushNamed(
                             context,
