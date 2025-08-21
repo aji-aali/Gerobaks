@@ -5,6 +5,8 @@ import 'package:bank_sha/services/subscription_service.dart';
 import 'package:bank_sha/models/subscription_model.dart';
 import 'package:bank_sha/ui/pages/subscription/subscription_plans_page.dart';
 import 'package:bank_sha/services/local_storage_service.dart';
+import 'package:bank_sha/models/user_model.dart';
+import 'package:bank_sha/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -22,18 +24,19 @@ class HomeContent extends StatefulWidget {
 
 class _HomeContentState extends State<HomeContent> {
   final SubscriptionService _subscriptionService = SubscriptionService();
-  
+
   // State for skeleton loading
   bool _isLoading = true;
   bool _isLoadingSubscription = true;
-  
+
   // Cache untuk greeting agar tidak perlu hitung ulang setiap build
   late String _cachedGreeting;
   late String _cachedDate;
   late DateTime _lastCacheUpdate;
 
-  // Storage data user session
-  Map<String, dynamic>? userData;
+  // User data
+  UserModel? _user;
+  late UserService _userService;
 
   // Method untuk mendapatkan status subscription
   Future<UserSubscription?> _getSubscriptionStatus() async {
@@ -84,21 +87,21 @@ class _HomeContentState extends State<HomeContent> {
       const Duration(minutes: 10),
     ); // Force first update
     _updateGreetingCache();
-    
+
     // Simulate loading data
     _loadInitialData();
 
     // Load Data Akun Login
     _loadUserData();
   }
-  
+
   Future<void> _loadInitialData() async {
     // Simulate network delay
     await Future.delayed(const Duration(seconds: 2));
-    
+
     // Check subscription status
     await _subscriptionService.initialize();
-    
+
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -107,16 +110,37 @@ class _HomeContentState extends State<HomeContent> {
     }
   }
 
-  Future<void> _loadUserData() async {
-    final storage = await LocalStorageService.getInstance();
-    final data = await storage.getUserData();
+  void _handleUserChange(UserModel? user) {
     if (mounted) {
       setState(() {
-        userData = data;
+        _user = user;
       });
     }
   }
-  
+
+  Future<void> _loadUserData() async {
+    try {
+      _userService = await UserService.getInstance();
+      await _userService.init();
+
+      // Get initial user data
+      final user = await _userService.getCurrentUser();
+      _handleUserChange(user);
+
+      // Set up listener for user changes
+      _userService.addUserChangeListener(_handleUserChange);
+    } catch (e) {
+      print("Error loading user data: $e");
+    }
+  }
+
+  @override
+  void dispose() {
+    // Remove user change listener
+    _userService.removeUserChangeListener(_handleUserChange);
+    super.dispose();
+  }
+
   // Skeleton loading untuk seluruh halaman home
   Widget _buildSkeletonLoading(double horizontalPadding) {
     return ListView(
@@ -144,7 +168,7 @@ class _HomeContentState extends State<HomeContent> {
           ),
         ),
         const SizedBox(height: 24),
-        
+
         // Skeleton untuk quick picks
         Padding(
           padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
@@ -173,7 +197,7 @@ class _HomeContentState extends State<HomeContent> {
           ),
         ),
         const SizedBox(height: 28),
-        
+
         // Skeleton untuk carousel
         Padding(
           padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
@@ -181,9 +205,9 @@ class _HomeContentState extends State<HomeContent> {
         ),
         const SizedBox(height: 16),
         SkeletonItems.card(height: 180),
-        
+
         const SizedBox(height: 28),
-        
+
         // Skeleton untuk menu item list
         Padding(
           padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
@@ -253,68 +277,69 @@ class _HomeContentState extends State<HomeContent> {
     return Scaffold(
       appBar: const CustomAppBarHome(),
       backgroundColor: uicolor,
-      body: _isLoading 
-        ? _buildSkeletonLoading(horizontalPadding)
-        : ListView(
-          physics: const BouncingScrollPhysics(), // Smooth bouncy scroll effect
-          children: [
-          // Container untuk semua konten dengan padding yang konsisten
-          Container(
-            padding: const EdgeInsets.only(bottom: 30),
-            child: Column(
+      body: _isLoading
+          ? _buildSkeletonLoading(horizontalPadding)
+          : ListView(
+              physics:
+                  const BouncingScrollPhysics(), // Smooth bouncy scroll effect
               children: [
-                // Greeting dengan padding yang lebih seimbang
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: horizontalPadding,
-                  ),
-                  child: buildGreeting(),
-                ),
-
-                // Quick Picks dengan padding konsisten dan jarak yang lebih baik
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: horizontalPadding,
-                  ),
-                  child: buildQuickPicks(context),
-                ),
-
-                // Spacer yang proporsional antara konten
-                const SizedBox(height: 28),
-
-                // Informasi Carousel dengan struktur yang lebih terorganisir
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: horizontalPadding,
-                      ),
-                      child: Text(
-                        'Informasi',
-                        style: blackTextStyle.copyWith(
-                          fontSize: 18,
-                          fontWeight: semiBold,
+                // Container untuk semua konten dengan padding yang konsisten
+                Container(
+                  padding: const EdgeInsets.only(bottom: 30),
+                  child: Column(
+                    children: [
+                      // Greeting dengan padding yang lebih seimbang
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: horizontalPadding,
                         ),
+                        child: buildGreeting(),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    buildComingSoonCarousel(),
-                  ],
-                ),
 
-                // About Us dengan padding konsisten
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: horizontalPadding,
+                      // Quick Picks dengan padding konsisten dan jarak yang lebih baik
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: horizontalPadding,
+                        ),
+                        child: buildQuickPicks(context),
+                      ),
+
+                      // Spacer yang proporsional antara konten
+                      const SizedBox(height: 28),
+
+                      // Informasi Carousel dengan struktur yang lebih terorganisir
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: horizontalPadding,
+                            ),
+                            child: Text(
+                              'Informasi',
+                              style: blackTextStyle.copyWith(
+                                fontSize: 18,
+                                fontWeight: semiBold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          buildComingSoonCarousel(),
+                        ],
+                      ),
+
+                      // About Us dengan padding konsisten
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: horizontalPadding,
+                        ),
+                        child: buildAboutUs(context),
+                      ),
+                    ],
                   ),
-                  child: buildAboutUs(context),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -338,7 +363,7 @@ class _HomeContentState extends State<HomeContent> {
         },
       );
     }
-    
+
     // Menggunakan model data dari information_model.dart
     return CarouselSlider.builder(
       itemCount: informationList.length,
@@ -500,7 +525,7 @@ class _HomeContentState extends State<HomeContent> {
               ),
               Flexible(
                 child: Text(
-                  userData?['name'] ?? 'Loading...', // Replace with actual username from state management or shared preferences
+                  _user?.name ?? 'Loading...',
                   style: greentextstyle2.copyWith(
                     fontSize: 20,
                     fontWeight: semiBold,
@@ -519,66 +544,77 @@ class _HomeContentState extends State<HomeContent> {
               children: [
                 // Subscription badge dengan skeleton loading
                 Expanded(
-                  child: _isLoadingSubscription 
-                  ? SkeletonItems.card(
-                      height: 30,
-                      borderRadius: 12,
-                    )
-                  : FutureBuilder<UserSubscription?>(
-                    future: _getSubscriptionStatus(),
-                    builder: (context, snapshot) {
-                      final hasSubscription = snapshot.data != null;
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SubscriptionPlansPage(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: hasSubscription 
-                                ? greenColor.withOpacity(0.1)
-                                : Colors.orange.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              hasSubscription
-                                  ? Icon(Icons.check_circle, size: 16, color: greenColor)
-                                  : const Icon(Icons.info_outline, size: 16, color: Colors.orange),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  hasSubscription ? 'Anda telah berlangganan' : 'Anda belum berlangganan',
-                                  style: hasSubscription
-                                      ? greentextstyle2.copyWith(
-                                          fontSize: 12,
-                                          fontWeight: medium,
-                                        )
-                                      : TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: medium,
-                                          color: Colors.orange,
-                                        ),
-                                  overflow: TextOverflow.ellipsis,
+                  child: _isLoadingSubscription
+                      ? SkeletonItems.card(height: 30, borderRadius: 12)
+                      : FutureBuilder<UserSubscription?>(
+                          future: _getSubscriptionStatus(),
+                          builder: (context, snapshot) {
+                            final hasSubscription = snapshot.data != null;
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const SubscriptionPlansPage(),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: hasSubscription
+                                      ? greenColor.withOpacity(0.1)
+                                      : Colors.orange.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    hasSubscription
+                                        ? Icon(
+                                            Icons.check_circle,
+                                            size: 16,
+                                            color: greenColor,
+                                          )
+                                        : const Icon(
+                                            Icons.info_outline,
+                                            size: 16,
+                                            color: Colors.orange,
+                                          ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        hasSubscription
+                                            ? 'Anda telah berlangganan'
+                                            : 'Anda belum berlangganan',
+                                        style: hasSubscription
+                                            ? greentextstyle2.copyWith(
+                                                fontSize: 12,
+                                                fontWeight: medium,
+                                              )
+                                            : TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: medium,
+                                                color: Colors.orange,
+                                              ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ),
 
                 // Spacer antara badge dan tanggal
                 const SizedBox(width: 8),
-                
+
                 // Container untuk tanggal
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -811,8 +847,9 @@ class _HomeContentState extends State<HomeContent> {
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(4, (index) => 
-              SizedBox(
+            children: List.generate(
+              4,
+              (index) => SizedBox(
                 width: 70,
                 child: Column(
                   children: [
@@ -821,13 +858,13 @@ class _HomeContentState extends State<HomeContent> {
                     SkeletonItems.text(height: 14),
                   ],
                 ),
-              )
+              ),
             ),
           ),
         ],
       );
     }
-  
+
     List<Map<String, dynamic>> quickItems = [
       {
         'icon': Icons.note_add_outlined,
