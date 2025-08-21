@@ -21,14 +21,7 @@ class _SignInPageState extends State<SignInPage> {
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  bool _isPasswordVisible = false;
   UserService? _userService;
-
-  void _togglePasswordVisibility() {
-    setState(() {
-      _isPasswordVisible = !_isPasswordVisible;
-    });
-  }
 
   @override
   void initState() {
@@ -36,19 +29,25 @@ class _SignInPageState extends State<SignInPage> {
     _initializeServices();
 
     // Handle auto-fill credentials from sign up
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Future.delayed(Duration.zero, () {
+      if (!mounted) return;
+
       final args =
           ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-      if (args != null) {
+      if (args != null &&
+          args.containsKey('email') &&
+          args.containsKey('password')) {
         setState(() {
-          _emailController.text = args['email'] ?? '';
-          _passwordController.text = args['password'] ?? '';
+          _emailController.text = args['email'];
+          _passwordController.text = args['password'];
         });
-        // Auto login if credentials are provided
-        if (_emailController.text.isNotEmpty &&
-            _passwordController.text.isNotEmpty) {
-          _handleSignIn();
-        }
+
+        // Show auto-fill notification
+        ToastHelper.showToast(
+          context: context,
+          message: 'Kredensial login telah diisi otomatis',
+          isSuccess: true,
+        );
       }
     });
   }
@@ -240,7 +239,8 @@ class _SignInPageState extends State<SignInPage> {
                         CustomFormField(
                           title: 'Password',
                           controller: _passwordController,
-                          obscureText: true,
+                          obscureText:
+                              true, // Gunakan default password handling dari CustomFormField
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Password tidak boleh kosong';
