@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:bank_sha/models/activity_model_improved.dart';
 import 'package:bank_sha/utils/toast_helper.dart';
 import 'package:bank_sha/ui/widgets/shared/dialog_helper.dart';
+import 'package:bank_sha/ui/widgets/shared/reschedule_dialog.dart';
 
 class ActivityDetailModal extends StatelessWidget {
   final ActivityModel activity;
@@ -30,23 +31,7 @@ class ActivityDetailModal extends StatelessWidget {
     }
   }
   
-  // Format tanggal dengan lebih baik untuk tampilan
-  String _formatDateOnly(DateTime date) {
-    // Daftar nama bulan
-    final List<String> monthNames = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-    ];
-    
-    return '${date.day} ${monthNames[date.month - 1]} ${date.year}';
-  }
-  
-  // Format waktu dengan lebih baik untuk tampilan (menambahkan 'WIB' dan leading zeros)
-  String _formatTimeOnly(TimeOfDay time) {
-    final hour = time.hour.toString().padLeft(2, '0');
-    final minute = time.minute.toString().padLeft(2, '0');
-    return '$hour:$minute WIB';
-  }
+  // Format methods moved to RescheduleDialog class
 
   @override
   Widget build(BuildContext context) {
@@ -286,133 +271,27 @@ class ActivityDetailModal extends StatelessWidget {
   }
   
   void _showRescheduleDialog(BuildContext context) {
-    DateTime selectedDate = activity.date;
-    TimeOfDay selectedTime = TimeOfDay(hour: activity.date.hour, minute: activity.date.minute);
-
-    showDialog(
+    RescheduleDialog.show(
       context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text(
-                'Atur Ulang Jadwal',
-                style: blackTextStyle.copyWith(
-                  fontSize: 18,
-                  fontWeight: semiBold,
-                ),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Date selector
-                  ListTile(
-                    leading: Icon(Icons.calendar_today, color: greenColor),
-                    title: Text(
-                      'Tanggal',
-                      style: blackTextStyle.copyWith(fontSize: 14),
-                    ),
-                    subtitle: Text(
-                      _formatDateOnly(selectedDate), // Format tanggal lebih rapi
-                      style: blackTextStyle.copyWith(
-                        fontSize: 16, 
-                        fontWeight: medium,
-                      ),
-                    ),
-                    onTap: () async {
-                      final date = await showDatePicker(
-                        context: context,
-                        initialDate: selectedDate,
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(const Duration(days: 90)),
-                        builder: (context, child) {
-                          return Theme(
-                            data: Theme.of(context).copyWith(
-                              colorScheme: ColorScheme.light(
-                                primary: greenColor,
-                                onPrimary: Colors.white,
-                              ),
-                            ),
-                            child: child!,
-                          );
-                        },
-                      );
-                      if (date != null) {
-                        setState(() {
-                          selectedDate = date;
-                        });
-                      }
-                    },
-                  ),
-                  // Time selector
-                  ListTile(
-                    leading: Icon(Icons.access_time, color: greenColor),
-                    title: Text(
-                      'Waktu',
-                      style: blackTextStyle.copyWith(fontSize: 14),
-                    ),
-                    subtitle: Text(
-                      _formatTimeOnly(selectedTime), // Format waktu lebih rapi
-                      style: blackTextStyle.copyWith(
-                        fontSize: 16, 
-                        fontWeight: medium,
-                      ),
-                    ),
-                    onTap: () async {
-                      final time = await showTimePicker(
-                        context: context,
-                        initialTime: selectedTime,
-                        builder: (context, child) {
-                          return Theme(
-                            data: Theme.of(context).copyWith(
-                              colorScheme: ColorScheme.light(
-                                primary: greenColor,
-                                onPrimary: Colors.white,
-                              ),
-                            ),
-                            child: child!,
-                          );
-                        },
-                      );
-                      if (time != null) {
-                        setState(() {
-                          selectedTime = time;
-                        });
-                      }
-                    },
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'Batal',
-                    style: greyTextStyle,
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    // Simulasi update jadwal
-                    ToastHelper.showToast(
-                      context: context,
-                      message: 'Jadwal berhasil diperbarui',
-                      isSuccess: true,
-                    );
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: greenColor,
-                  ),
-                  child: Text(
-                    'Simpan Perubahan',
-                    style: whiteTextStyle,
-                  ),
-                ),
-              ],
-            );
-          }
+      initialDate: activity.date,
+      onReschedule: (newDate, newTime) {
+        // Combine date and time into a single DateTime
+        DateTime rescheduledDateTime = DateTime(
+          newDate.year,
+          newDate.month,
+          newDate.day,
+          newTime.hour,
+          newTime.minute,
         );
+        
+        // Show success message
+        ToastHelper.showToast(
+          context: context,
+          message: 'Jadwal berhasil diperbarui ke ${rescheduledDateTime.toString()}',
+          isSuccess: true,
+        );
+        
+        // In a real app, you would update the activity in your backend
       },
     );
   }

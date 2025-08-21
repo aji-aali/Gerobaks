@@ -426,54 +426,20 @@ class _SignUpBatch5PageState extends State<SignUpBatch5Page> {
                     height: 50,
                     child: OutlinedButton(
                       onPressed: () {
-                        // Show confirmation dialog
-                        showDialog(
+                        // Show confirmation dialog using custom dialog
+                        DialogHelper.showConfirmDialog(
                           context: context,
-                          builder: (context) => AlertDialog(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            title: Text(
-                              'Yakin ingin melewati?',
-                              style: blackTextStyle.copyWith(
-                                fontSize: 18,
-                                fontWeight: bold,
-                              ),
-                            ),
-                            content: Text(
-                              'Anda akan kehilangan kesempatan mendapatkan diskon spesial ini. Anda bisa berlangganan kapan saja di halaman profil.',
-                              style: greyTextStyle.copyWith(
-                                fontSize: 14,
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: Text(
-                                  'Batal',
-                                  style: greyTextStyle.copyWith(
-                                    fontWeight: semiBold,
-                                  ),
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                  // Complete registration and go to home
-                                  _completeRegistration();
-                                },
-                                child: Text(
-                                  'Ya, Lewati',
-                                  style: greeTextStyle.copyWith(
-                                    fontWeight: semiBold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
+                          title: 'Yakin ingin melewati?',
+                          message: 'Anda akan kehilangan kesempatan mendapatkan diskon spesial ini. Anda bisa berlangganan kapan saja di halaman profil.',
+                          confirmText: 'Ya, Lewati',
+                          cancelText: 'Batal',
+                          icon: Icons.help_outline,
+                        ).then((confirmed) {
+                          if (confirmed) {
+                            // Complete registration and go to home
+                            _completeRegistration();
+                          }
+                        });
                       },
                       style: OutlinedButton.styleFrom(
                         backgroundColor: whiteColor,
@@ -505,57 +471,20 @@ class _SignUpBatch5PageState extends State<SignUpBatch5Page> {
   }
 
   void _completeRegistration() {
-    // Show success dialog
-    showDialog(
+    // Show success dialog using custom dialog
+    DialogHelper.showSuccessDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.check_circle,
-              color: greenColor,
-              size: 64,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Selamat Datang!',
-              style: blackTextStyle.copyWith(
-                fontSize: 20,
-                fontWeight: bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Akun Anda telah berhasil dibuat.\nSelamat berbelanja di GEROBAKS!',
-              textAlign: TextAlign.center,
-              style: greyTextStyle.copyWith(
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: CustomFilledButton(
-                title: 'Lanjutkan ke Berlangganan',
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  // Navigate to subscription plans page
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/subscription-plans',
-                    (route) => false,
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+      title: 'Selamat Datang!',
+      message: 'Akun Anda telah berhasil dibuat.\nSelamat berbelanja di GEROBAKS!',
+      buttonText: 'Lanjutkan ke Berlangganan',
+      onPressed: () {
+        // Navigate to subscription plans page
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/subscription-plans',
+          (route) => false,
+        );
+      },
     );
   }
 }
