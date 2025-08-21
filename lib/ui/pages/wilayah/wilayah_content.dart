@@ -26,6 +26,198 @@ class _WilayahContentState extends State<WilayahContent> {
     _simulateLoading();
   }
   
+  // Method to show trash point details in a bottom modal
+  void _showTrashPointDetails(
+    BuildContext context, 
+    String name, 
+    LatLng location, 
+    {
+      required bool isAvailable,
+      required int capacity,
+      required int currentUsage,
+      required String lastEmptied,
+    }
+  ) {
+    // Calculate usage percentage
+    final usagePercent = (currentUsage / capacity * 100).round();
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: EdgeInsets.only(
+          top: 20,
+          left: 24,
+          right: 24,
+          bottom: MediaQuery.of(context).padding.bottom + 24,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(24),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Handle bar
+            Center(
+              child: Container(
+                height: 4,
+                width: 40,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            
+            // Title with status indicator
+            Row(
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isAvailable ? greenColor : redcolor,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  name,
+                  style: blackTextStyle.copyWith(
+                    fontSize: 18,
+                    fontWeight: semiBold,
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 20),
+            
+            // Status
+            Row(
+              children: [
+                const Icon(Icons.info_outline, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  isAvailable ? "Tersedia" : "Penuh",
+                  style: blackTextStyle.copyWith(
+                    fontWeight: medium,
+                    color: isAvailable ? greenColor : redcolor,
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 12),
+            
+            // Location coordinates
+            Row(
+              children: [
+                const Icon(Icons.location_on_outlined, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  "${location.latitude.toStringAsFixed(6)}, ${location.longitude.toStringAsFixed(6)}",
+                  style: greyTextStyle.copyWith(fontSize: 14),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // Usage bar
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Kapasitas",
+                      style: blackTextStyle.copyWith(
+                        fontWeight: medium,
+                      ),
+                    ),
+                    Text(
+                      "$usagePercent% terisi",
+                      style: blackTextStyle.copyWith(
+                        fontWeight: medium,
+                        color: usagePercent > 80 ? redcolor : greenColor,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: currentUsage / capacity,
+                    backgroundColor: Colors.grey[200],
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      usagePercent > 80 ? redcolor : greenColor,
+                    ),
+                    minHeight: 10,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "$currentUsage / $capacity kg",
+                  style: greyTextStyle.copyWith(fontSize: 12),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Last emptied info
+            Row(
+              children: [
+                const Icon(Icons.history, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  "Terakhir dikosongkan: $lastEmptied",
+                  style: greyTextStyle,
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // Action button
+            ElevatedButton(
+              onPressed: isAvailable 
+                ? () {
+                    Navigator.pop(context);
+                    // Navigate to schedule pickup page
+                    Navigator.pushNamed(context, '/home');
+                  }
+                : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: greenColor,
+                disabledBackgroundColor: Colors.grey[300],
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                isAvailable ? "Jadwalkan Pengambilan" : "Tidak Tersedia",
+                style: whiteTextStyle.copyWith(
+                  fontWeight: semiBold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
   Future<void> _simulateLoading() async {
     setState(() {
       _isLoading = true;
@@ -121,45 +313,84 @@ class _WilayahContentState extends State<WilayahContent> {
                 //   ),
                 // ),
 
-                // Marker tempat sampah 1
+                // Marker tempat sampah 1 - Kosong (Hijau)
                 Marker(
                   point: LatLng(-0.503106, 117.150248),
                   width: 30,
                   height: 60,
                   alignment: Alignment.center,
-                  child: Image.asset(
-                    'assets/ic_tempat_sampah.png',
-                    width: 35,
-                    height: 35,
-                    color: greenColor,
+                  child: GestureDetector(
+                    onTap: () {
+                      _showTrashPointDetails(
+                        context, 
+                        "Tempat Sampah A", 
+                        LatLng(-0.503106, 117.150248),
+                        isAvailable: true,
+                        capacity: 30,
+                        currentUsage: 5,
+                        lastEmptied: "Hari ini, 08:30",
+                      );
+                    },
+                    child: Image.asset(
+                      'assets/ic_tempat_sampah.png',
+                      width: 35,
+                      height: 35,
+                      color: greenColor,
+                    ),
                   ),
                 ),
 
-                // Marker tempat sampah 2
+                // Marker tempat sampah 2 - Penuh (Merah)
                 Marker(
                   point: LatLng(-0.503248, 117.150693),
                   width: 30,
                   height: 60,
                   alignment: Alignment.center,
-                  child: Image.asset(
-                    'assets/ic_tempat_sampah.png',
-                    width: 35,
-                    height: 35,
-                    color: redcolor,
+                  child: GestureDetector(
+                    onTap: () {
+                      _showTrashPointDetails(
+                        context, 
+                        "Tempat Sampah B", 
+                        LatLng(-0.503248, 117.150693),
+                        isAvailable: false,
+                        capacity: 50,
+                        currentUsage: 48,
+                        lastEmptied: "Kemarin, 15:45",
+                      );
+                    },
+                    child: Image.asset(
+                      'assets/ic_tempat_sampah.png',
+                      width: 35,
+                      height: 35,
+                      color: redcolor,
+                    ),
                   ),
                 ),
 
-                // Marker tempat sampah 3
+                // Marker tempat sampah 3 - Penuh (Merah)
                 Marker(
                   point: LatLng(-0.502784, 117.149304),
                   width: 30,
                   height: 60,
                   alignment: Alignment.center,
-                  child: Image.asset(
-                    'assets/ic_tempat_sampah.png',
-                    width: 35,
-                    height: 35,
-                    color: redcolor,
+                  child: GestureDetector(
+                    onTap: () {
+                      _showTrashPointDetails(
+                        context, 
+                        "Tempat Sampah C", 
+                        LatLng(-0.502784, 117.149304),
+                        isAvailable: false,
+                        capacity: 40,
+                        currentUsage: 38,
+                        lastEmptied: "2 hari lalu, 10:20",
+                      );
+                    },
+                    child: Image.asset(
+                      'assets/ic_tempat_sampah.png',
+                      width: 35,
+                      height: 35,
+                      color: redcolor,
+                    ),
                   ),
                 ),
               ],

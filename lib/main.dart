@@ -31,6 +31,9 @@ import 'package:bank_sha/services/gemini_ai_service.dart';
 import 'package:bank_sha/services/local_storage_service.dart';
 import 'package:bank_sha/services/subscription_service.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bank_sha/blocs/tracking/tracking_bloc.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
