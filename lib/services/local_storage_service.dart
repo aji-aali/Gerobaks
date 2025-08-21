@@ -12,6 +12,7 @@ class LocalStorageService {
   static const String _lastLoginKey = 'last_login';
   static const String _addressesKey = 'saved_addresses';
   static const String _settingsKey = 'app_settings';
+  static const String _credentialsKey = 'user_credentials';
 
   static LocalStorageService? _instance;
   static SharedPreferences? _preferences;
