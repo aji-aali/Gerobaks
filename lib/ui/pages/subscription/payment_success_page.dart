@@ -141,13 +141,13 @@ class PaymentSuccessPage extends StatelessWidget {
           height: 50,
           child: ElevatedButton(
             onPressed: () {
-              if (isFromSignup) {
+              if (!isFromSignup) {
                 // Return true to indicate successful payment
                 Navigator.pop(context, true);
               } else {
                 Navigator.pushNamedAndRemoveUntil(
                   context,
-                  '/home',
+                  '/sign-in',
                   (route) => false,
                 );
               }
@@ -159,7 +159,7 @@ class PaymentSuccessPage extends StatelessWidget {
               ),
             ),
             child: Text(
-              isFromSignup ? 'Lanjutkan' : 'Kembali ke Beranda',
+              !isFromSignup ? 'Lanjutkan' : 'Kembali ke Sign In',
               style: whiteTextStyle.copyWith(
                 fontSize: 16,
                 fontWeight: semiBold,
@@ -167,7 +167,7 @@ class PaymentSuccessPage extends StatelessWidget {
             ),
           ),
         ),
-        if (!isFromSignup) ...[
+        if (isFromSignup) ...[
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
