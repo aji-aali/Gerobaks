@@ -4,7 +4,6 @@ import 'package:bank_sha/services/notification_service.dart';
 import 'package:bank_sha/utils/toast_helper.dart';
 import 'package:bank_sha/services/sign_up_service.dart';
 import 'package:bank_sha/services/user_service.dart';
-import 'package:bank_sha/models/user_model.dart';
 import 'package:flutter/material.dart';
 
 class SignUpSuccessPage extends StatefulWidget {
@@ -16,7 +15,7 @@ class SignUpSuccessPage extends StatefulWidget {
 
 class _SignUpSuccessPageState extends State<SignUpSuccessPage> {
   bool _isLoading = false;
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,16 +44,12 @@ class _SignUpSuccessPageState extends State<SignUpSuccessPage> {
               decoration: BoxDecoration(
                 color: Colors.green.shade50,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: greenColor.withOpacity(0.5))
+                border: Border.all(color: greenColor.withOpacity(0.5)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.star_rounded,
-                    color: greenColor,
-                    size: 32,
-                  ),
+                  Icon(Icons.star_rounded, color: greenColor, size: 32),
                   const SizedBox(width: 12),
                   Text(
                     '+15 Poin',
@@ -66,17 +61,17 @@ class _SignUpSuccessPageState extends State<SignUpSuccessPage> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             Text(
               'Anda mendapatkan 15 poin awal!',
               style: blackTextStyle.copyWith(fontWeight: medium),
               textAlign: TextAlign.center,
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             _isLoading
                 ? const CircularProgressIndicator()
                 : CustomFilledButton(
@@ -86,47 +81,57 @@ class _SignUpSuccessPageState extends State<SignUpSuccessPage> {
                       setState(() {
                         _isLoading = true;
                       });
-                      
+
                       try {
-                        // Menyelesaikan proses registrasi dan menyimpan data
-                        final signUpService = await SignUpService.getInstance();
-                        await signUpService.markOnboardingComplete();
-                        
-                        // Get user data from arguments or create a default user
-                        final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
-                        if (args != null) {
-                          final userService = await UserService.getInstance();
-                          await userService.init();
-                          
-                          if (args.containsKey('email') && args.containsKey('password')) {
-                            await userService.registerUser(
-                              name: args['fullName'] ?? 'User',
-                              email: args['email'],
-                              password: args['password'],
-                              phone: args['phone'],
-                            );
-                          }
+                        // Get user data from arguments
+                        final args =
+                            ModalRoute.of(context)!.settings.arguments
+                                as Map<String, dynamic>?;
+                        if (args == null ||
+                            !args.containsKey('email') ||
+                            !args.containsKey('password')) {
+                          throw Exception('Data registrasi tidak lengkap');
                         }
-                        
-                        // Menampilkan notifikasi pendaftaran berhasil
+
+                        // Get required services
+                        final signUpService = await SignUpService.getInstance();
+                        final userService = await UserService.getInstance();
+
+                        // Register the user
+                        await userService.registerUser(
+                          name: args['fullName'] ?? 'User',
+                          email: args['email'],
+                          password: args['password'],
+                          phone: args['phone'],
+                        );
+
+                        // Mark onboarding as complete
+                        await signUpService.markOnboardingComplete();
+
+                        // Show notification and toast
                         await NotificationService().showNotification(
                           id: DateTime.now().millisecond,
                           title: 'Selamat Bergabung!',
-                          body: 'Akun Anda telah berhasil terdaftar di Gerobaks dengan 15 poin',
+                          body:
+                              'Akun Anda telah berhasil terdaftar di Gerobaks dengan 15 poin',
                         );
-                        
-                        // Menampilkan toast pendaftaran berhasil
+
                         if (mounted) {
                           ToastHelper.showToast(
                             context: context,
                             message: 'Registrasi berhasil! +15 poin',
                             isSuccess: true,
                           );
-                          
+
+                          // Navigate to sign in with credentials
                           Navigator.pushNamedAndRemoveUntil(
                             context,
-                            '/home',
+                            '/sign-in',
                             (route) => false,
+                            arguments: {
+                              'email': args['email'],
+                              'password': args['password'],
+                            },
                           );
                         }
                       } catch (e) {
