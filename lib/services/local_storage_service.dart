@@ -17,9 +17,13 @@ class LocalStorageService {
   static const String _lastLoginKey = 'last_login';
   static const String _addressesKey = 'saved_addresses';
   static const String _settingsKey = 'app_settings';
+<<<<<<< HEAD
 =======
   static const String _credentialsKey = 'user_credentials';
 >>>>>>> 31182ad (feat: Enhance user data management by implementing LocalStorageService for profile and home content)
+=======
+  static const String _credentialsKey = 'user_credentials';
+>>>>>>> 3272355 (feat: Add credential management methods to LocalStorageService for saving, retrieving, and clearing user credentials)
 
   static LocalStorageService? _instance;
   static SharedPreferences? _preferences;
@@ -84,21 +88,6 @@ class LocalStorageService {
     await _preferences!.remove(_subscriptionKey);
   }
 
-  // Credentials Storage
-  Future<void> saveCredentials(String email, String password) async {
-    final credentials = {'email': email, 'password': password};
-    final String credentialsJson = jsonEncode(credentials);
-    await _preferences!.setString(_credentialsKey, credentialsJson);
-  }
-
-  Future<Map<String, String>?> getCredentials() async {
-    final String? credentialsJson = _preferences!.getString(_credentialsKey);
-    if (credentialsJson != null) {
-      final Map<String, dynamic> decoded = jsonDecode(credentialsJson);
-      return {'email': decoded['email'], 'password': decoded['password']};
-    }
-    return null;
-  }
 
   // User Data Storage
   Future<void> saveUserData(Map<String, dynamic> userData) async {
@@ -206,6 +195,31 @@ class LocalStorageService {
 
   Future<void> clear() async {
     await _preferences!.clear();
+  }
+
+  // Credential Management
+  Future<void> saveCredentials(String email, String password) async {
+    final credentials = {
+      'email': email,
+      'password': password,
+    };
+    await _preferences!.setString(_credentialsKey, jsonEncode(credentials));
+  }
+
+  Future<Map<String, String>?> getCredentials() async {
+    final String? credentialsJson = _preferences!.getString(_credentialsKey);
+    if (credentialsJson != null) {
+      final Map<String, dynamic> credentials = jsonDecode(credentialsJson);
+      return {
+        'email': credentials['email'] as String,
+        'password': credentials['password'] as String,
+      };
+    }
+    return null;
+  }
+
+  Future<void> clearCredentials() async {
+    await _preferences!.remove(_credentialsKey);
   }
 
   // Check if user has active subscription
