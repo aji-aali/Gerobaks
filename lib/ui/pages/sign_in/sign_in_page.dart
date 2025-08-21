@@ -24,17 +24,40 @@ class _SignInPageState extends State<SignInPage> {
   bool _isPasswordVisible = false;
   UserService? _userService;
 
+  void _togglePasswordVisibility() {
+    setState(() {
+      _isPasswordVisible = !_isPasswordVisible;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _initializeServices();
+
+    // Handle auto-fill credentials from sign up
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args != null) {
+        setState(() {
+          _emailController.text = args['email'] ?? '';
+          _passwordController.text = args['password'] ?? '';
+        });
+        // Auto login if credentials are provided
+        if (_emailController.text.isNotEmpty &&
+            _passwordController.text.isNotEmpty) {
+          _handleSignIn();
+        }
+      }
+    });
   }
 
   Future<void> _initializeServices() async {
     try {
       _userService = await UserService.getInstance();
       await _userService!.init();
-      
+
       // Check if user is already logged in
       final isLoggedIn = await _userService!.getCurrentUser() != null;
       if (isLoggedIn && mounted) {
@@ -53,8 +76,6 @@ class _SignInPageState extends State<SignInPage> {
     super.dispose();
   }
 
-
-
   // Handle sign in
   Future<void> _handleSignIn() async {
     if (!_formKey.currentState!.validate()) {
@@ -64,19 +85,19 @@ class _SignInPageState extends State<SignInPage> {
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       // Make sure service is initialized
       if (_userService == null) {
         await _initializeServices();
       }
-      
+
       // Login using UserService
       final user = await _userService?.loginUser(
-        email: _emailController.text, 
-        password: _passwordController.text
+        email: _emailController.text,
+        password: _passwordController.text,
       );
-      
+
       if (user != null) {
         // Menampilkan notifikasi login berhasil
         await NotificationService().showNotification(
@@ -92,13 +113,9 @@ class _SignInPageState extends State<SignInPage> {
             message: 'Login berhasil! Poin Anda: ${user.points}',
             isSuccess: true,
           );
-          
+
           // Navigasi ke halaman home
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            '/home',
-            (route) => false,
-          );
+          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
         }
       } else {
         if (mounted) {
@@ -223,7 +240,7 @@ class _SignInPageState extends State<SignInPage> {
                         CustomFormField(
                           title: 'Password',
                           controller: _passwordController,
-                          obscureText: !_isPasswordVisible,
+                          obscureText: true,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Password tidak boleh kosong';
@@ -233,19 +250,6 @@ class _SignInPageState extends State<SignInPage> {
                             }
                             return null;
                           },
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _isPasswordVisible
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
-                              color: greyColor,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _isPasswordVisible = !_isPasswordVisible;
-                              });
-                            },
-                          ),
                         ),
                       ],
                     ),
