@@ -21,9 +21,16 @@ class _SignInPageState extends State<SignInPage> {
   final TextEditingController _passwordController = TextEditingController();
   late LocalStorageService _localStorageService;
 
+  void _togglePasswordVisibility() {
+    setState(() {
+      _isPasswordVisible = !_isPasswordVisible;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+<<<<<<< HEAD
     _initLocalStorage();
   }
 
@@ -39,6 +46,41 @@ class _SignInPageState extends State<SignInPage> {
         _emailController.text = credentials['email']!;
         _passwordController.text = credentials['password']!;
       });
+=======
+    _initializeServices();
+
+    // Handle auto-fill credentials from sign up
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args != null) {
+        setState(() {
+          _emailController.text = args['email'] ?? '';
+          _passwordController.text = args['password'] ?? '';
+        });
+        // Auto login if credentials are provided
+        if (_emailController.text.isNotEmpty &&
+            _passwordController.text.isNotEmpty) {
+          _handleSignIn();
+        }
+      }
+    });
+  }
+
+  Future<void> _initializeServices() async {
+    try {
+      _userService = await UserService.getInstance();
+      await _userService!.init();
+
+      // Check if user is already logged in
+      final isLoggedIn = await _userService!.getCurrentUser() != null;
+      if (isLoggedIn && mounted) {
+        // If already logged in, navigate to home page
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } catch (e) {
+      print("Error initializing services: $e");
+>>>>>>> c3c3211 (feat: Implement auto-fill for sign-in credentials and improve password visibility handling)
     }
   }
 
@@ -49,6 +91,76 @@ class _SignInPageState extends State<SignInPage> {
     super.dispose();
   }
 
+<<<<<<< HEAD
+=======
+  // Handle sign in
+  Future<void> _handleSignIn() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Make sure service is initialized
+      if (_userService == null) {
+        await _initializeServices();
+      }
+
+      // Login using UserService
+      final user = await _userService?.loginUser(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+
+      if (user != null) {
+        // Menampilkan notifikasi login berhasil
+        await NotificationService().showNotification(
+          id: DateTime.now().millisecond,
+          title: 'Login Berhasil',
+          body: 'Selamat datang di Gerobaks!',
+        );
+
+        // Menampilkan toast login berhasil dengan poin
+        if (mounted) {
+          ToastHelper.showToast(
+            context: context,
+            message: 'Login berhasil! Poin Anda: ${user.points}',
+            isSuccess: true,
+          );
+
+          // Navigasi ke halaman home
+          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        }
+      } else {
+        if (mounted) {
+          ToastHelper.showToast(
+            context: context,
+            message: 'Email atau password salah!',
+            isSuccess: false,
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ToastHelper.showToast(
+          context: context,
+          message: 'Terjadi kesalahan: ${e.toString()}',
+          isSuccess: false,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+>>>>>>> c3c3211 (feat: Implement auto-fill for sign-in credentials and improve password visibility handling)
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -129,11 +241,31 @@ class _SignInPageState extends State<SignInPage> {
 
                   const SizedBox(height: 16),
 
+<<<<<<< HEAD
                   // Password Input menggunakan CustomFormField
                   CustomFormField(
                     title: 'Password',
                     obscureText: true,
                     controller: _passwordController,
+=======
+                        // Password Input menggunakan CustomFormField
+                        CustomFormField(
+                          title: 'Password',
+                          controller: _passwordController,
+                          obscureText: true,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Password tidak boleh kosong';
+                            }
+                            if (value.length < 6) {
+                              return 'Password minimal 6 karakter';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+>>>>>>> c3c3211 (feat: Implement auto-fill for sign-in credentials and improve password visibility handling)
                   ),
 
                   // Forgot Password Link
