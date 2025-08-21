@@ -10,6 +10,25 @@ class ProfilePicturePicker extends StatelessWidget {
     required this.currentPicture,
     required this.onPictureSelected,
   }) : super(key: key);
+  
+  // Helper method to determine the correct ImageProvider based on the path
+  ImageProvider _getImageProvider(String path) {
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      // Network image
+      return NetworkImage(path);
+    } else if (path.startsWith('assets/')) {
+      // Asset image
+      return AssetImage(path);
+    } else {
+      // Try asset first, fall back to network if it fails
+      try {
+        return AssetImage(path);
+      } catch (_) {
+        // If not asset, try as a file or network path
+        return NetworkImage(path);
+      }
+    }
+  }
 
   void _showPictureOptions(BuildContext context) {
     final List<String> availablePictures = [
@@ -67,7 +86,7 @@ class ProfilePicturePicker extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 60,
-          backgroundImage: AssetImage(currentPicture),
+          backgroundImage: _getImageProvider(currentPicture),
         ),
         Positioned(
           right: 0,

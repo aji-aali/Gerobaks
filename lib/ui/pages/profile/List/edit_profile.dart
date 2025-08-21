@@ -1,6 +1,9 @@
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/appbar.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
+import 'package:bank_sha/ui/widgets/shared/dialog_helper.dart';
+import 'package:bank_sha/models/user_model.dart';
+import 'package:bank_sha/services/user_service.dart';
 import 'package:flutter/material.dart';
 
 class EditProfile extends StatefulWidget {
@@ -16,15 +19,55 @@ class _EditProfileState extends State<EditProfile> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
+  
+  bool _isLoading = true;
+  bool _isSaving = false;
+  UserModel? _user;
+  late UserService _userService;
 
   @override
   void initState() {
     super.initState();
-    // Isi form dengan data saat ini
-    _nameController.text = 'Ghani';
-    _emailController.text = 'official@gerobaks.com';
-    _phoneController.text = '081234567890';
-    _addressController.text = 'Samarinda, Indonesia';
+    _loadUserData();
+  }
+  
+  Future<void> _loadUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
+    
+    try {
+      _userService = await UserService.getInstance();
+      await _userService.init();
+      
+      final user = await _userService.getCurrentUser();
+      
+      if (mounted) {
+        setState(() {
+          _user = user;
+          // Isi form dengan data user
+          _nameController.text = user?.name ?? '';
+          _emailController.text = user?.email ?? '';
+          _phoneController.text = user?.phone ?? '';
+          _addressController.text = user?.address ?? '';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print("Error loading user data: $e");
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        
+        // Show error dialog
+        DialogHelper.showErrorDialog(
+          context: context,
+          title: 'Error',
+          message: 'Gagal memuat data profil: $e',
+        );
+      }
+    }
   }
 
   @override
@@ -41,7 +84,25 @@ class _EditProfileState extends State<EditProfile> {
     return Scaffold(
       backgroundColor: uicolor,
       appBar: const CustomAppBar(title: 'Edit Profile'),
-      body: SingleChildScrollView(
+      body: _isLoading 
+      ? Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(greenColor),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Memuat data...',
+                style: greyTextStyle.copyWith(
+                  fontWeight: medium,
+                ),
+              ),
+            ],
+          ),
+        )
+      : SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
@@ -54,9 +115,12 @@ class _EditProfileState extends State<EditProfile> {
                   children: [
                     Stack(
                       children: [
-                        const CircleAvatar(
+                        CircleAvatar(
                           radius: 60,
-                          backgroundImage: AssetImage('assets/img_profile.png'),
+                          backgroundImage: _user?.profilePicUrl != null && 
+                                          _user!.profilePicUrl!.startsWith('http') 
+                              ? NetworkImage(_user!.profilePicUrl!) as ImageProvider
+                              : AssetImage(_user?.profilePicUrl ?? 'assets/img_profile.png'),
                         ),
                         Positioned(
                           bottom: 0,
@@ -153,12 +217,14 @@ class _EditProfileState extends State<EditProfile> {
 
               // Save Button
               CustomFilledButton(
-                title: 'Simpan Perubahan',
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    _saveProfile();
-                  }
-                },
+                title: _isSaving ? 'Menyimpan...' : 'Simpan Perubahan',
+                onPressed: _isSaving 
+                  ? null 
+                  : () {
+                      if (_formKey.currentState!.validate()) {
+                        _saveProfile();
+                      }
+                    },
               ),
 
               const SizedBox(height: 16),
@@ -281,30 +347,53 @@ class _EditProfileState extends State<EditProfile> {
     );
   }
 
-  void _saveProfile() {
-    // TODO: Implement save profile logic
-    final profileData = {
-      'name': _nameController.text,
-      'email': _emailController.text,
-      'phone': _phoneController.text,
-      'address': _addressController.text,
-    };
-
-    // Show success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Profile berhasil diperbarui',
-          style: whiteTextStyle.copyWith(fontWeight: medium),
-        ),
-        backgroundColor: greenColor,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-
-    // Return to previous page with updated data
-    Navigator.pop(context, profileData);
+  Future<void> _saveProfile() async {
+    if (_formKey.currentState?.validate() != true) {
+      return;
+    }
+    
+    setState(() {
+      _isSaving = true;
+    });
+    
+    try {
+      // Update user profile using UserService
+      await _userService.updateUserProfile(
+        name: _nameController.text,
+        phone: _phoneController.text,
+        address: _addressController.text,
+      );
+      
+      // Show success message
+      if (mounted) {
+        DialogHelper.showSuccessDialog(
+          context: context,
+          title: 'Berhasil',
+          message: 'Profil berhasil diperbarui',
+          buttonText: 'OK',
+          onPressed: () {
+            Navigator.pop(context); // Close dialog
+            Navigator.pop(context, true); // Return to previous page with success result
+          },
+        );
+      }
+    } catch (e) {
+      print("Error updating profile: $e");
+      
+      if (mounted) {
+        DialogHelper.showErrorDialog(
+          context: context,
+          title: 'Gagal',
+          message: 'Gagal memperbarui profil: $e',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
   }
 
   void _showMessage(String message) {
