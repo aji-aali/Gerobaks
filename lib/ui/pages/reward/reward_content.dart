@@ -1,10 +1,95 @@
 import 'package:flutter/material.dart';
 import 'package:bank_sha/shared/theme.dart';
+import 'package:bank_sha/services/user_service.dart';
+import 'package:bank_sha/models/user_model.dart';
+import 'package:bank_sha/ui/widgets/skeleton/skeleton_items.dart';
 
-class RewardContent extends StatelessWidget {
+class RewardContent extends StatefulWidget {
   const RewardContent({super.key});
 
-  final int totalPoints = 19;
+  @override
+  State<RewardContent> createState() => _RewardContentState();
+}
+
+class _RewardContentState extends State<RewardContent> {
+  late UserService _userService;
+  UserModel? _user;
+  bool _isLoading = true;
+  
+  // Getter for points that returns 0 if user is null
+  int get totalPoints => _user?.points ?? 0;
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+    // Set up periodic refresh of points
+    _setupRefreshTimer();
+  }
+  
+  void _setupRefreshTimer() {
+    // Refresh user data every minute to keep points up to date
+    Future.delayed(const Duration(minutes: 1), () {
+      if (mounted) {
+        _refreshUserData();
+        _setupRefreshTimer(); // Set up the timer again
+      }
+    });
+  }
+  
+  Future<void> _refreshUserData() async {
+    try {
+      final user = await _userService.getCurrentUser();
+      _handleUserChange(user);
+    } catch (e) {
+      print("Error refreshing user data: $e");
+    }
+  }
+
+  void _handleUserChange(UserModel? user) {
+    if (mounted) {
+      setState(() {
+        _user = user;
+      });
+    }
+  }
+  
+  Future<void> _loadUserData() async {
+    try {
+      _userService = await UserService.getInstance();
+      await _userService.init();
+      
+      // Get initial user data
+      final user = await _userService.getCurrentUser();
+      
+      // Add a small delay to show the loading state
+      await Future.delayed(const Duration(milliseconds: 800));
+      
+      if (mounted) {
+        setState(() {
+          _user = user;
+          _isLoading = false;
+        });
+      }
+      
+      // Set up listener for user changes
+      _userService.addUserChangeListener(_handleUserChange);
+    } catch (e) {
+      print("Error loading user data: $e");
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+  
+  @override
+  void dispose() {
+    // Remove user change listener
+    _userService.removeUserChangeListener(_handleUserChange);
+    super.dispose();
+  }
 
   final List<Map<String, dynamic>> rewardHistory = const [
     {
@@ -58,9 +143,14 @@ class RewardContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        children: [
+      child: RefreshIndicator(
+        onRefresh: () async {
+          await _refreshUserData();
+        },
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          children: [
           // Header Section dengan animasi
           _buildHeaderSection(),
           const SizedBox(height: 24),
@@ -82,7 +172,7 @@ class RewardContent extends StatelessWidget {
           const SizedBox(height: 24),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildHeaderSection() {
@@ -192,12 +282,21 @@ class RewardContent extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      '$totalPoints Poin',
-                      style: whiteTextStyle.copyWith(
-                        fontSize: 32,
-                        fontWeight: bold,
-                        letterSpacing: 1,
+                    _isLoading
+                      ? Container(
+                          width: 120,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: whiteColor.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        )
+                      : Text(
+                          '$totalPoints Poin',
+                          style: whiteTextStyle.copyWith(
+                            fontSize: 32,
+                            fontWeight: bold,
+                            letterSpacing: 1,
                       ),
                     ),
                   ],
@@ -212,19 +311,41 @@ class RewardContent extends StatelessWidget {
               color: whiteColor.withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Row(
-              children: [
-                Icon(Icons.trending_up_rounded, color: whiteColor, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  'Naik 12 poin dari bulan lalu! 🚀',
-                  style: whiteTextStyle.copyWith(
-                    fontSize: 13,
-                    fontWeight: medium,
-                  ),
+            child: _isLoading
+              ? Row(
+                  children: [
+                    Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: whiteColor.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 160,
+                      height: 13,
+                      decoration: BoxDecoration(
+                        color: whiteColor.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Icon(Icons.trending_up_rounded, color: whiteColor, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Naik 12 poin dari bulan lalu! 🚀',
+                      style: whiteTextStyle.copyWith(
+                        fontSize: 13,
+                        fontWeight: medium,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
           ),
         ],
       ),
@@ -235,23 +356,75 @@ class RewardContent extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: _buildStatCard(
-            'Total Sampah',
-            '8.5 kg',
-            Icons.delete_outline_rounded,
-            Colors.blue.shade600,
-          ),
+          child: _isLoading 
+            ? _buildLoadingStatCard()
+            : _buildStatCard(
+                'Total Sampah',
+                '${(_user?.points ?? 0) / 10} kg', // Assuming 10 points per kg for estimation
+                Icons.delete_outline_rounded,
+                Colors.blue.shade600,
+              ),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _buildStatCard(
-            'Penjemputan',
-            '${rewardHistory.length}x',
-            Icons.local_shipping_rounded,
-            Colors.orange.shade600,
-          ),
+          child: _isLoading
+            ? _buildLoadingStatCard()
+            : _buildStatCard(
+                'Penjemputan',
+                '${rewardHistory.length}x',
+                Icons.local_shipping_rounded,
+                Colors.orange.shade600,
+              ),
         ),
       ],
+    );
+  }
+  
+  Widget _buildLoadingStatCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: lightBackgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: greyColor.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: 80,
+            height: 16,
+            decoration: BoxDecoration(
+              color: greyColor.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: 60,
+            height: 20,
+            decoration: BoxDecoration(
+              color: greyColor.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

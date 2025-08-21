@@ -93,6 +93,28 @@ class _HomeContentState extends State<HomeContent> {
 
     // Load Data Akun Login
     _loadUserData();
+    
+    // Set up timer to refresh user data periodically to ensure points are up to date
+    _setupRefreshTimer();
+  }
+  
+  void _setupRefreshTimer() {
+    // Refresh user data every minute to keep points up to date
+    Future.delayed(const Duration(minutes: 1), () {
+      if (mounted) {
+        _refreshUserData();
+        _setupRefreshTimer(); // Set up the timer again
+      }
+    });
+  }
+  
+  Future<void> _refreshUserData() async {
+    try {
+      final user = await _userService.getCurrentUser();
+      _handleUserChange(user);
+    } catch (e) {
+      print("Error refreshing user data: $e");
+    }
   }
 
   Future<void> _loadInitialData() async {
@@ -279,14 +301,21 @@ class _HomeContentState extends State<HomeContent> {
       backgroundColor: uicolor,
       body: _isLoading
           ? _buildSkeletonLoading(horizontalPadding)
-          : ListView(
-              physics:
-                  const BouncingScrollPhysics(), // Smooth bouncy scroll effect
-              children: [
-                // Container untuk semua konten dengan padding yang konsisten
-                Container(
-                  padding: const EdgeInsets.only(bottom: 30),
-                  child: Column(
+          : RefreshIndicator(
+              onRefresh: () async {
+                // Refresh user data to get latest points
+                await _refreshUserData();
+              },
+              color: greenColor,
+              backgroundColor: Colors.white,
+              child: ListView(
+                physics:
+                    const BouncingScrollPhysics(), // Smooth bouncy scroll effect
+                children: [
+                  // Container untuk semua konten dengan padding yang konsisten
+                  Container(
+                    padding: const EdgeInsets.only(bottom: 30),
+                    child: Column(
                     children: [
                       // Greeting dengan padding yang lebih seimbang
                       Padding(
@@ -340,6 +369,7 @@ class _HomeContentState extends State<HomeContent> {
                 ),
               ],
             ),
+          ),
     );
   }
 
@@ -982,27 +1012,36 @@ class _HomeContentState extends State<HomeContent> {
                                   ),
                                 ),
                                 const SizedBox(height: 5),
-                                Row(
-                                  children: [
-                                    Text(
-                                      '0',
-                                      style: whiteTextStyle.copyWith(
-                                        fontSize: 26,
-                                        fontWeight: extraBold,
-                                        color: Colors.white,
-                                        letterSpacing: 0.5,
+                                _isLoading
+                                    ? Container(
+                                        width: 80,
+                                        height: 30,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.3),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                      )
+                                    : Row(
+                                        children: [
+                                          Text(
+                                            _user?.points.toString() ?? '0',
+                                            style: whiteTextStyle.copyWith(
+                                              fontSize: 26,
+                                              fontWeight: extraBold,
+                                              color: Colors.white,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                          Text(
+                                            ' pts',
+                                            style: whiteTextStyle.copyWith(
+                                              fontSize: 16,
+                                              fontWeight: medium,
+                                              color: Colors.white.withOpacity(0.95),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                    Text(
-                                      ' pts',
-                                      style: whiteTextStyle.copyWith(
-                                        fontSize: 16,
-                                        fontWeight: medium,
-                                        color: Colors.white.withOpacity(0.95),
-                                      ),
-                                    ),
-                                  ],
-                                ),
                               ],
                             ),
                             const Spacer(),

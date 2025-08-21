@@ -4,6 +4,7 @@ import 'package:bank_sha/ui/widgets/shared/appbar.dart';
 import 'package:bank_sha/models/subscription_model.dart';
 import 'package:bank_sha/services/subscription_service.dart';
 import 'package:bank_sha/ui/pages/subscription/subscription_plans_page.dart';
+import 'package:bank_sha/ui/widgets/shared/dialog_helper.dart';
 import 'package:intl/intl.dart';
 
 class MySubscriptionPage extends StatefulWidget {
@@ -42,23 +43,14 @@ class _MySubscriptionPageState extends State<MySubscriptionPage> {
   }
 
   Future<void> _cancelSubscription() async {
-    final confirm = await showDialog<bool>(
+    final confirm = await DialogHelper.showConfirmDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Batalkan Langganan?'),
-        content: Text('Apakah Anda yakin ingin membatalkan langganan? Layanan akan tetap aktif hingga periode berakhir.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text('Ya, Batalkan'),
-          ),
-        ],
-      ),
+      title: 'Batalkan Langganan?',
+      message: 'Apakah Anda yakin ingin membatalkan langganan? Layanan akan tetap aktif hingga periode berakhir.',
+      confirmText: 'Ya, Batalkan',
+      cancelText: 'Batal',
+      icon: Icons.cancel_outlined,
+      isDestructiveAction: true,
     );
 
     if (confirm == true) {

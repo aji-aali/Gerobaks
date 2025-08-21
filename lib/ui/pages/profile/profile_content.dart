@@ -6,6 +6,7 @@ import 'package:bank_sha/ui/pages/profile/points_history_page.dart';
 import 'package:bank_sha/services/local_storage_service.dart';
 import 'package:bank_sha/ui/widgets/shared/profile_picture_picker.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
+import 'package:bank_sha/ui/widgets/shared/dialog_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/pages/sign_in/sign_in_page.dart';
@@ -252,48 +253,29 @@ class _ProfileContentState extends State<ProfileContent> {
             iconURL: 'assets/ic_logout_profile.png',
             title: 'Log out',
             onTap: () async {
-              // Show confirmation dialog
-              showDialog(
+              // Show confirmation dialog using DialogHelper
+              final confirm = await DialogHelper.showConfirmDialog(
                 context: context,
-                builder: (context) => AlertDialog(
-                  title: Text(
-                    'Logout',
-                    style: blackTextStyle.copyWith(fontWeight: semiBold),
-                  ),
-                  content: Text(
-                    'Apakah Anda yakin ingin keluar?',
-                    style: blackTextStyle,
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        'Batal',
-                        style: greyTextStyle,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        // Logout and redirect to sign in page
-                        await _userService.logout();
-                        if (mounted) {
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SignInPage(),
-                            ),
-                            (route) => false,
-                          );
-                        }
-                      },
-                      child: Text(
-                        'Keluar',
-                        style: greeTextStyle,
-                      ),
-                    ),
-                  ],
-                ),
+                title: 'Logout',
+                message: 'Apakah Anda yakin ingin keluar?',
+                confirmText: 'Ya, Keluar',
+                cancelText: 'Batal',
+                icon: Icons.logout,
               );
+                
+              if (confirm) {
+                // Logout and redirect to sign in page
+                await _userService.logout();
+                if (mounted) {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SignInPage(),
+                    ),
+                    (route) => false,
+                  );
+                }
+              }
             },
             page: const SignInPage(),
           ),

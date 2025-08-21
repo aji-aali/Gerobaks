@@ -105,7 +105,7 @@ class UserService {
         phone: mockUserData['phone'],
         address: mockUserData['address'],
         profilePicUrl: mockUserData['profile_picture'],
-        points: 15,
+        points: mockUserData['points'] ?? 15, // Use points from mock data or default to 15
         createdAt: DateTime.now(),
         lastLogin: DateTime.now(),
       );

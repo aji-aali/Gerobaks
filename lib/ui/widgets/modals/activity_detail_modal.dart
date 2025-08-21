@@ -1,10 +1,8 @@
 import 'package:bank_sha/shared/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:bank_sha/models/activity_model_improved.dart';
-import 'package:bank_sha/utils/hero_tag_generator.dart';
 import 'package:bank_sha/utils/toast_helper.dart';
 import 'package:bank_sha/ui/widgets/shared/dialog_helper.dart';
-import 'package:bank_sha/ui/widgets/shared/custom_dialog.dart';
 
 class ActivityDetailModal extends StatelessWidget {
   final ActivityModel activity;
@@ -420,51 +418,24 @@ class ActivityDetailModal extends StatelessWidget {
   }
   
   void _showCancelConfirmationDialog(BuildContext context) {
-    showDialog(
+    DialogHelper.showConfirmDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Konfirmasi Pembatalan',
-            style: blackTextStyle.copyWith(
-              fontSize: 18,
-              fontWeight: semiBold,
-            ),
-          ),
-          content: Text(
-            'Apakah Anda yakin ingin membatalkan aktivitas ini?',
-            style: blackTextStyle.copyWith(fontSize: 14),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                'Tidak',
-                style: greyTextStyle,
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // Simulasi pembatalan
-                Navigator.pop(context);
-                ToastHelper.showToast(
-                  context: context,
-                  message: 'Aktivitas berhasil dibatalkan',
-                  isSuccess: false,
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-              ),
-              child: Text(
-                'Ya, Batalkan',
-                style: whiteTextStyle,
-              ),
-            ),
-          ],
+      title: 'Konfirmasi Pembatalan',
+      message: 'Apakah Anda yakin ingin membatalkan aktivitas ini?',
+      confirmText: 'Ya, Batalkan',
+      cancelText: 'Tidak',
+      icon: Icons.cancel_outlined,
+      isDestructiveAction: true,
+    ).then((confirmed) {
+      if (confirmed) {
+        // Simulasi pembatalan
+        ToastHelper.showToast(
+          context: context,
+          message: 'Aktivitas berhasil dibatalkan',
+          isSuccess: true,
         );
-      },
-    );
+      }
+    });
   }
   
   void _showCompletedDetails(BuildContext context) {
