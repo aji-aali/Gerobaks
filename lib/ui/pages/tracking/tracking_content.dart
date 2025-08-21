@@ -5,7 +5,6 @@ import 'package:latlong2/latlong.dart';
 import '../../../blocs/tracking/tracking_bloc.dart';
 import '../../../blocs/tracking/tracking_event.dart';
 import '../../../blocs/tracking/tracking_state.dart';
-import 'dart:math' as math;
 
 class TrackingContent extends StatefulWidget {
   const TrackingContent({super.key});
@@ -18,7 +17,7 @@ class _TrackingContentState extends State<TrackingContent> {
   @override
   void initState() {
     super.initState();
-    context.read<TrackingBloc>().add(FetchRoute());
+    BlocProvider.of<TrackingBloc>(context).add(FetchRoute());
   }
 
   @override

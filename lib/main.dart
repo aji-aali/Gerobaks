@@ -26,12 +26,14 @@ import 'package:bank_sha/ui/pages/sign_up/sign_up_page_batch_4.dart';
 import 'package:bank_sha/ui/pages/sign_up/sign_up_page_batch_5.dart';
 import 'package:bank_sha/ui/pages/splash_onboard/splash_page.dart';
 import 'package:bank_sha/ui/pages/tambah_jadwal_page.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bank_sha/blocs/tracking/tracking_bloc.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
   await initializeDateFormatting('id_ID', null);
-  
+
   // Inisialisasi layanan notifikasi secara eksplisit
   try {
     await NotificationService().init();
@@ -39,7 +41,7 @@ Future<void> main() async {
   } catch (e) {
     print("Error saat inisialisasi notifikasi: $e");
   }
-  
+
   print('[DEBUG] ORS_API_KEY: ${dotenv.env['ORS_API_KEY']}');
   runApp(const MyApp());
 }
@@ -49,36 +51,40 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      routes: {
-        '/': (context) => const SplashPage(),
-        '/onboarding': (context) => OnboardingPage(),
-        '/sign-in': (context) => SignInPage(),
-        // Sign up batch pages - urutan proses pendaftaran baru
-        '/sign-up-batch-1': (context) => const SignUpBatch1Page(),
-        '/sign-up-batch-2': (context) => const SignUpBatch2Page(),
-        '/sign-up-batch-3': (context) => const SignUpBatch3Page(),
-        '/sign-up-batch-4': (context) => const SignUpBatch4Page(),
-        '/sign-up-batch-5': (context) => const SignUpBatch5Page(),
-        // Redirect old sign-up route to the new batch flow
-        '/sign-up': (context) => const SignUpBatch1Page(), // Redirect ke halaman batch 1
-        '/sign-up-uplod-profile': (context) => const SignUpUplodProfilePage(),
-        '/sign-up-success': (context) => SignUpSuccessPage(),
-        '/home': (context) => HomePage(),
-        '/notif': (context) => NotificationPage(),
-        '/chat': (context) => ChatListPage(),
-        '/subscription-plans': (context) => SubscriptionPlansPage(),
-        '/my-subscription': (context) => MySubscriptionPage(),
-        '/tambah-jadwal': (context) => const TambahJadwalPage(),
-        '/tracking': (context) => const TrackingPage(),
-        '/wilayah': (context) => const WilayahPage(),
-        '/reward': (context) => const RewardPage(),
-        '/tracking_full': (context) => const TrackingFullScreen(),
-        '/buatKeluhan': (context) => const BuatKeluhanPage(),
-        '/about-us': (context) => AboutUs(),
-        'wilayah_full': (context) => const WilayahFullScreen(),
-      },
+    return BlocProvider(
+      create: (context) => TrackingBloc(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        routes: {
+          '/': (context) => const SplashPage(),
+          '/onboarding': (context) => OnboardingPage(),
+          '/sign-in': (context) => SignInPage(),
+          // Sign up batch pages - urutan proses pendaftaran baru
+          '/sign-up-batch-1': (context) => const SignUpBatch1Page(),
+          '/sign-up-batch-2': (context) => const SignUpBatch2Page(),
+          '/sign-up-batch-3': (context) => const SignUpBatch3Page(),
+          '/sign-up-batch-4': (context) => const SignUpBatch4Page(),
+          '/sign-up-batch-5': (context) => const SignUpBatch5Page(),
+          // Redirect old sign-up route to the new batch flow
+          '/sign-up': (context) =>
+              const SignUpBatch1Page(), // Redirect ke halaman batch 1
+          '/sign-up-uplod-profile': (context) => const SignUpUplodProfilePage(),
+          '/sign-up-success': (context) => SignUpSuccessPage(),
+          '/home': (context) => HomePage(),
+          '/notif': (context) => NotificationPage(),
+          '/chat': (context) => ChatListPage(),
+          '/subscription-plans': (context) => SubscriptionPlansPage(),
+          '/my-subscription': (context) => MySubscriptionPage(),
+          '/tambah-jadwal': (context) => const TambahJadwalPage(),
+          '/tracking': (context) => const TrackingPage(),
+          '/wilayah': (context) => const WilayahPage(),
+          '/reward': (context) => const RewardPage(),
+          '/tracking_full': (context) => const TrackingFullScreen(),
+          '/buatKeluhan': (context) => const BuatKeluhanPage(),
+          '/about-us': (context) => AboutUs(),
+          'wilayah_full': (context) => const WilayahFullScreen(),
+        },
+      ),
     );
   }
 }

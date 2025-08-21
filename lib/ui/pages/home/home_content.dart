@@ -1,11 +1,8 @@
-import 'dart:async';
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/appbar.dart';
 import 'package:bank_sha/ui/pages/address/select_address_page.dart';
 import 'package:bank_sha/utils/subscription_guard.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:bank_sha/models/information_model.dart';
 import 'package:bank_sha/utils/modal_helpers.dart';
@@ -18,53 +15,27 @@ class HomeContent extends StatefulWidget {
 }
 
 class _HomeContentState extends State<HomeContent> {
-  // String untuk menyimpan waktu yang akan ditampilkan
-  String _currentTimeString = "";
-  // Timer untuk update waktu secara berkala
-  late Timer _timer;
-  
   // Status berlangganan
-  bool isSubscribed = true; // Ganti dengan data real dari state management atau API
-  
-  // Method untuk memperbarui string waktu
-  void _updateTime() {
-    final now = DateTime.now();
-    final String formattedTime = DateFormat('HH:mm:ss').format(now);
-    
-    // Hanya setState jika component masih mounted
-    if (mounted) {
-      setState(() {
-        _currentTimeString = formattedTime;
-      });
-    }
-  }
-  
+  bool isSubscribed =
+      true; // Ganti dengan data real dari state management atau API
+
   // Method untuk toggle status berlangganan (hanya untuk demo)
   void _toggleSubscription() {
     setState(() {
       isSubscribed = !isSubscribed;
     });
   }
-  
+
   @override
   void initState() {
     super.initState();
-    initializeDateFormatting('id_ID', null);
-    
-    // Inisialisasi waktu pertama kali
-    _updateTime();
-    
-    // Set timer untuk memperbarui waktu setiap detik
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
   }
-  
+
   @override
   void dispose() {
-    // Membersihkan timer saat widget dihancurkan
-    _timer.cancel();
     super.dispose();
   }
-  
+
   // Helper method untuk membuat poin fitur dengan icon dalam bagian Tentang Kami
   Widget buildFeaturePoint({
     required IconData icon,
@@ -80,11 +51,7 @@ class _HomeContentState extends State<HomeContent> {
             color: greenColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(
-            icon,
-            size: 18,
-            color: greenColor,
-          ),
+          child: Icon(icon, size: 18, color: greenColor),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -102,10 +69,7 @@ class _HomeContentState extends State<HomeContent> {
               const SizedBox(height: 2),
               Text(
                 description,
-                style: greyTextStyle.copyWith(
-                  fontSize: 13,
-                  height: 1.5,
-                ),
+                style: greyTextStyle.copyWith(fontSize: 13, height: 1.5),
               ),
             ],
           ),
@@ -113,12 +77,12 @@ class _HomeContentState extends State<HomeContent> {
       ],
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     // Definisikan padding yang konsisten untuk seluruh halaman
     const horizontalPadding = 24.0;
-    
+
     return Scaffold(
       appBar: const CustomAppBarHome(),
       backgroundColor: uicolor,
@@ -132,31 +96,39 @@ class _HomeContentState extends State<HomeContent> {
               children: [
                 // Subscription Banner
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: horizontalPadding,
+                  ),
                   child: SubscriptionGuard.buildSubscriptionBanner(context),
                 ),
-                
+
                 // Greeting dengan padding yang lebih seimbang
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: horizontalPadding,
+                  ),
                   child: buildGreeting(),
                 ),
-                
+
                 // Quick Picks dengan padding konsisten dan jarak yang lebih baik
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: horizontalPadding,
+                  ),
                   child: buildQuickPicks(context),
                 ),
-                
+
                 // Spacer yang proporsional antara konten
                 const SizedBox(height: 28),
-                
+
                 // Informasi Carousel dengan struktur yang lebih terorganisir
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: horizontalPadding,
+                      ),
                       child: Text(
                         'Informasi',
                         style: blackTextStyle.copyWith(
@@ -169,10 +141,12 @@ class _HomeContentState extends State<HomeContent> {
                     buildComingSoonCarousel(),
                   ],
                 ),
-                
+
                 // About Us dengan padding konsisten
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: horizontalPadding,
+                  ),
                   child: buildAboutUs(context),
                 ),
               ],
@@ -226,10 +200,7 @@ class _HomeContentState extends State<HomeContent> {
                 children: [
                   // Background image dengan gradient overlay
                   Positioned.fill(
-                    child: Image.asset(
-                      item.image,
-                      fit: BoxFit.cover,
-                    ),
+                    child: Image.asset(item.image, fit: BoxFit.cover),
                   ),
                   // Gradient overlay untuk teks yang lebih terlihat
                   Positioned.fill(
@@ -278,7 +249,10 @@ class _HomeContentState extends State<HomeContent> {
                     top: 16,
                     right: 16,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: greenColor.withOpacity(0.8),
                         borderRadius: BorderRadius.circular(20),
@@ -331,7 +305,7 @@ class _HomeContentState extends State<HomeContent> {
     // Get current time untuk setiap build
     DateTime now = DateTime.now();
     String greeting = '';
-    
+
     // Determine the appropriate greeting based on time of day
     int hour = now.hour;
     if (hour < 12) {
@@ -343,10 +317,7 @@ class _HomeContentState extends State<HomeContent> {
     } else {
       greeting = 'Selamat Malam';
     }
-    
-    // Format the date: e.g., "Senin, 15 April 2023"
-    String formattedDate = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(now);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 20, top: 14),
       child: Column(
@@ -365,7 +336,7 @@ class _HomeContentState extends State<HomeContent> {
               ),
               Flexible(
                 child: Text(
-                  'Ghani', // Replace with actual username from state management or shared preferences
+                  'Akbar', // Replace with actual username from state management or shared preferences
                   style: greentextstyle2.copyWith(
                     fontSize: 20,
                     fontWeight: semiBold,
@@ -385,9 +356,12 @@ class _HomeContentState extends State<HomeContent> {
                 GestureDetector(
                   onTap: _toggleSubscription, // Untuk demo/testing
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
-                      color: isSubscribed 
+                      color: isSubscribed
                           ? greenColor.withOpacity(0.1)
                           : Colors.orange.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
@@ -396,11 +370,21 @@ class _HomeContentState extends State<HomeContent> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         isSubscribed
-                            ? Icon(Icons.check_circle, size: 16, color: greenColor)
-                            : const Icon(Icons.info_outline, size: 16, color: Colors.orange),
+                            ? Icon(
+                                Icons.check_circle,
+                                size: 16,
+                                color: greenColor,
+                              )
+                            : const Icon(
+                                Icons.info_outline,
+                                size: 16,
+                                color: Colors.orange,
+                              ),
                         const SizedBox(width: 6),
                         Text(
-                          isSubscribed ? 'Anda telah berlangganan' : 'Anda belum berlangganan',
+                          isSubscribed
+                              ? 'Anda telah berlangganan'
+                              : 'Anda belum berlangganan',
                           style: isSubscribed
                               ? greentextstyle2.copyWith(
                                   fontSize: 12,
@@ -419,67 +403,16 @@ class _HomeContentState extends State<HomeContent> {
               ],
             ),
           ),
-          const SizedBox(height: 8),
-          // Tanggal dan jam dengan layout yang lebih seimbang
-          Row(
-            children: [
-              // Container untuk tanggal
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.calendar_today, size: 14, color: greyColor),
-                    const SizedBox(width: 6),
-                    Text(
-                      formattedDate,
-                      style: greyTextStyle.copyWith(
-                        fontSize: 14,
-                        fontWeight: medium,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              // Spacer antara tanggal dan jam
-              const SizedBox(width: 8),
-              
-              // Container untuk jam
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.access_time_rounded, size: 14, color: greyColor),
-                    const SizedBox(width: 6),
-                    Text(
-                      _currentTimeString,
-                      style: greyTextStyle.copyWith(
-                        fontSize: 14,
-                        fontWeight: medium,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
   }
 
   // Fungsi untuk menampilkan modal dengan animasi slide-up
-  void _showOptionsModal(BuildContext context, List<Map<String, dynamic>> items) {
+  void _showOptionsModal(
+    BuildContext context,
+    List<Map<String, dynamic>> items,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -492,7 +425,9 @@ class _HomeContentState extends State<HomeContent> {
         return AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOutQuint,
-          height: MediaQuery.of(context).size.height * 0.75, // Modal akan mengambil 75% tinggi layar
+          height:
+              MediaQuery.of(context).size.height *
+              0.75, // Modal akan mengambil 75% tinggi layar
           decoration: BoxDecoration(
             color: whiteColor,
             borderRadius: const BorderRadius.only(
@@ -549,9 +484,13 @@ class _HomeContentState extends State<HomeContent> {
               // Daftar pilihan dengan deskripsi
               Expanded(
                 child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 24,
+                  ),
                   itemCount: items.length,
-                  separatorBuilder: (context, index) => const Divider(height: 24),
+                  separatorBuilder: (context, index) =>
+                      const Divider(height: 24),
                   itemBuilder: (context, index) {
                     final item = items[index];
                     return Material(
@@ -566,7 +505,8 @@ class _HomeContentState extends State<HomeContent> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const SelectAddressPage(),
+                                  builder: (context) =>
+                                      const SelectAddressPage(),
                                 ),
                               );
                             } else {
@@ -578,7 +518,10 @@ class _HomeContentState extends State<HomeContent> {
                         highlightColor: greenColor.withOpacity(0.05),
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 4,
+                          ),
                           child: Row(
                             children: [
                               // Icon dengan background dan efek yang sama seperti di menu utama
@@ -704,8 +647,12 @@ class _HomeContentState extends State<HomeContent> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        const Color(0xFF6BCE7D), // Warna yang lebih fresh dan vibrant
-                        const Color(0xFF3D9E4A), // Lebih kontras untuk efek gradient yang lebih baik
+                        const Color(
+                          0xFF6BCE7D,
+                        ), // Warna yang lebih fresh dan vibrant
+                        const Color(
+                          0xFF3D9E4A,
+                        ), // Lebih kontras untuk efek gradient yang lebih baik
                       ],
                     ),
                     borderRadius: BorderRadius.circular(20),
@@ -873,14 +820,17 @@ class _HomeContentState extends State<HomeContent> {
               ),
             ),
           ),
-          
+
           // Header for Menu Pilihan
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Pilihan',
-                style: blackTextStyle.copyWith(fontSize: 18, fontWeight: semiBold),
+                style: blackTextStyle.copyWith(
+                  fontSize: 18,
+                  fontWeight: semiBold,
+                ),
               ),
               TextButton(
                 onPressed: () {
@@ -903,7 +853,7 @@ class _HomeContentState extends State<HomeContent> {
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // More Compact Menu Grid with just icons and names
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -925,7 +875,9 @@ class _HomeContentState extends State<HomeContent> {
                 },
                 borderRadius: BorderRadius.circular(8),
                 child: SizedBox(
-                  width: (MediaQuery.of(context).size.width - 48 - 24) / 4, // 4 items per row, minus padding
+                  width:
+                      (MediaQuery.of(context).size.width - 48 - 24) /
+                      4, // 4 items per row, minus padding
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -1011,7 +963,10 @@ class _HomeContentState extends State<HomeContent> {
                   const SizedBox(width: 8),
                   Text(
                     'Tentang Kami',
-                    style: blackTextStyle.copyWith(fontWeight: semiBold, fontSize: 18),
+                    style: blackTextStyle.copyWith(
+                      fontWeight: semiBold,
+                      fontSize: 18,
+                    ),
                   ),
                 ],
               ),
@@ -1048,10 +1003,7 @@ class _HomeContentState extends State<HomeContent> {
                   spreadRadius: -5,
                 ),
               ],
-              border: Border.all(
-                color: greenColor.withOpacity(0.1),
-                width: 1,
-              ),
+              border: Border.all(color: greenColor.withOpacity(0.1), width: 1),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
@@ -1145,7 +1097,7 @@ class _HomeContentState extends State<HomeContent> {
                       ),
                     ],
                   ),
-                  
+
                   // Content section dengan desain yang lebih informatif
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
@@ -1156,16 +1108,22 @@ class _HomeContentState extends State<HomeContent> {
                         buildFeaturePoint(
                           icon: Icons.recycling_rounded,
                           title: 'Pengelolaan Sampah Modern',
-                          description: 'Kami berkomitmen menciptakan lingkungan yang bersih melalui pengelolaan sampah yang modern dan berkelanjutan.',
+                          description:
+                              'Kami berkomitmen menciptakan lingkungan yang bersih melalui pengelolaan sampah yang modern dan berkelanjutan.',
                         ),
                         const SizedBox(height: 14),
                         buildFeaturePoint(
                           icon: Icons.eco_outlined,
                           title: 'Ramah Lingkungan',
-                          description: 'Mendukung upaya daur ulang dan pengolahan sampah yang ramah lingkungan.',
+                          description:
+                              'Mendukung upaya daur ulang dan pengolahan sampah yang ramah lingkungan.',
                         ),
-                        const Divider(height: 24, thickness: 0.5, color: Color(0xFFEEEEEE)),
-                        
+                        const Divider(
+                          height: 24,
+                          thickness: 0.5,
+                          color: Color(0xFFEEEEEE),
+                        ),
+
                         // Action button dengan styling yang lebih menarik
                         SizedBox(
                           width: double.infinity,
@@ -1194,7 +1152,10 @@ class _HomeContentState extends State<HomeContent> {
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                const Icon(Icons.arrow_forward_rounded, size: 16),
+                                const Icon(
+                                  Icons.arrow_forward_rounded,
+                                  size: 16,
+                                ),
                               ],
                             ),
                           ),

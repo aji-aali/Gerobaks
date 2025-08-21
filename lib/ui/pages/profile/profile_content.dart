@@ -30,7 +30,7 @@ class ProfileContent extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Ghani',
+                'Akbar',
                 style: blackTextStyle.copyWith(
                   fontSize: 16,
                   fontWeight: semiBold,
