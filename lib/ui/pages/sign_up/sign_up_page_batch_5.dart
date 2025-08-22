@@ -412,8 +412,12 @@ class _SignUpBatch5PageState extends State<SignUpBatch5Page> {
                         context: context,
                         title: 'Versi Alpha',
                         message: 'Fitur langganan masih dalam tahap pengembangan (versi alpha) dan belum tersedia saat ini. Anda dapat melanjutkan pendaftaran tanpa berlangganan.',
-                        buttonText: 'Mengerti',
+                        buttonText: 'Daftar Tanpa Langganan',
                         icon: Icons.info_outline,
+                        onPressed: () {
+                          Navigator.pop(context); // Close dialog
+                          _completeRegistration(); // Complete registration
+                        },
                       );
                     },
                   ),
@@ -470,21 +474,32 @@ class _SignUpBatch5PageState extends State<SignUpBatch5Page> {
     );
   }
 
-  void _completeRegistration() {
-    // Show success dialog using custom dialog
-    DialogHelper.showSuccessDialog(
-      context: context,
-      title: 'Selamat Datang!',
-      message: 'Akun Anda telah berhasil dibuat.\nSelamat berbelanja di GEROBAKS!',
-      buttonText: 'Lanjutkan ke Berlangganan',
-      onPressed: () {
-        // Navigate to subscription plans page
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/subscription-plans',
-          (route) => false,
-        );
-      },
-    );
+  void _completeRegistration() async {
+    try {
+      // Get user data from arguments
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+      if (args == null || !args.containsKey('email') || !args.containsKey('password')) {
+        throw Exception('Data registrasi tidak lengkap');
+      }
+
+      // Navigate to sign-up success page with credentials
+      Navigator.pushNamed(
+        context,
+        '/sign-up-success',
+        arguments: {
+          'fullName': args['fullName'],
+          'email': args['email'],
+          'password': args['password'],
+          'phone': args['phone'],
+        },
+      );
+    } catch (e) {
+      // Show error dialog using custom dialog
+      DialogHelper.showErrorDialog(
+        context: context,
+        title: 'Error',
+        message: 'Terjadi kesalahan saat melanjutkan registrasi: ${e.toString()}',
+      );
+    }
   }
 }

@@ -94,15 +94,32 @@ class LocalStorageService {
   
   // Enhanced User Management
   Future<void> saveUser(UserModel user) async {
-    await saveUserData(user.toJson());
+    // Convert to JSON
+    Map<String, dynamic> userData = user.toJson();
+    
+    // Preserve password if it exists
+    final existingData = await getUserData();
+    if (existingData != null && existingData.containsKey('password')) {
+      userData['password'] = existingData['password'];
+    }
+    
+    // Save the data
+    await saveUserData(userData);
     await saveBool(_isLoggedInKey, true);
     await saveString(_lastLoginKey, DateTime.now().toIso8601String());
+    
+    print("User saved to localStorage: ${user.name} (${user.email})");
   }
   
   Future<UserModel?> getUser() async {
     final userData = await getUserData();
     if (userData != null) {
-      return UserModel.fromJson(userData);
+      try {
+        return UserModel.fromJson(userData);
+      } catch (e) {
+        print("Error parsing user data: $e");
+        return null;
+      }
     }
     return null;
   }

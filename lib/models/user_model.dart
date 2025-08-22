@@ -33,7 +33,8 @@ class UserModel {
       email: json['email'] ?? '',
       phone: json['phone'],
       address: json['address'],
-      profilePicUrl: json['profilePicUrl'],
+      // Handle both profilePicUrl and profile_picture formats
+      profilePicUrl: json['profilePicUrl'] ?? json['profile_picture'],
       points: json['points'] ?? 15,
       isVerified: json['isVerified'] ?? false,
       savedAddresses: json['savedAddresses'] != null 

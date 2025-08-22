@@ -14,6 +14,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:bank_sha/models/information_model.dart';
 import 'package:bank_sha/utils/modal_helpers.dart';
 import 'package:bank_sha/ui/widgets/skeleton/skeleton_items.dart';
+import 'package:bank_sha/mixins/app_dialog_mixin.dart';
 
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
@@ -22,7 +23,7 @@ class HomeContent extends StatefulWidget {
   State<HomeContent> createState() => _HomeContentState();
 }
 
-class _HomeContentState extends State<HomeContent> {
+class _HomeContentState extends State<HomeContent> with AppDialogMixin {
   final SubscriptionService _subscriptionService = SubscriptionService();
 
   // State for skeleton loading
@@ -147,6 +148,10 @@ class _HomeContentState extends State<HomeContent> {
 
       // Get initial user data
       final user = await _userService.getCurrentUser();
+      
+      // Debug log for user data
+      print("Home Content loaded user: ${user?.name ?? 'null'} (${user?.email ?? 'null'})");
+      
       _handleUserChange(user);
 
       // Set up listener for user changes

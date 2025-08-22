@@ -30,6 +30,8 @@ import 'package:bank_sha/ui/pages/tambah_jadwal_page.dart';
 import 'package:bank_sha/services/gemini_ai_service.dart';
 import 'package:bank_sha/services/local_storage_service.dart';
 import 'package:bank_sha/services/subscription_service.dart';
+import 'package:bank_sha/services/user_service.dart';
+import 'package:bank_sha/controllers/profile_controller.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bank_sha/blocs/tracking/tracking_bloc.dart';
@@ -47,6 +49,16 @@ Future<void> main() async {
     // Inisialisasi SubscriptionService setelah LocalStorage
     await SubscriptionService().initialize();
     print("SubscriptionService berhasil diinisialisasi");
+    
+    // Initialize User Service and Profile Controller
+    final userService = await UserService.getInstance();
+    await userService.init();
+    print("UserService berhasil diinisialisasi");
+    
+    // Initialize Profile Controller
+    final profileController = await ProfileController.getInstance();
+    await profileController.init();
+    print("ProfileController berhasil diinisialisasi");
   } catch (e) {
     print("Error saat inisialisasi services: $e");
   }

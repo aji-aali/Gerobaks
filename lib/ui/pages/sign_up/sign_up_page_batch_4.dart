@@ -3,6 +3,9 @@ import 'package:bank_sha/ui/widgets/shared/form.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 import 'package:bank_sha/ui/widgets/shared/layout.dart';
 import 'package:bank_sha/utils/toast_helper.dart';
+import 'package:bank_sha/ui/widgets/shared/dialog_helper.dart';
+import 'package:bank_sha/services/user_service.dart';
+import 'package:bank_sha/services/sign_up_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -10,6 +13,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:bank_sha/mixins/app_dialog_mixin.dart';
 
 class SignUpBatch4Page extends StatefulWidget {
   const SignUpBatch4Page({super.key});
@@ -18,7 +22,7 @@ class SignUpBatch4Page extends StatefulWidget {
   State<SignUpBatch4Page> createState() => _SignUpBatch4PageState();
 }
 
-class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
+class _SignUpBatch4PageState extends State<SignUpBatch4Page> with AppDialogMixin {
   final _addressController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   
@@ -323,20 +327,61 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> {
                     // Next Button
                     CustomFilledButton(
                       title: 'Lanjutkan',
-                      onPressed: () {
+                      onPressed: () async {
                         if (_formKey.currentState!.validate() && _selectedLocation != null) {
-                          // Pass all data to subscription page
-                          Navigator.pushNamed(
-                            context,
-                            '/sign-up-subscription',
-                            arguments: {
+                          // Show loading dialog
+                          showAppLoadingDialog(
+                            message: 'Mendaftarkan akun Anda...',
+                          );
+                          
+                          try {
+                            // Create user data object with all information
+                            final userData = {
                               ...?arguments,
                               'address': _addressController.text,
                               'selectedLocation': _selectedLocation,
                               'latitude': _selectedLat,
                               'longitude': _selectedLng,
-                            },
-                          );
+                            };
+                            
+                            // Register the user first using UserService
+                            final userService = await UserService.getInstance();
+                            await userService.init();
+                            
+                            // Register user with basic info
+                            await userService.registerUser(
+                              name: userData['fullName'] ?? userData['name'] ?? 'User',
+                              email: userData['email'],
+                              password: userData['password'],
+                              phone: userData['phone'],
+                            );
+                            
+                            // Mark onboarding complete
+                            final signUpService = await SignUpService.getInstance();
+                            await signUpService.markOnboardingComplete();
+                            
+                            // Close loading dialog
+                            if (mounted) Navigator.of(context).pop();
+                            
+                            // Navigate to subscription page with user data
+                            if (mounted) {
+                              Navigator.pushNamed(
+                                context,
+                                '/sign-up-subscription',
+                                arguments: userData,
+                              );
+                            }
+                          } catch (e) {
+                            // Close loading dialog
+                            if (mounted) Navigator.of(context).pop();
+                            
+                            // Show error dialog
+                            showAppErrorDialog(
+                              title: 'Gagal Mendaftar',
+                              message: 'Terjadi kesalahan saat mendaftarkan akun: ${e.toString()}',
+                              buttonText: 'Coba Lagi',
+                            );
+                          }
                         } else if (_selectedLocation == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(

@@ -43,36 +43,20 @@ class UserService {
     required String password,
     String? phone,
   }) async {
+    print("Registering user: $name ($email)");
+    
     // Check if user already exists
     final existingUser = await _getUserByEmail(email);
     if (existingUser != null) {
+      print("Email already in use: $email");
       throw Exception('Email already in use');
     }
 
     final String userId = const Uuid().v4();
     final DateTime now = DateTime.now();
 
-    // Create user data
-    final Map<String, dynamic> userData = {
-      'id': userId,
-      'email': email,
-      'password': password,
-      'name': name,
-      'phone': phone,
-      'points': 15,
-      'profile_picture': 'assets/img_profile.png',
-      'createdAt': now.toIso8601String(),
-      'lastLogin': now.toIso8601String(),
-    };
-
-    // Save credentials for auto-login
-    await _localStorage.saveCredentials(email, password);
-
-    // Save user data
-    await _localStorage.saveUserData(userData);
-
-    // Create and save user model
-    final user = UserModel(
+    // Create user model first
+    final newUser = UserModel(
       id: userId,
       name: name,
       email: email,
@@ -82,10 +66,44 @@ class UserService {
       createdAt: now,
       lastLogin: now,
     );
+    
+    print("Created new user model: ${newUser.name} (${newUser.id})");
+    
+    // Convert to JSON for storage - this ensures all fields use the correct keys
+    final Map<String, dynamic> userData = newUser.toJson();
+    // Add password for authentication
+    userData['password'] = password;
 
-    await _localStorage.saveUser(user);
+    try {
+      // Save credentials for auto-login
+      await _localStorage.saveCredentials(email, password);
+      print("Saved credentials for: $email");
 
-    return user;
+      // Save user data with password
+      await _localStorage.saveUserData(userData);
+      print("Saved user data for: $email");
+
+      // Save user model
+      await _localStorage.saveUser(newUser);
+      print("Saved user model for: ${newUser.name}");
+      
+      // Notify listeners about the new user
+      _notifyUserChange(newUser);
+      print("Notified listeners about new user: ${newUser.name}");
+
+      // Double-check the user was saved
+      final checkUser = await _localStorage.getUser();
+      if (checkUser != null) {
+        print("Verification - User found: ${checkUser.name} (${checkUser.email})");
+      } else {
+        print("WARNING: User not found after saving!");
+      }
+
+      return newUser;
+    } catch (e) {
+      print("Error saving user: $e");
+      throw Exception("Failed to save user: $e");
+    }
   }
 
   // Login user
@@ -93,10 +111,60 @@ class UserService {
     required String email,
     required String password,
   }) async {
-    // Check credentials against mock data first
+    // For logging purposes
+    print("Attempting to log in user: $email");
+    
+    // First, try to get user from localStorage to check if they already registered
+    final userData = await _localStorage.getUserData();
+    print("User data from localStorage: ${userData != null ? 'Found' : 'Not found'}");
+    
+    // If the user exists in localStorage and credentials match
+    if (userData != null &&
+        userData['email'] == email &&
+        userData['password'] == password) {
+      
+      print("Email and password match for local user");
+      
+      // Get the user model
+      UserModel? user = await _localStorage.getUser();
+      
+      // If we have a user model, update lastLogin
+      if (user != null) {
+        print("Found user model for: ${user.name}");
+        final updatedUser = user.copyWith(lastLogin: DateTime.now());
+        await _localStorage.saveUser(updatedUser);
+        _notifyUserChange(updatedUser);
+        return updatedUser;
+      } else {
+        // We have userData but no UserModel, create one
+        print("Creating user model from userData");
+        final newUser = UserModel(
+          id: userData['id'] ?? const Uuid().v4(),
+          name: userData['name'] ?? 'User',
+          email: userData['email'],
+          phone: userData['phone'],
+          address: userData['address'],
+          profilePicUrl: userData['profilePicUrl'] ?? userData['profile_picture'],
+          points: userData['points'] ?? 15,
+          createdAt: userData['createdAt'] != null 
+              ? DateTime.parse(userData['createdAt']) 
+              : DateTime.now(),
+          lastLogin: DateTime.now(),
+        );
+        
+        await _localStorage.saveUser(newUser);
+        _notifyUserChange(newUser);
+        return newUser;
+      }
+    }
+    
+    // If not found in localStorage, check mock data
     final mockUserData = UserDataMock.getUserByEmail(email);
-
+    print("Mock user data: ${mockUserData != null ? 'Found' : 'Not found'}");
+    
     if (mockUserData != null && mockUserData['password'] == password) {
+      print("Email and password match for mock user");
+      
       // Create user model from mock data
       final user = UserModel(
         id: const Uuid().v4(),
@@ -105,13 +173,16 @@ class UserService {
         phone: mockUserData['phone'],
         address: mockUserData['address'],
         profilePicUrl: mockUserData['profile_picture'],
-        points: mockUserData['points'] ?? 15, // Use points from mock data or default to 15
+        points: mockUserData['points'] ?? 15,
         createdAt: DateTime.now(),
         lastLogin: DateTime.now(),
       );
 
       // Save mock user data for future sessions
-      await _localStorage.saveUserData(mockUserData);
+      final userData = user.toJson();
+      userData['password'] = password;
+      
+      await _localStorage.saveUserData(userData);
       await _localStorage.saveUser(user);
       await _localStorage.saveCredentials(email, password);
 
@@ -119,20 +190,7 @@ class UserService {
       return user;
     }
 
-    // If not in mock data, try local storage
-    final userData = await _localStorage.getUserData();
-    if (userData != null &&
-        userData['email'] == email &&
-        userData['password'] == password) {
-      final user = await _localStorage.getUser();
-      if (user != null) {
-        final updatedUser = user.copyWith(lastLogin: DateTime.now());
-        await _localStorage.saveUser(updatedUser);
-        _notifyUserChange(updatedUser);
-        return updatedUser;
-      }
-    }
-
+    print("No matching user found for email: $email");
     return null;
   }
 

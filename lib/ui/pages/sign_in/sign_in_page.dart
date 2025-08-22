@@ -91,6 +91,8 @@ class _SignInPageState extends State<SignInPage> {
         await _initializeServices();
       }
 
+      print("Attempting login with: ${_emailController.text}");
+
       // Login using UserService
       final user = await _userService?.loginUser(
         email: _emailController.text,
@@ -98,11 +100,13 @@ class _SignInPageState extends State<SignInPage> {
       );
 
       if (user != null) {
+        print("Login successful for: ${user.name} (${user.email})");
+        
         // Menampilkan notifikasi login berhasil
         await NotificationService().showNotification(
           id: DateTime.now().millisecond,
           title: 'Login Berhasil',
-          body: 'Selamat datang di Gerobaks!',
+          body: 'Selamat datang di Gerobaks, ${user.name}!',
         );
 
         // Menampilkan toast login berhasil dengan poin
@@ -117,10 +121,22 @@ class _SignInPageState extends State<SignInPage> {
           Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
         }
       } else {
+        print("Login failed for: ${_emailController.text}");
+        
+        // Check if we can find the email at all to give better error messages
+        final localStorage = await LocalStorageService.getInstance();
+        final userData = await localStorage.getUserData();
+        
+        String errorMessage = 'Email atau password salah!';
+        
+        if (userData != null && userData['email'] == _emailController.text) {
+          errorMessage = 'Password salah untuk email ini';
+        }
+        
         if (mounted) {
           ToastHelper.showToast(
             context: context,
-            message: 'Email atau password salah!',
+            message: errorMessage,
             isSuccess: false,
           );
         }
