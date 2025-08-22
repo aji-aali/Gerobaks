@@ -220,24 +220,12 @@ class LocalStorageService {
   }
   
   Future<Map<String, String>?> getCredentials() async {
-    final credentialsJson = _preferences!.getString(_credentialsKey);
+    final String? credentialsJson = _preferences!.getString(_credentialsKey);
     if (credentialsJson != null) {
       final Map<String, dynamic> data = jsonDecode(credentialsJson);
       return {
         'email': data['email'] as String,
         'password': data['password'] as String,
-      };
-    }
-    return null;
-  }
-
-  Future<Map<String, String>?> getCredentials() async {
-    final String? credentialsJson = _preferences!.getString(_credentialsKey);
-    if (credentialsJson != null) {
-      final Map<String, dynamic> credentials = jsonDecode(credentialsJson);
-      return {
-        'email': credentials['email'] as String,
-        'password': credentials['password'] as String,
       };
     }
     return null;
