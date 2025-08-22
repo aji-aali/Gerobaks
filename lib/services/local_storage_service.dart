@@ -13,6 +13,9 @@ class LocalStorageService {
   static const String _addressesKey = 'saved_addresses';
   static const String _settingsKey = 'app_settings';
   static const String _credentialsKey = 'user_credentials';
+  
+  // Public getter for login key
+  String getLoginKey() => _isLoggedInKey;
 
   static LocalStorageService? _instance;
   static SharedPreferences? _preferences;
@@ -162,9 +165,15 @@ class LocalStorageService {
     return await getBool(_isLoggedInKey, defaultValue: false);
   }
   
+  // Modified to preserve user data when logging out
   Future<void> logout() async {
-    await remove(_isLoggedInKey);
-    await remove(_userKey);
+    // Only change login status without removing user data
+    await saveBool(_isLoggedInKey, false);
+    
+    // Save the logout timestamp but don't delete the user data
+    await saveString(_lastLoginKey, DateTime.now().toIso8601String());
+    
+    print("User logged out but data preserved in localStorage");
   }
 
   // Generic storage methods
@@ -207,6 +216,19 @@ class LocalStorageService {
       'password': password,
     };
     await _preferences!.setString(_credentialsKey, jsonEncode(credentials));
+    print("Credentials saved for: $email");
+  }
+  
+  Future<Map<String, String>?> getCredentials() async {
+    final credentialsJson = _preferences!.getString(_credentialsKey);
+    if (credentialsJson != null) {
+      final Map<String, dynamic> data = jsonDecode(credentialsJson);
+      return {
+        'email': data['email'] as String,
+        'password': data['password'] as String,
+      };
+    }
+    return null;
   }
 
   Future<Map<String, String>?> getCredentials() async {

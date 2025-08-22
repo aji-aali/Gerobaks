@@ -6,7 +6,7 @@ List<ActivityModel> generateCompletedActivities(int count, {bool isActive = fals
   final random = math.Random();
   List<ActivityModel> result = [];
   
-  for (int i = 0; i < count; i++) {
+  for (int i = 0; i < count; i++) {0
     // Generate random date in the past 30 days
     final daysAgo = random.nextInt(30) + 1;
     final date = DateTime.now().subtract(Duration(days: daysAgo));

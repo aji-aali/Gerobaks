@@ -133,6 +133,10 @@ class UserService {
         print("Found user model for: ${user.name}");
         final updatedUser = user.copyWith(lastLogin: DateTime.now());
         await _localStorage.saveUser(updatedUser);
+        
+        // Explicitly set login flag to true
+        await _localStorage.saveBool(_localStorage.getLoginKey(), true);
+        
         _notifyUserChange(updatedUser);
         return updatedUser;
       } else {
@@ -153,6 +157,10 @@ class UserService {
         );
         
         await _localStorage.saveUser(newUser);
+        
+        // Explicitly set login flag to true
+        await _localStorage.saveBool(_localStorage.getLoginKey(), true);
+        
         _notifyUserChange(newUser);
         return newUser;
       }
@@ -185,6 +193,9 @@ class UserService {
       await _localStorage.saveUserData(userData);
       await _localStorage.saveUser(user);
       await _localStorage.saveCredentials(email, password);
+      
+      // Explicitly set login flag to true
+      await _localStorage.saveBool(_localStorage.getLoginKey(), true);
 
       _notifyUserChange(user);
       return user;
@@ -258,9 +269,15 @@ class UserService {
     return await _localStorage.getSavedAddresses();
   }
 
-  // Log out
+  // Log out - modified to preserve user data
   Future<void> logout() async {
+    // Log out the user (changing login status) without deleting data
     await _localStorage.logout();
+    
+    // Notify listeners that the user has logged out
+    _notifyUserChange(null);
+    
+    print("User logged out via UserService");
   }
 
   // Helper method to find user by email
