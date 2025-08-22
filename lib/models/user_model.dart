@@ -4,6 +4,8 @@ class UserModel {
   final String email;
   final String? phone;
   final String? address;
+  final double? latitude;
+  final double? longitude;
   final String? profilePicUrl;
   final int points;
   final bool isVerified;
@@ -17,6 +19,8 @@ class UserModel {
     required this.email,
     this.phone,
     this.address,
+    this.latitude,
+    this.longitude,
     this.profilePicUrl,
     this.points = 15, // New users start with 15 points
     this.isVerified = false,
@@ -33,6 +37,8 @@ class UserModel {
       email: json['email'] ?? '',
       phone: json['phone'],
       address: json['address'],
+      latitude: json['latitude'] != null ? json['latitude'].toDouble() : null,
+      longitude: json['longitude'] != null ? json['longitude'].toDouble() : null,
       // Handle both profilePicUrl and profile_picture formats
       profilePicUrl: json['profilePicUrl'] ?? json['profile_picture'],
       points: json['points'] ?? 15,
@@ -57,6 +63,8 @@ class UserModel {
       'email': email,
       'phone': phone,
       'address': address,
+      'latitude': latitude,
+      'longitude': longitude,
       'profilePicUrl': profilePicUrl,
       'points': points,
       'isVerified': isVerified,
@@ -73,6 +81,8 @@ class UserModel {
     String? email,
     String? phone,
     String? address,
+    double? latitude,
+    double? longitude,
     String? profilePicUrl,
     int? points,
     bool? isVerified,
@@ -86,6 +96,8 @@ class UserModel {
       email: email ?? this.email,
       phone: phone ?? this.phone,
       address: address ?? this.address,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
       profilePicUrl: profilePicUrl ?? this.profilePicUrl,
       points: points ?? this.points,
       isVerified: isVerified ?? this.isVerified,

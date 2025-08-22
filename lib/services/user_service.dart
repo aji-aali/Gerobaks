@@ -42,6 +42,9 @@ class UserService {
     required String email,
     required String password,
     String? phone,
+    String? address,
+    double? latitude,
+    double? longitude,
   }) async {
     print("Registering user: $name ($email)");
     
@@ -61,10 +64,14 @@ class UserService {
       name: name,
       email: email,
       phone: phone,
+      address: address,
+      latitude: latitude,
+      longitude: longitude,
       points: 15,
       profilePicUrl: 'assets/img_profile.png',
       createdAt: now,
       lastLogin: now,
+      savedAddresses: address != null ? [address] : null,
     );
     
     print("Created new user model: ${newUser.name} (${newUser.id})");
@@ -220,6 +227,8 @@ class UserService {
     String? name,
     String? phone,
     String? address,
+    double? latitude,
+    double? longitude,
     String? profilePicUrl,
   }) async {
     final user = await _localStorage.getUser();
@@ -232,7 +241,26 @@ class UserService {
       name: name ?? user.name,
       phone: phone ?? user.phone,
       address: address ?? user.address,
+      latitude: latitude ?? user.latitude,
+      longitude: longitude ?? user.longitude,
       profilePicUrl: profilePicUrl ?? user.profilePicUrl,
+    );
+
+    await _localStorage.saveUser(updatedUser);
+    _notifyUserChange(updatedUser);
+    return updatedUser;
+  }
+
+  // Update user's saved addresses
+  Future<UserModel> updateSavedAddresses(List<String> addresses) async {
+    final user = await _localStorage.getUser();
+
+    if (user == null) {
+      throw Exception('User not logged in');
+    }
+
+    final updatedUser = user.copyWith(
+      savedAddresses: addresses,
     );
 
     await _localStorage.saveUser(updatedUser);

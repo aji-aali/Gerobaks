@@ -145,14 +145,75 @@ class _MyprofileState extends State<Myprofile> {
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Alamat', style: blackTextStyle.copyWith(fontSize: 14)),
-                Text(
-                  _user?.address ?? userData?['address'] ?? 'Loading...',
-                  style: greyTextStyle.copyWith(fontSize: 14),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Alamat', style: blackTextStyle.copyWith(fontSize: 14)),
+                    if (_user?.address == null || (_user!.address?.length ?? 0) < 30)
+                      Flexible(
+                        child: Text(
+                          _user?.address ?? userData?['address'] ?? 'Loading...',
+                          style: greyTextStyle.copyWith(fontSize: 14),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
                 ),
+                // Jika alamat panjang, tampilkan di bawah sebagai teks penuh
+                if (_user?.address != null && (_user!.address?.length ?? 0) >= 30) 
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                    margin: const EdgeInsets.only(top: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.grey.shade200,
+                      ),
+                    ),
+                    child: Text(
+                      _user!.address!,
+                      style: greyTextStyle.copyWith(fontSize: 14),
+                    ),
+                  ),
+                
+                // Tampilkan alamat tersimpan jika ada
+                if (_user?.savedAddresses != null && (_user!.savedAddresses?.isNotEmpty ?? false)) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    'Alamat Tersimpan',
+                    style: blackTextStyle.copyWith(fontSize: 14, fontWeight: semiBold),
+                  ),
+                  const SizedBox(height: 8),
+                  ..._user!.savedAddresses!.map((savedAddress) => Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.grey.shade200,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.location_on, size: 16, color: greenColor),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            savedAddress,
+                            style: greyTextStyle.copyWith(fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )).toList(),
+                ],
               ],
             ),
 

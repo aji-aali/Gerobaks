@@ -5,6 +5,7 @@ import 'package:bank_sha/ui/widgets/shared/dialog_helper.dart';
 import 'package:bank_sha/models/user_model.dart';
 import 'package:bank_sha/services/user_service.dart';
 import 'package:flutter/material.dart';
+import 'package:bank_sha/ui/widgets/shared/map_picker.dart';
 
 class EditProfile extends StatefulWidget {
   const EditProfile({super.key});
@@ -201,16 +202,63 @@ class _EditProfileState extends State<EditProfile> {
               ),
               const SizedBox(height: 16),
 
-              _buildFormField(
-                title: 'Alamat',
-                controller: _addressController,
-                maxLines: 3,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Alamat tidak boleh kosong';
-                  }
-                  return null;
-                },
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Alamat',
+                    style: blackTextStyle.copyWith(
+                      fontSize: 14,
+                      fontWeight: medium,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Stack(
+                    children: [
+                      TextFormField(
+                        controller: _addressController,
+                        keyboardType: TextInputType.multiline,
+                        maxLines: 3,
+                        decoration: InputDecoration(
+                          hintText: 'Masukkan alamat lengkap Anda',
+                          contentPadding: const EdgeInsets.all(12),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: greyColor),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: greyColor.withOpacity(0.5)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: greenColor, width: 2),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: redcolor, width: 2),
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              Icons.map_outlined,
+                              color: greenColor,
+                            ),
+                            onPressed: () {
+                              _openMapPicker();
+                            },
+                            tooltip: 'Pilih dari peta',
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Alamat tidak boleh kosong';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                ],
               ),
 
               const SizedBox(height: 32),
@@ -362,6 +410,8 @@ class _EditProfileState extends State<EditProfile> {
         name: _nameController.text,
         phone: _phoneController.text,
         address: _addressController.text,
+        latitude: _selectedLat,
+        longitude: _selectedLng,
       );
       
       // Show success message
@@ -394,6 +444,27 @@ class _EditProfileState extends State<EditProfile> {
         });
       }
     }
+  }
+
+  // Koordinat lokasi yang dipilih
+  double? _selectedLat;
+  double? _selectedLng;
+  
+  void _openMapPicker() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MapPickerPage(
+          onLocationSelected: (address, lat, lng) {
+            setState(() {
+              _addressController.text = address;
+              _selectedLat = lat;
+              _selectedLng = lng;
+            });
+          },
+        ),
+      ),
+    );
   }
 
   void _showMessage(String message) {

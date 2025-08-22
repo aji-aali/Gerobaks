@@ -2,18 +2,12 @@ import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/form.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 import 'package:bank_sha/ui/widgets/shared/layout.dart';
-import 'package:bank_sha/utils/toast_helper.dart';
 import 'package:bank_sha/ui/widgets/shared/dialog_helper.dart';
 import 'package:bank_sha/services/user_service.dart';
 import 'package:bank_sha/services/sign_up_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:bank_sha/mixins/app_dialog_mixin.dart';
+import 'package:bank_sha/ui/widgets/shared/map_picker.dart';
 
 class SignUpBatch4Page extends StatefulWidget {
   const SignUpBatch4Page({super.key});
@@ -338,7 +332,7 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> with AppDialogMixin
                             // Create user data object with all information
                             final userData = {
                               ...?arguments,
-                              'address': _addressController.text,
+                              'address': _selectedLocation ?? _addressController.text,
                               'selectedLocation': _selectedLocation,
                               'latitude': _selectedLat,
                               'longitude': _selectedLng,
@@ -349,12 +343,27 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> with AppDialogMixin
                             await userService.init();
                             
                             // Register user with basic info
-                            await userService.registerUser(
+                            final user = await userService.registerUser(
                               name: userData['fullName'] ?? userData['name'] ?? 'User',
                               email: userData['email'],
                               password: userData['password'],
                               phone: userData['phone'],
+                              address: _selectedLocation ?? _addressController.text,
+                              latitude: _selectedLat,
+                              longitude: _selectedLng,
                             );
+                            
+                            // Save location coordinates in user data
+                            if (_selectedLat != null && _selectedLng != null) {
+                              // Save as a saved address if we have a pinpointed location
+                              if (_selectedLocation != null) {
+                                List<String> savedAddresses = user.savedAddresses ?? [];
+                                if (!savedAddresses.contains(_selectedLocation)) {
+                                  savedAddresses.add(_selectedLocation!);
+                                  await userService.updateSavedAddresses(savedAddresses);
+                                }
+                              }
+                            }
                             
                             // Mark onboarding complete
                             final signUpService = await SignUpService.getInstance();
@@ -434,464 +443,3 @@ class _SignUpBatch4PageState extends State<SignUpBatch4Page> with AppDialogMixin
 }
 
 // Map Picker Page
-class MapPickerPage extends StatefulWidget {
-  final Function(String address, double lat, double lng) onLocationSelected;
-
-  const MapPickerPage({super.key, required this.onLocationSelected});
-
-  @override
-  State<MapPickerPage> createState() => _MapPickerPageState();
-}
-
-class _MapPickerPageState extends State<MapPickerPage> {
-  final _searchController = TextEditingController();
-  String _selectedAddress = '';
-  double _selectedLat = -7.2575; // Default Surabaya coordinates
-  double _selectedLng = 112.7521;
-  
-  // Map controller
-  final MapController _mapController = MapController();
-  bool _isMapReady = false;
-  
-  // Search results
-  List<Map<String, dynamic>> _searchResults = [];
-  bool _isSearching = false;
-  bool _isLoadingLocation = false;
-  
-  // ORS API
-  String? _orsApiKey;
-
-  @override
-  void initState() {
-    super.initState();
-    _orsApiKey = dotenv.env['ORS_API_KEY'];
-    _getCurrentLocation();
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-  
-  Future<void> _getCurrentLocation() async {
-    setState(() {
-      _isLoadingLocation = true;
-    });
-    
-    try {
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          // Permissions are denied, show error
-          ToastHelper.showToast(
-            context: context,
-            message: 'Izin lokasi ditolak. Gunakan pin manual untuk menandai lokasi.',
-            isSuccess: false,
-          );
-          setState(() {
-            _isLoadingLocation = false;
-          });
-          return;
-        }
-      }
-      
-      if (permission == LocationPermission.deniedForever) {
-        // Permissions are denied forever
-        ToastHelper.showToast(
-          context: context,
-          message: 'Izin lokasi ditolak permanen. Buka pengaturan untuk mengubahnya.',
-          isSuccess: false,
-        );
-        setState(() {
-          _isLoadingLocation = false;
-        });
-        return;
-      }
-      
-      // Get current position
-      Position position = await Geolocator.getCurrentPosition();
-      
-      // Get address from coordinates
-      final address = await _getAddressFromCoordinates(position.latitude, position.longitude);
-      
-      setState(() {
-        _selectedLat = position.latitude;
-        _selectedLng = position.longitude;
-        _selectedAddress = address;
-        _isLoadingLocation = false;
-        _isMapReady = true;
-      });
-      
-      // Update map center
-      _mapController.move(LatLng(_selectedLat, _selectedLng), 15);
-      
-    } catch (e) {
-      print('Error getting location: $e');
-      ToastHelper.showToast(
-        context: context,
-        message: 'Gagal mendapatkan lokasi. Gunakan pin manual.',
-        isSuccess: false,
-      );
-      setState(() {
-        _isLoadingLocation = false;
-        _isMapReady = true;
-      });
-    }
-  }
-  
-  Future<void> _performSearch(String query) async {
-    if (query.isEmpty) {
-      setState(() {
-        _searchResults = [];
-        _isSearching = false;
-      });
-      return;
-    }
-
-    if (_orsApiKey == null || _orsApiKey!.isEmpty) {
-      ToastHelper.showToast(
-        context: context,
-        message: 'API key tidak ditemukan. Gunakan pin manual.',
-        isSuccess: false,
-      );
-      return;
-    }
-
-    setState(() {
-      _isSearching = true;
-    });
-
-    try {
-      // Perform geocoding search using ORS API
-      final response = await http.get(
-        Uri.parse('https://api.openrouteservice.org/geocode/search?api_key=$_orsApiKey&text=$query&boundary.country=ID'),
-        headers: {'Accept': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        
-        // Process results
-        List<Map<String, dynamic>> results = [];
-        if (data['features'] != null) {
-          for (var feature in data['features']) {
-            final props = feature['properties'];
-            final geometry = feature['geometry'];
-            final coordinates = geometry['coordinates'];
-            
-            if (props['label'] != null && coordinates != null) {
-              results.add({
-                'address': props['label'],
-                'lng': coordinates[0],
-                'lat': coordinates[1],
-              });
-            }
-          }
-        }
-        
-        setState(() {
-          _searchResults = results;
-          _isSearching = false;
-        });
-      } else {
-        throw Exception('Failed to load search results');
-      }
-    } catch (e) {
-      print('Error searching locations: $e');
-      ToastHelper.showToast(
-        context: context,
-        message: 'Gagal mencari lokasi. Coba lagi nanti.',
-        isSuccess: false,
-      );
-      setState(() {
-        _isSearching = false;
-      });
-    }
-  }
-  
-  Future<String> _getAddressFromCoordinates(double lat, double lng) async {
-    if (_orsApiKey == null || _orsApiKey!.isEmpty) {
-      return 'Lokasi terpilih';
-    }
-    
-    try {
-      final response = await http.get(
-        Uri.parse('https://api.openrouteservice.org/geocode/reverse?api_key=$_orsApiKey&point.lon=$lng&point.lat=$lat'),
-        headers: {'Accept': 'application/json'},
-      );
-      
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        
-        if (data['features'] != null && data['features'].isNotEmpty) {
-          return data['features'][0]['properties']['label'] ?? 'Lokasi terpilih';
-        }
-      }
-      
-      return 'Lokasi terpilih';
-    } catch (e) {
-      print('Error getting address: $e');
-      return 'Lokasi terpilih';
-    }
-  }
-
-  void _selectLocation(String address, double lat, double lng) {
-    setState(() {
-      _selectedAddress = address;
-      _selectedLat = lat;
-      _selectedLng = lng;
-      _searchResults = [];
-      _searchController.clear();
-      
-      if (_isMapReady) {
-        _mapController.move(LatLng(lat, lng), 15);
-      }
-    });
-  }
-  
-  Future<void> _handleMapTap(LatLng tappedPoint) async {
-    setState(() {
-      _selectedLat = tappedPoint.latitude;
-      _selectedLng = tappedPoint.longitude;
-      _isSearching = true;
-    });
-    
-    // Get address from coordinates
-    final address = await _getAddressFromCoordinates(_selectedLat, _selectedLng);
-    
-    setState(() {
-      _selectedAddress = address;
-      _isSearching = false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: whiteColor,
-      appBar: AppBar(
-        backgroundColor: whiteColor,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Icon(
-            Icons.arrow_back_ios,
-            color: blackColor,
-          ),
-        ),
-        title: Text(
-          'Pilih Lokasi',
-          style: blackTextStyle.copyWith(
-            fontSize: 18,
-            fontWeight: semiBold,
-          ),
-        ),
-        actions: [
-          if (_selectedAddress.isNotEmpty)
-            TextButton(
-              onPressed: () {
-                widget.onLocationSelected(_selectedAddress, _selectedLat, _selectedLng);
-                Navigator.pop(context);
-              },
-              child: Text(
-                'Pilih',
-                style: greeTextStyle.copyWith(
-                  fontWeight: semiBold,
-                ),
-              ),
-            ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Search Bar
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Cari alamat...',
-                hintStyle: greyTextStyle.copyWith(fontSize: 14),
-                prefixIcon: Icon(Icons.search, color: greyColor),
-                suffixIcon: _isSearching
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: Padding(
-                          padding: EdgeInsets.all(12.0),
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: greyColor.withOpacity(0.5)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: greenColor, width: 2),
-                ),
-              ),
-              onChanged: _performSearch,
-            ),
-          ),
-
-          // Search Results
-          if (_searchResults.isNotEmpty)
-            Expanded(
-              child: ListView.builder(
-                itemCount: _searchResults.length,
-                itemBuilder: (context, index) {
-                  final result = _searchResults[index];
-                  return ListTile(
-                    leading: Icon(Icons.location_on, color: greyColor),
-                    title: Text(
-                      result['address'],
-                      style: blackTextStyle.copyWith(fontSize: 14),
-                    ),
-                    onTap: () {
-                      _selectLocation(
-                        result['address'],
-                        result['lat'],
-                        result['lng'],
-                      );
-                    },
-                  );
-                },
-              ),
-            )
-          else
-            // Real Map
-            Expanded(
-              child: Stack(
-                children: [
-                  _isMapReady ? 
-                  FlutterMap(
-                    mapController: _mapController,
-                    options: MapOptions(
-                      initialCenter: LatLng(_selectedLat, _selectedLng),
-                      initialZoom: 15.0,
-                      onTap: (tapPosition, LatLng point) {
-                        _handleMapTap(point);
-                      },
-                    ),
-                    children: [
-                      TileLayer(
-                        urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        subdomains: const ['a', 'b', 'c'],
-                      ),
-                      MarkerLayer(
-                        markers: [
-                          Marker(
-                            point: LatLng(_selectedLat, _selectedLng),
-                            child: Icon(
-                              Icons.location_on,
-                              color: redcolor,
-                              size: 40,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ) :
-                  // Loading state
-                  Container(
-                    width: double.infinity,
-                    color: greyColor.withOpacity(0.1),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const CircularProgressIndicator(),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Memuat peta...',
-                          style: greyTextStyle.copyWith(fontSize: 16),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  // Map overlay instructions
-                  if (_isMapReady)
-                  Positioned(
-                    top: 16,
-                    left: 16,
-                    right: 16,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.8),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'Tap pada peta untuk menandai lokasi Anda',
-                        style: blackTextStyle.copyWith(fontSize: 12),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                  
-                  // Current location button
-                  Positioned(
-                    bottom: 100,
-                    right: 16,
-                    child: FloatingActionButton.small(
-                      backgroundColor: whiteColor,
-                      onPressed: _getCurrentLocation,
-                      child: _isLoadingLocation
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Icon(Icons.my_location, color: greenColor),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // Selected Location Display
-          if (_selectedAddress.isNotEmpty)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: greenColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: greenColor),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.check_circle, color: greenColor, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Lokasi Terpilih',
-                        style: greeTextStyle.copyWith(
-                          fontSize: 14,
-                          fontWeight: semiBold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _selectedAddress,
-                    style: blackTextStyle.copyWith(fontSize: 14),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
