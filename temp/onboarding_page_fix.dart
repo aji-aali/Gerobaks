@@ -1,5 +1,6 @@
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingPage extends StatefulWidget {
@@ -11,7 +12,6 @@ class OnboardingPage extends StatefulWidget {
 
 class _OnboardingPageState extends State<OnboardingPage> with SingleTickerProviderStateMixin {
   int currentIndex = 0;
-  final PageController _pageController = PageController();
   late final AnimationController _animationController;
   
   // Data untuk onboarding pages
@@ -54,7 +54,6 @@ class _OnboardingPageState extends State<OnboardingPage> with SingleTickerProvid
   
   @override
   void dispose() {
-    _pageController.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -63,6 +62,7 @@ class _OnboardingPageState extends State<OnboardingPage> with SingleTickerProvid
   Widget build(BuildContext context) {
     // Get screen dimensions for responsive design
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     final isTablet = screenWidth > 600;
     
     return Scaffold(
@@ -118,7 +118,6 @@ class _OnboardingPageState extends State<OnboardingPage> with SingleTickerProvid
                 // Carousel untuk gambar
                 Expanded(
                   child: PageView.builder(
-                    controller: _pageController,
                     itemCount: onboardingData.length,
                     onPageChanged: (index) {
                       setState(() {
@@ -270,7 +269,8 @@ class _OnboardingPageState extends State<OnboardingPage> with SingleTickerProvid
                                       _animationController.forward();
                                     });
                                     // Pindah ke halaman terakhir
-                                    _pageController.animateToPage(
+                                    final pageController = PrimaryScrollController.of(context);
+                                    pageController.animateToPage(
                                       2,
                                       duration: Duration(milliseconds: 500),
                                       curve: Curves.easeInOut,
@@ -300,12 +300,13 @@ class _OnboardingPageState extends State<OnboardingPage> with SingleTickerProvid
                                     height: isTablet ? 50 : 45,
                                     onPressed: () {
                                       if (currentIndex < onboardingData.length - 1) {
+                                        final pageController = PrimaryScrollController.of(context);
                                         setState(() {
                                           currentIndex++;
                                           _animationController.reset();
                                           _animationController.forward();
                                         });
-                                        _pageController.animateToPage(
+                                        pageController.animateToPage(
                                           currentIndex,
                                           duration: Duration(milliseconds: 500),
                                           curve: Curves.easeInOut,

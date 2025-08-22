@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:bank_sha/blocs/tracking/tracking_bloc.dart';
-import 'package:bank_sha/blocs/tracking/tracking_event.dart';
-import 'package:bank_sha/blocs/tracking/tracking_state.dart';
+import '../../../blocs/tracking/tracking_bloc.dart';
+import '../../../blocs/tracking/tracking_event.dart';
+import '../../../blocs/tracking/tracking_state.dart';
+import 'dart:math' as math;
 import 'package:bank_sha/ui/widgets/skeleton/skeleton_items.dart';
 
 class WilayahContent extends StatefulWidget {
@@ -145,7 +146,7 @@ class _WilayahContentState extends State<WilayahContent> with SingleTickerProvid
             
             // Status with improved visual
             Container(
-              padding: const EdgeInsets.symmetric(
+              padding: EdgeInsets.symmetric(
                 horizontal: 12, 
                 vertical: 6
               ),
@@ -201,7 +202,7 @@ class _WilayahContentState extends State<WilayahContent> with SingleTickerProvid
             
             // Usage bar with improved visual
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.grey.shade50,
                 borderRadius: BorderRadius.circular(12),
@@ -754,4 +755,3 @@ class _WilayahContentState extends State<WilayahContent> with SingleTickerProvid
     );
   }
 }
-

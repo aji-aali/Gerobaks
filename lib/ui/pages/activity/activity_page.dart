@@ -51,11 +51,16 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
   }
 
   void _pickDate() async {
+    // Get screen width for responsiveness
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate ?? DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
+      locale: const Locale('id', 'ID'),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -66,6 +71,10 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
               onSurface: Colors.black,
             ),
             dialogBackgroundColor: Colors.white,
+            textTheme: TextTheme(
+              bodyMedium: TextStyle(fontSize: isTablet ? 16 : 14),
+              labelLarge: TextStyle(fontSize: isTablet ? 16 : 14),
+            ),
           ),
           child: child!,
         );
@@ -87,8 +96,14 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
   }
 
   void _showFilterOptions() {
+    // Get screen size for responsiveness
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true, // Untuk memastikan modal bisa scrollable jika konten banyak
+      backgroundColor: Colors.transparent, // Untuk memastikan background transparan
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(24),
@@ -96,7 +111,20 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
       ),
       builder: (context) {
         return Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
+          width: isTablet ? screenWidth * 0.7 : screenWidth,
+          margin: isTablet 
+              ? EdgeInsets.symmetric(horizontal: screenWidth * 0.15, vertical: 20) 
+              : null,
+          padding: EdgeInsets.only(
+            top: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(24),
+            ),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -111,15 +139,15 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
                 ),
               ),
               
-              // Title
+              // Title dengan padding yang lebih baik
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: isTablet ? 30 : 24),
                 child: Row(
                   children: [
                     Text(
                       'Filter Kategori',
                       style: blackTextStyle.copyWith(
-                        fontSize: 18,
+                        fontSize: isTablet ? 20 : 18,
                         fontWeight: semiBold,
                       ),
                     ),
@@ -129,42 +157,72 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
                         Navigator.pop(context);
                         _resetFilter();
                       },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        minimumSize: Size.zero,
+                      ),
                       child: Text(
                         'Reset',
-                        style: greentextstyle2.copyWith(fontWeight: medium),
+                        style: greentextstyle2.copyWith(
+                          fontWeight: medium, 
+                          fontSize: isTablet ? 16 : 14
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-              const Divider(),
+              // Separator dengan margin yang lebih baik
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: Colors.grey[200],
+                ),
+              ),
               
-              // Filter options
+              // Filter options dengan padding yang lebih konsisten
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: filterOptions.length,
                 itemBuilder: (context, index) {
                   final option = filterOptions[index];
-                  return ListTile(
-                    title: Text(
-                      option,
-                      style: blackTextStyle.copyWith(
-                        fontWeight: option == currentFilter ? semiBold : regular,
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  final isTablet = screenWidth > 600;
+                  
+                  return Padding(
+                    padding: EdgeInsets.symmetric(horizontal: isTablet ? 10 : 0),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.symmetric(horizontal: isTablet ? 24 : 20),
+                      title: Text(
+                        option,
+                        style: blackTextStyle.copyWith(
+                          fontWeight: option == currentFilter ? semiBold : regular,
+                          fontSize: isTablet ? 16 : 14,
+                        ),
                       ),
+                      trailing: option == currentFilter
+                          ? Icon(Icons.check, color: greenColor, size: isTablet ? 26 : 22)
+                          : null,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      tileColor: option == currentFilter ? greenColor.withOpacity(0.05) : Colors.transparent,
+                      onTap: () {
+                        setState(() {
+                          currentFilter = option;
+                        });
+                        Navigator.pop(context);
+                      },
                     ),
-                    trailing: option == currentFilter
-                        ? Icon(Icons.check, color: greenColor)
-                        : null,
-                    onTap: () {
-                      setState(() {
-                        currentFilter = option;
-                      });
-                      Navigator.pop(context);
-                    },
                   );
                 },
               ),
+              
+              // Tambahkan padding di bagian bawah untuk spacing yang lebih baik
+              const SizedBox(height: 12),
             ],
           ),
         );
@@ -174,6 +232,10 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
 
   @override
   Widget build(BuildContext context) {
+    // Get screen width for responsiveness
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    
     return Scaffold(
       backgroundColor: uicolor,
       appBar: CustomAppHeaderImproved(
@@ -181,38 +243,50 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
         imageAssetPath: 'assets/ic_calender.png',
         onActionPressed: _pickDate,
         actions: [
-          IconButton(
-            onPressed: _showFilterOptions,
-            icon: Stack(
-              alignment: Alignment.center,
-              children: [
-                Icon(
-                  Icons.filter_list,
-                  color: blackColor,
-                ),
-                if (currentFilter != 'Semua')
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: greenColor,
-                        shape: BoxShape.circle,
+          Container(
+            margin: EdgeInsets.only(right: isTablet ? 8 : 4),
+            child: IconButton(
+              onPressed: _showFilterOptions,
+              icon: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Icon(
+                    Icons.filter_list,
+                    color: blackColor,
+                    size: isTablet ? 26 : 24,
+                  ),
+                  if (currentFilter != 'Semua')
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: greenColor,
+                          shape: BoxShape.circle,
+                        ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: greenColor,
-          unselectedLabelColor: Colors.grey,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+          unselectedLabelColor: Colors.grey[600],
+          labelStyle: TextStyle(
+            fontWeight: FontWeight.bold, 
+            fontSize: isTablet ? 16 : 14,
+          ),
+          unselectedLabelStyle: TextStyle(
+            fontSize: isTablet ? 16 : 14,
+          ),
           indicatorColor: greenColor,
+          indicatorWeight: 3,
+          padding: EdgeInsets.symmetric(horizontal: isTablet ? 24 : 16),
           tabs: const [
             Tab(text: 'Aktif'),
             Tab(text: 'Riwayat'),
@@ -221,51 +295,81 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
       ),
       body: Column(
         children: [
-          // Filter indicator
+          // Filter indicator dengan tampilan yang lebih responsif
           if (selectedDate != null || currentFilter != 'Semua')
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              color: Colors.grey[50],
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 28 : 24, 
+                vertical: isTablet ? 14 : 12
+              ),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 2,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
               child: Row(
                 children: [
                   Expanded(
                     child: Wrap(
-                      spacing: 8,
+                      spacing: isTablet ? 12 : 8,
+                      runSpacing: isTablet ? 10 : 6,
                       children: [
                         if (selectedDate != null)
                           Chip(
                             label: Text(
                               DateFormat('d MMMM yyyy', 'id_ID').format(selectedDate!),
-                              style: blackTextStyle.copyWith(fontSize: 12),
+                              style: blackTextStyle.copyWith(
+                                fontSize: isTablet ? 14 : 12,
+                              ),
                             ),
-                            deleteIcon: const Icon(Icons.close, size: 16),
+                            deleteIcon: Icon(
+                              Icons.close, 
+                              size: isTablet ? 18 : 16,
+                              color: Colors.grey[600],
+                            ),
                             onDeleted: () {
                               setState(() {
                                 selectedDate = null;
                               });
                             },
-                            backgroundColor: Colors.grey[200],
-                            padding: EdgeInsets.zero,
+                            backgroundColor: greenColor.withOpacity(0.1),
+                            side: BorderSide(color: greenColor.withOpacity(0.2)),
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
                             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             visualDensity: VisualDensity.compact,
+                            elevation: 0,
                           ),
                           
                         if (currentFilter != 'Semua')
                           Chip(
                             label: Text(
                               currentFilter,
-                              style: blackTextStyle.copyWith(fontSize: 12),
+                              style: blackTextStyle.copyWith(
+                                fontSize: isTablet ? 14 : 12,
+                                color: greenColor,
+                              ),
                             ),
-                            deleteIcon: const Icon(Icons.close, size: 16),
+                            deleteIcon: Icon(
+                              Icons.close, 
+                              size: isTablet ? 18 : 16,
+                              color: Colors.grey[600],
+                            ),
                             onDeleted: () {
                               setState(() {
                                 currentFilter = 'Semua';
                               });
                             },
-                            backgroundColor: Colors.grey[200],
-                            padding: EdgeInsets.zero,
+                            backgroundColor: greenColor.withOpacity(0.1),
+                            side: BorderSide(color: greenColor.withOpacity(0.2)),
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
                             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             visualDensity: VisualDensity.compact,
+                            elevation: 0,
                           ),
                       ],
                     ),
@@ -273,14 +377,21 @@ class _ActivityPageImprovedState extends State<ActivityPageImproved>
                   TextButton(
                     onPressed: _resetFilter,
                     style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: isTablet ? 8 : 6,
+                      ),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      backgroundColor: Colors.grey.withOpacity(0.05),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                     child: Text(
                       'Reset',
                       style: greentextstyle2.copyWith(
-                        fontSize: 13,
+                        fontSize: isTablet ? 14 : 13,
                         fontWeight: medium,
                       ),
                     ),

@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:bank_sha/shared/theme.dart';
 
-class CustomAppHeaderImproved extends StatelessWidget implements PreferredSizeWidget {
+class CustomAppTrackingImproved extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  final String? imageAssetPath;
   final IconData? iconData;
+  final String? iconAsset;
   final VoidCallback? onActionPressed;
   final List<Widget>? actions;
-  final PreferredSizeWidget? bottom;
-  final bool showIconWithTitle; // Tampilkan ikon di sebelah judul
-  final String? titleIconAsset; // Ikon yang ditampilkan di sebelah judul
+  final bool showIconWithTitle;
+  final String? titleIconAsset;
 
-  const CustomAppHeaderImproved({
+  const CustomAppTrackingImproved({
     Key? key,
-    required this.title,
-    this.imageAssetPath,
+    this.title = 'Lokasi',
     this.iconData,
+    this.iconAsset,
     this.onActionPressed,
     this.actions,
-    this.bottom,
     this.showIconWithTitle = false,
     this.titleIconAsset,
   }) : super(key: key);
@@ -28,19 +26,20 @@ class CustomAppHeaderImproved extends StatelessWidget implements PreferredSizeWi
     List<Widget> actionWidgets = [];
     
     // Add primary action if specified
-    if ((iconData != null || imageAssetPath != null) && onActionPressed != null) {
+    if ((iconData != null || iconAsset != null) && onActionPressed != null) {
       actionWidgets.add(
         GestureDetector(
           onTap: onActionPressed,
           child: iconData != null
               ? Icon(iconData, color: blackColor, size: 24)
               : Container(
-                  padding: const EdgeInsets.all(4), // Padding untuk memperbaiki alignment
+                  padding: const EdgeInsets.all(4),
                   child: Image.asset(
-                    imageAssetPath!,
-                    width: 24,  // Ukuran ikon yang lebih kecil dan konsisten
-                    height: 24, 
-                    fit: BoxFit.contain, // Pastikan ikon pas dalam container
+                    iconAsset!,
+                    width: 24,
+                    height: 24,
+                    color: greenColor, // Warna hijau untuk ikon
+                    fit: BoxFit.contain,
                   ),
                 ),
         ),
@@ -52,26 +51,17 @@ class CustomAppHeaderImproved extends StatelessWidget implements PreferredSizeWi
       actionWidgets.addAll(actions!);
     }
     
-    // Get screen width for responsiveness
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isTablet = screenWidth > 600;
-    
     return AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: uicolor,
       elevation: 0,
       flexibleSpace: SafeArea(
         child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            isTablet ? 28 : 24, 
-            isTablet ? 8 : 5, 
-            isTablet ? 28 : 24, 
-            isTablet ? 18 : 15
-          ),
+          padding: const EdgeInsets.fromLTRB(24, 5, 24, 15),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Title with optional icon, responsive font size
+              // Title with optional icon
               Expanded(
                 child: showIconWithTitle && titleIconAsset != null
                     ? Row(
@@ -81,14 +71,15 @@ class CustomAppHeaderImproved extends StatelessWidget implements PreferredSizeWi
                             title,
                             style: blackTextStyle.copyWith(
                               fontWeight: semiBold,
-                              fontSize: isTablet ? 22 : 20,
+                              fontSize: 20,
                             ),
                           ),
                           const SizedBox(width: 8),
                           Image.asset(
                             titleIconAsset!,
-                            width: isTablet ? 26 : 24,
-                            height: isTablet ? 26 : 24,
+                            width: 24,
+                            height: 24,
+                            color: greenColor, // Warna hijau untuk ikon
                           ),
                         ],
                       )
@@ -96,18 +87,19 @@ class CustomAppHeaderImproved extends StatelessWidget implements PreferredSizeWi
                         title,
                         style: blackTextStyle.copyWith(
                           fontWeight: semiBold,
-                          fontSize: isTablet ? 22 : 20,
+                          fontSize: 20,
                         ),
                       ),
               ),
+              
+              // Action buttons
               if (actionWidgets.isNotEmpty)
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: actionWidgets.map((widget) {
-                    // Add spacing between action icons
                     return Padding(
-                      padding: EdgeInsets.only(left: isTablet ? 16 : 12),
+                      padding: const EdgeInsets.only(left: 12),
                       child: widget,
                     );
                   }).toList(),
@@ -116,18 +108,9 @@ class CustomAppHeaderImproved extends StatelessWidget implements PreferredSizeWi
           ),
         ),
       ),
-      bottom: bottom,
     );
   }
 
   @override
-  Size get preferredSize {
-    final bottomHeight = bottom?.preferredSize.height ?? 0.0;
-    
-    // Get screen width for responsiveness - using static method since we can't use context here
-    final isTablet = MediaQueryData.fromView(WidgetsBinding.instance.window).size.width > 600;
-    final baseHeight = isTablet ? 56.0 : 50.0;
-    
-    return Size.fromHeight(baseHeight + bottomHeight);
-  }
+  Size get preferredSize => const Size.fromHeight(50);
 }
