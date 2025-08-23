@@ -4,11 +4,11 @@
 
 ![Gerobaks Logo](assets/img_gerobakss.png)
 
-[![Flutter Version](https://img.shields.io/badge/Flutter-3.8.1-blue.svg)](https://flutter.dev/)
-[![Dart Version](https://img.shields.io/badge/Dart-3.8-blue.svg)](https://dart.dev/)
+[![Flutter Version](https://img.shields.io/badge/Flutter-3.13.9-blue.svg)](https://flutter.dev/)
+[![Dart Version](https://img.shields.io/badge/Dart-3.3.1-blue.svg)](https://dart.dev/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-orange.svg)](https://flutter.dev/)
-[![Status](https://img.shields.io/badge/Status-Development-yellowgreen.svg)]()
+[![Status](https://img.shields.io/badge/Status-Beta-green.svg)]()
 
 **Solusi Cerdas untuk Pengelolaan Sampah Berkelanjutan**
 
@@ -22,14 +22,15 @@ Gerobaks adalah aplikasi mobile berbasis Flutter yang bertujuan untuk menciptaka
 
 **Fitur Unggulan:**
 - 🤖 **AI-Powered Chat**: Integrasi Google Gemini AI untuk assistant cerdas
-- � **Smart Notifications**: Sistem notifikasi yang disesuaikan dengan preferensi pengguna
+- 🔔 **Smart Notifications**: Sistem notifikasi yang disesuaikan dengan preferensi pengguna
 - 💎 **Flexible Subscription**: 3 tier membership dengan benefits berbeda
-- � **Smart Waste Management**: Penjadwalan dan tracking pengambilan sampah
+- 🗑️ **Smart Waste Management**: Penjadwalan dan tracking pengambilan sampah
 - 📊 **Real-time Analytics**: Dashboard dengan data pengelolaan sampah real-time
 - 💰 **Rewards System**: Poin dan hadiah untuk aktivitas ramah lingkungan
 - 📝 **Digital History**: Riwayat lengkap aktivitas pengelolaan sampah
 - 🗺️ **Area Coverage**: Monitoring wilayah layanan yang komprehensif
 - 🔔 **Contextual Alerts**: Notifikasi real-time yang relevan dan personal
+- 💳 **QRIS Payment**: Metode pembayaran digital melalui QRIS
 
 ## ✨ Fitur Utama
 
@@ -87,8 +88,8 @@ Gerobaks adalah aplikasi mobile berbasis Flutter yang bertujuan untuk menciptaka
 Gerobaks dibangun dengan teknologi modern dan AI terdepan:
 
 ### **Core Framework**
-- **Framework**: [Flutter](https://flutter.dev/) 3.8.1+
-- **Bahasa**: [Dart](https://dart.dev/) 3.8+
+- **Framework**: [Flutter](https://flutter.dev/) 3.13.9+
+- **Bahasa**: [Dart](https://dart.dev/) 3.3.1+
 - **State Management**: [Flutter Bloc](https://bloclibrary.dev/)
 
 ### **AI & Machine Learning**
@@ -98,6 +99,8 @@ Gerobaks dibangun dengan teknologi modern dan AI terdepan:
 
 ### **Subscription & Payment**
 - **Multi-tier Subscription**: Basic, Premium, Pro membership
+- **QRIS Payment**: Integrasi sistem pembayaran QRIS nasional Indonesia
+- **QR Flutter**: Dynamic QR code generation
 - **Payment Gateway**: Secure payment processing
 - **Flexible Billing**: Monthly dan yearly subscription options
 
