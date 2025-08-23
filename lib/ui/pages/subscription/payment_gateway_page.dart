@@ -65,6 +65,36 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> {
     });
 
     try {
+      // Jika metode pembayaran adalah QRIS, arahkan ke halaman QRIS
+      if (_selectedPaymentMethod!.id == 'qris') {
+        // Generate transaction ID unik
+        final transactionId = 'TRX${DateTime.now().millisecondsSinceEpoch}';
+        
+        if (mounted) {
+          setState(() {
+            _isProcessing = false;
+          });
+          
+          // Arahkan ke halaman QRIS payment
+          Navigator.pushNamed(
+            context,
+            '/qris-payment',
+            arguments: {
+              'amount': widget.plan.price.toInt(),
+              'transactionId': transactionId,
+              'description': 'Pembayaran ${widget.plan.name}',
+              'returnData': {
+                'plan': widget.plan,
+                'paymentMethod': _selectedPaymentMethod,
+                'isFromSignup': widget.isFromSignup,
+              },
+            },
+          );
+        }
+        return;
+      }
+      
+      // Untuk metode pembayaran lain, proses seperti biasa
       final subscription = await _subscriptionService.processPayment(
         widget.plan,
         _selectedPaymentMethod!,

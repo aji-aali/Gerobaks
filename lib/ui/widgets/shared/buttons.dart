@@ -6,6 +6,7 @@ class CustomFilledButton extends StatelessWidget {
   final double? width;
   final double? height;
   final VoidCallback? onPressed;
+  final bool isLoading;
 
   const CustomFilledButton({
     super.key,
@@ -13,6 +14,7 @@ class CustomFilledButton extends StatelessWidget {
     this.width = double.infinity,
     this.height = 50,
     this.onPressed,
+    this.isLoading = false,
   });
 
   @override
@@ -21,19 +23,28 @@ class CustomFilledButton extends StatelessWidget {
       width: width ?? double.infinity,
       height: height ?? 50,
       child: ElevatedButton(
-        onPressed: onPressed,
+        onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: greenColor,
+          backgroundColor: isLoading ? greenColor.withOpacity(0.7) : greenColor,
           foregroundColor: whiteColor,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
         ),
-        child: Text(
-          title,
-          style: whiteTextStyle.copyWith(fontSize: 16, fontWeight: semiBold),
-        ),
+        child: isLoading 
+          ? SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                color: whiteColor,
+                strokeWidth: 2,
+              ),
+            )
+          : Text(
+              title,
+              style: whiteTextStyle.copyWith(fontSize: 16, fontWeight: semiBold),
+            ),
       ),
     );
   }

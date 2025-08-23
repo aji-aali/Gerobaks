@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bank_sha/services/otp_service.dart';
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/form.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
@@ -25,14 +26,31 @@ class _SignUpBatch2PageState extends State<SignUpBatch2Page> {
     (index) => FocusNode(),
   );
   
+  final OTPService _otpService = OTPService();
+  
   Timer? _timer;
   int _countDown = 120; // 2 minutes
   bool _canResend = false;
+  bool _isVerifying = false;
 
   @override
   void initState() {
     super.initState();
     _startTimer();
+    _initializeOTPService();
+  }
+  
+  Future<void> _initializeOTPService() async {
+    await _otpService.initialize();
+    
+    // Get phone number from arguments when page loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final phone = arguments?['phone'] as String? ?? '';
+      if (phone.isNotEmpty) {
+        _sendOTP(phone);
+      }
+    });
   }
 
   @override
@@ -66,6 +84,42 @@ class _SignUpBatch2PageState extends State<SignUpBatch2Page> {
     int minutes = _countDown ~/ 60;
     int seconds = _countDown % 60;
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+  
+  // Send OTP via notification
+  Future<void> _sendOTP(String phoneNumber) async {
+    if (phoneNumber.isEmpty) {
+      return;
+    }
+    
+    try {
+      await _otpService.sendOTP(phoneNumber);
+      
+      // Show a toast or snackbar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Kode OTP telah dikirim ke $phoneNumber',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Gagal mengirim OTP: ${e.toString()}',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -272,16 +326,12 @@ class _SignUpBatch2PageState extends State<SignUpBatch2Page> {
                   else
                     TextButton(
                       onPressed: () {
-                        _startTimer();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Kode OTP telah dikirim ulang',
-                              style: whiteTextStyle.copyWith(fontSize: 14),
-                            ),
-                            backgroundColor: greenColor,
-                          ),
-                        );
+                        final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+                        final phone = arguments?['phone'] as String? ?? '';
+                        if (phone.isNotEmpty) {
+                          _sendOTP(phone);
+                          _startTimer();
+                        }
                       },
                       child: Text(
                         'Kirim Ulang OTP',
@@ -299,10 +349,18 @@ class _SignUpBatch2PageState extends State<SignUpBatch2Page> {
                   // Verify Button
                   CustomFilledButton(
                     title: 'Verifikasi',
-                    onPressed: () {
+                    isLoading: _isVerifying,
+                    onPressed: () async {
+                      setState(() {
+                        _isVerifying = true;
+                      });
+                      
                       String otpCode = _otpControllers
                           .map((controller) => controller.text)
                           .join();
+                          
+                      final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+                      final phone = arguments?['phone'] as String? ?? '';
 
                       if (otpCode.length != 6) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -314,18 +372,64 @@ class _SignUpBatch2PageState extends State<SignUpBatch2Page> {
                             backgroundColor: redcolor,
                           ),
                         );
+                        setState(() {
+                          _isVerifying = false;
+                        });
                         return;
                       }
-
-                      // Pass all data to next page
-                      Navigator.pushNamed(
-                        context,
-                        '/sign-up-batch-3',
-                        arguments: {
-                          ...?arguments,
-                          'otpCode': otpCode,
-                        },
-                      );
+                      
+                      try {
+                        // Verify OTP - now faster with SessionStorage
+                        bool isValid = false;
+                        if (phone.isNotEmpty) {
+                          isValid = await _otpService.verifyOTP(phone, otpCode);
+                          
+                          if (!isValid) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Kode OTP tidak valid atau sudah kadaluarsa',
+                                  style: whiteTextStyle.copyWith(fontSize: 14),
+                                ),
+                                backgroundColor: redcolor,
+                              ),
+                            );
+                            setState(() {
+                              _isVerifying = false;
+                            });
+                            return;
+                          }
+                        }
+                        
+                        // Pass all data to next page
+                        if (mounted) {
+                          Navigator.pushNamed(
+                            context,
+                            '/sign-up-batch-3',
+                            arguments: {
+                              ...?arguments,
+                              'otpCode': otpCode,
+                            },
+                          );
+                        }
+                      } catch (e) {
+                        print('Error verifying OTP: $e');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Terjadi kesalahan saat verifikasi OTP',
+                              style: whiteTextStyle.copyWith(fontSize: 14),
+                            ),
+                            backgroundColor: redcolor,
+                          ),
+                        );
+                      } finally {
+                        if (mounted) {
+                          setState(() {
+                            _isVerifying = false;
+                          });
+                        }
+                      }
                     },
                   ),
 

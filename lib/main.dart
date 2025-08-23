@@ -7,7 +7,13 @@ import 'package:bank_sha/ui/pages/wilayah/wilayah_page.dart';
 import 'package:bank_sha/ui/pages/chat/chat_list_page.dart';
 import 'package:bank_sha/ui/pages/subscription/subscription_plans_page.dart';
 import 'package:bank_sha/ui/pages/subscription/my_subscription_page.dart';
+import 'package:bank_sha/ui/pages/payment/qris_payment_page.dart';
+import 'package:bank_sha/ui/pages/payment/payment_success_page.dart';
+import 'package:bank_sha/ui/pages/payment/payment_timeout_page.dart';
+import 'package:bank_sha/ui/pages/payment/checkout_page.dart';
 import 'package:bank_sha/services/notification_service.dart';
+import 'package:bank_sha/services/otp_service.dart';
+import 'package:bank_sha/utils/pantun_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -67,8 +73,24 @@ Future<void> main() async {
   try {
     await NotificationService().initialize();
     print("Notifikasi berhasil diinisialisasi");
+    
+    // Pastikan notifikasi pantun berjalan
+    try {
+      await fixPantunNotifications();
+      print("Pantun notifications berhasil diperbaiki");
+    } catch (e) {
+      print("Error saat memperbaiki pantun notifications: $e");
+    }
   } catch (e) {
     print("Error saat inisialisasi notifikasi: $e");
+  }
+  
+  // Inisialisasi layanan OTP
+  try {
+    await OTPService().initialize();
+    print("OTP Service berhasil diinisialisasi");
+  } catch (e) {
+    print("Error saat inisialisasi OTP Service: $e");
   }
 
   // Inisialisasi layanan AI Gemini
@@ -117,7 +139,24 @@ class MyApp extends StatelessWidget {
         '/tracking_full': (context) => const TrackingFullScreen(),
         '/buatKeluhan': (context) => const BuatKeluhanPage(),
         '/about-us': (context) => AboutUs(),
-        'wilayah_full': (context) => const WilayahFullScreen(),
+        '/wilayah_full': (context) => const WilayahFullScreen(),
+        '/qris-payment': (context) => QRISPaymentPage(
+          amount: ModalRoute.of(context)?.settings.arguments != null 
+            ? (ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>)['amount'] as int? ?? 0 
+            : 0,
+          transactionId: ModalRoute.of(context)?.settings.arguments != null 
+            ? (ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>)['transactionId'] as String? ?? '' 
+            : '',
+          description: ModalRoute.of(context)?.settings.arguments != null 
+            ? (ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>)['description'] as String? ?? '' 
+            : '',
+          returnData: ModalRoute.of(context)?.settings.arguments != null 
+            ? (ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>)['returnData'] as Map<String, dynamic>? 
+            : null,
+        ),
+        '/payment-success': (context) => const PaymentSuccessPage(),
+        '/payment-timeout': (context) => const PaymentTimeoutPage(),
+        '/checkout': (context) => const CheckoutPage(),
       },
     );
   }

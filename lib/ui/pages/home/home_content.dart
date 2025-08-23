@@ -925,6 +925,7 @@ class _HomeContentState extends State<HomeContent> with AppDialogMixin {
         'subtitle': 'Kumpulkan dan tukarkan poin reward Anda',
         'route': '/reward',
       },
+
     ];
 
     return Container(

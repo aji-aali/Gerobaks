@@ -96,6 +96,17 @@ class NotificationService {
     
     await _notifications.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(subscriptionChannel);
+    
+    // OTP notifications channel
+    const otpChannel = AndroidNotificationChannel(
+      'otp_notifications',
+      'OTP Notifications',
+      description: 'Notifications for OTP verification codes',
+      importance: Importance.high,
+    );
+    
+    await _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(otpChannel);
   }
 
   Future<void> _onNotificationTapped(NotificationResponse response) async {
@@ -609,6 +620,43 @@ class NotificationService {
       id: DateTime.now().millisecond,
       title: 'Selamat Bergabung!',
       body: 'Akun Gerobaks Anda berhasil dibuat. Selamat menjadi bagian dari komunitas hijau!',
+    );
+  }
+  
+  // Show OTP verification notification
+  Future<void> showOTPNotification(String otp, String phoneNumber) async {
+    if (!_isInitialized) return;
+
+    const androidDetails = AndroidNotificationDetails(
+      'otp_notifications',
+      'OTP Notifications',
+      channelDescription: 'Notifications for OTP verification codes',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    final formattedPhone = phoneNumber.replaceAll(RegExp(r'\+'), '');
+    
+    // Generate a notification ID based on the phone number to ensure we can update it
+    final notificationId = formattedPhone.hashCode;
+    
+    await _notifications.show(
+      notificationId,
+      'Kode Verifikasi Gerobaks', 
+      'Kode OTP Anda adalah: $otp. Kode ini berlaku selama 10 menit.',
+      details,
+      payload: 'otp:$otp',
     );
   }
 
