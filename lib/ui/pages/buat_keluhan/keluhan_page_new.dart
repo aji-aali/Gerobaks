@@ -5,14 +5,14 @@ import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/appbar.dart';
 import 'package:bank_sha/ui/widgets/shared/buttons.dart';
 
-class BuatKeluhanPage extends StatefulWidget {
-  const BuatKeluhanPage({super.key});
+class KeluhanPage extends StatefulWidget {
+  const KeluhanPage({super.key});
 
   @override
-  State<BuatKeluhanPage> createState() => _BuatKeluhanPageState();
+  State<KeluhanPage> createState() => _KeluhanPageState();
 }
 
-class _BuatKeluhanPageState extends State<BuatKeluhanPage> {
+class _KeluhanPageState extends State<KeluhanPage> {
   // Data dummy untuk hasil keluhan yang sudah ada
   final List<Map<String, dynamic>> daftarKeluhan = [
     {
@@ -48,6 +48,18 @@ class _BuatKeluhanPageState extends State<BuatKeluhanPage> {
       'status': 'Menunggu',
       'lokasi': 'Jl. Merdekan No. 123, Samarinda',
       'deskripsi': 'Aplikasi selalu crash ketika mencoba melihat tracking truk sampah.',
+    },
+    {
+      'id': '1723456789015',
+      'nama': 'Ghani',
+      'judul': 'Sampah tidak dipisahkan',
+      'kategori': 'Kualitas Layanan',
+      'prioritas': 'Normal',
+      'tanggal': '2025-08-15',
+      'status': 'Selesai',
+      'lokasi': 'Jl. Merdekan No. 123, Samarinda',
+      'deskripsi': 'Petugas tidak memisahkan sampah organik dan non-organik seperti yang diminta.',
+      'balasan': 'Mohon maaf atas ketidaknyamanannya. Kami sudah memberikan pelatihan kepada petugas kami.'
     },
   ];
   
@@ -88,11 +100,14 @@ class _BuatKeluhanPageState extends State<BuatKeluhanPage> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const BuatKeluhanForm()),
-    ).then((_) {
-      // Refresh the list when coming back from form
-      setState(() {
-        filteredKeluhan = List.from(daftarKeluhan);
-      });
+    ).then((result) {
+      if (result != null) {
+        // Add new complaint to the list
+        setState(() {
+          daftarKeluhan.add(result);
+          _filterKeluhan();
+        });
+      }
     });
   }
   
@@ -117,10 +132,10 @@ class _BuatKeluhanPageState extends State<BuatKeluhanPage> {
         
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             backgroundColor: Colors.green,
-            content: const Text('Keluhan berhasil diperbarui!'),
-            duration: const Duration(seconds: 2),
+            content: Text('Keluhan berhasil diperbarui!'),
+            duration: Duration(seconds: 2),
           ),
         );
       }
@@ -136,251 +151,262 @@ class _BuatKeluhanPageState extends State<BuatKeluhanPage> {
         rightImageAsset: 'assets/ic_plus.png',
         onRightImagePressed: _navigateToKeluhanForm,
       ),
-      body: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Section
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    greenColor.withOpacity(0.1),
-                    greenColor.withOpacity(0.05),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: greenColor.withOpacity(0.2)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.list_alt_rounded, color: greenColor, size: 28),
-                      const SizedBox(width: 12),
-                      Text(
-                        '📋 Riwayat Keluhan Anda',
-                        style: blackTextStyle.copyWith(
-                          fontSize: 20,
-                          fontWeight: bold,
-                        ),
-                      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Simulate fetching data from a server
+          await Future.delayed(const Duration(seconds: 1));
+          setState(() {
+            _filterKeluhan();
+          });
+          return;
+        },
+        color: greenColor,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header Section
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      greenColor.withOpacity(0.1),
+                      greenColor.withOpacity(0.05),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Berikut adalah daftar keluhan yang telah Anda sampaikan. Pantau status penanganan keluhan Anda di sini.',
-                    style: greyTextStyle.copyWith(fontSize: 14, height: 1.4),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      _buildStatCard(
-                        'Total Keluhan',
-                        daftarKeluhan.length.toString(),
-                        Icons.description_rounded,
-                        Colors.blue,
-                      ),
-                      const SizedBox(width: 12),
-                      _buildStatCard(
-                        'Selesai',
-                        daftarKeluhan
-                            .where((k) => k['status'] == 'Selesai')
-                            .length
-                            .toString(),
-                        Icons.check_circle_rounded,
-                        Colors.green,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Quick Action Button
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [greenColor, greenColor.withOpacity(0.8)],
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: greenColor.withOpacity(0.2)),
                 ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: greenColor.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: whiteColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.add_circle_rounded,
-                      color: whiteColor,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
+                        Icon(Icons.list_alt_rounded, color: greenColor, size: 28),
+                        const SizedBox(width: 12),
                         Text(
-                          '✨ Punya Keluhan Baru?',
-                          style: whiteTextStyle.copyWith(
-                            fontSize: 16,
+                          '📋 Riwayat Keluhan Anda',
+                          style: blackTextStyle.copyWith(
+                            fontSize: 20,
                             fontWeight: bold,
                           ),
                         ),
-                        Text(
-                          'Sampaikan keluhan Anda dengan mudah',
-                          style: whiteTextStyle.copyWith(fontSize: 12),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Berikut adalah daftar keluhan yang telah Anda sampaikan. Pantau status penanganan keluhan Anda di sini.',
+                      style: greyTextStyle.copyWith(fontSize: 14, height: 1.4),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        _buildStatCard(
+                          'Total Keluhan',
+                          daftarKeluhan.length.toString(),
+                          Icons.description_rounded,
+                          Colors.blue,
+                        ),
+                        const SizedBox(width: 12),
+                        _buildStatCard(
+                          'Selesai',
+                          daftarKeluhan
+                              .where((k) => k['status'] == 'Selesai')
+                              .length
+                              .toString(),
+                          Icons.check_circle_rounded,
+                          Colors.green,
                         ),
                       ],
                     ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Quick Action Button
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [greenColor, greenColor.withOpacity(0.8)],
                   ),
-                  GestureDetector(
-                    onTap: _navigateToKeluhanForm,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 10,
-                      ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: greenColor.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: whiteColor,
-                        borderRadius: BorderRadius.circular(20),
+                        color: whiteColor.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
-                        'Buat Sekarang',
-                        style: TextStyle(
-                          color: greenColor,
-                          fontWeight: semiBold,
-                          fontSize: 12,
+                      child: Icon(
+                        Icons.add_circle_rounded,
+                        color: whiteColor,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '✨ Punya Keluhan Baru?',
+                            style: whiteTextStyle.copyWith(
+                              fontSize: 16,
+                              fontWeight: bold,
+                            ),
+                          ),
+                          Text(
+                            'Sampaikan keluhan Anda dengan mudah',
+                            style: whiteTextStyle.copyWith(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: _navigateToKeluhanForm,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: whiteColor,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          'Buat Sekarang',
+                          style: TextStyle(
+                            color: greenColor,
+                            fontWeight: semiBold,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // Search Box
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: TextField(
-                onChanged: (value) {
-                  setState(() {
-                    searchQuery = value;
-                    _filterKeluhan();
-                  });
-                },
-                decoration: InputDecoration(
-                  hintText: 'Cari keluhan...',
-                  hintStyle: greyTextStyle,
-                  prefixIcon: Icon(Icons.search, color: greyColor),
-                  suffixIcon: searchQuery.isNotEmpty
-                      ? IconButton(
-                          icon: Icon(Icons.close, color: greyColor),
-                          onPressed: () {
-                            setState(() {
-                              searchQuery = '';
-                              _filterKeluhan();
-                            });
-                          },
-                        )
-                      : null,
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 14,
-                    horizontal: 16,
+              // Search Box
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      searchQuery = value;
+                      _filterKeluhan();
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Cari keluhan...',
+                    hintStyle: greyTextStyle,
+                    prefixIcon: Icon(Icons.search, color: greyColor),
+                    suffixIcon: searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: Icon(Icons.close, color: greyColor),
+                            onPressed: () {
+                              setState(() {
+                                searchQuery = '';
+                                _filterKeluhan();
+                              });
+                            },
+                          )
+                        : null,
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 14,
+                      horizontal: 16,
+                    ),
                   ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Filter Chips
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
+              // Filter Chips
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildFilterChip('Semua'),
+                    _buildFilterChip('Menunggu'),
+                    _buildFilterChip('Sedang Diproses'),
+                    _buildFilterChip('Selesai'),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Section Title
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildFilterChip('Semua'),
-                  _buildFilterChip('Menunggu'),
-                  _buildFilterChip('Sedang Diproses'),
-                  _buildFilterChip('Selesai'),
+                  Text(
+                    'Keluhan Terkini',
+                    style: blackTextStyle.copyWith(
+                      fontSize: 18,
+                      fontWeight: bold,
+                    ),
+                  ),
+                  Text(
+                    '${filteredKeluhan.length} Keluhan',
+                    style: greyTextStyle.copyWith(fontSize: 12),
+                  ),
                 ],
               ),
-            ),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
-            // Section Title
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Keluhan Terkini',
-                  style: blackTextStyle.copyWith(
-                    fontSize: 18,
-                    fontWeight: bold,
-                  ),
-                ),
-                Text(
-                  '${filteredKeluhan.length} Keluhan',
-                  style: greyTextStyle.copyWith(fontSize: 12),
-                ),
-              ],
-            ),
+              // Daftar Keluhan
+              filteredKeluhan.isEmpty
+                  ? _buildEmptyState()
+                  : ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: filteredKeluhan.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 16),
+                      itemBuilder: (context, index) {
+                        final keluhan = filteredKeluhan[index];
+                        return _buildKeluhanCard(keluhan);
+                      },
+                    ),
 
-            const SizedBox(height: 16),
-
-            // Daftar Keluhan
-            filteredKeluhan.isEmpty
-                ? _buildEmptyState()
-                : ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: filteredKeluhan.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 16),
-                    itemBuilder: (context, index) {
-                      final keluhan = filteredKeluhan[index];
-                      return _buildKeluhanCard(keluhan);
-                    },
-                  ),
-
-            const SizedBox(height: 80), // Extra space for FAB
-          ],
+              const SizedBox(height: 80), // Extra space for FAB
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -567,84 +593,72 @@ class _BuatKeluhanPageState extends State<BuatKeluhanPage> {
 
             const SizedBox(height: 12),
 
-          // Lokasi dan Tanggal
-          Row(
-            children: [
-              Icon(Icons.location_on_rounded, color: greyColor, size: 16),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  keluhan['lokasi'],
-                  style: greyTextStyle.copyWith(fontSize: 12),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 6),
-
-          Row(
-            children: [
-              Icon(Icons.access_time_rounded, color: greyColor, size: 16),
-              const SizedBox(width: 6),
-              Text(
-                keluhan['tanggal'],
-                style: greyTextStyle.copyWith(fontSize: 12),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // Action Button
-          Row(
-            children: [
-              if (keluhan['status'] == 'Selesai' && keluhan.containsKey('balasan'))
+            // Lokasi
+            Row(
+              children: [
+                Icon(Icons.location_on_rounded, color: greyColor, size: 16),
+                const SizedBox(width: 6),
                 Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      _showDetailKeluhan(keluhan);
-                    },
-                    icon: const Icon(Icons.comment_outlined, size: 16, color: Colors.green),
-                    label: const Text('Lihat Balasan', 
-                      style: TextStyle(color: Colors.green, fontSize: 12),
+                  child: Text(
+                    keluhan['lokasi'],
+                    style: greyTextStyle.copyWith(fontSize: 12),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Action Button
+            Row(
+              children: [
+                if (keluhan['status'] == 'Selesai' && keluhan.containsKey('balasan'))
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        _showDetailKeluhan(keluhan);
+                      },
+                      icon: const Icon(Icons.comment_outlined, size: 16, color: Colors.green),
+                      label: const Text('Lihat Balasan', 
+                        style: TextStyle(color: Colors.green, fontSize: 12),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.green),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
                     ),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.green),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  )
+                else
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        // Action untuk lihat detail
+                        _showDetailKeluhan(keluhan);
+                      },
+                      icon: Icon(
+                        Icons.visibility_rounded,
+                        size: 16,
+                        color: greenColor,
+                      ),
+                      label: Text(
+                        'Lihat Detail',
+                        style: TextStyle(color: greenColor, fontSize: 12),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: greenColor),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
                   ),
-                )
-              else
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      // Action untuk lihat detail
-                      _showDetailKeluhan(keluhan);
-                    },
-                    icon: Icon(
-                      Icons.visibility_rounded,
-                      size: 16,
-                      color: greenColor,
-                    ),
-                    label: Text(
-                      'Lihat Detail',
-                      style: TextStyle(color: greenColor, fontSize: 12),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: greenColor),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -735,6 +749,47 @@ class _BuatKeluhanPageState extends State<BuatKeluhanPage> {
                   ),
                 ),
         ],
+      ),
+    );
+  }
+  
+  Widget _buildFilterChip(String status) {
+    final isSelected = selectedStatus == status;
+    
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            selectedStatus = status;
+            _filterKeluhan();
+          });
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? greenColor : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? greenColor : greyColor.withOpacity(0.3),
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: greenColor.withOpacity(0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            status,
+            style: isSelected
+                ? whiteTextStyle.copyWith(fontWeight: medium)
+                : greyTextStyle.copyWith(fontWeight: medium),
+          ),
+        ),
       ),
     );
   }
@@ -1037,39 +1092,6 @@ class _BuatKeluhanPageState extends State<BuatKeluhanPage> {
                 ),
               ],
             ),
-            Center(
-              child: Container(
-                width: 50,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: greyColor.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Title
-            Text(
-              'Detail Keluhan',
-              style: blackTextStyle.copyWith(fontSize: 20, fontWeight: bold),
-            ),
-            const SizedBox(height: 20),
-
-            // Detail content - you can expand this
-            Text(
-              'ID: ${keluhan['id']}',
-              style: greyTextStyle.copyWith(fontSize: 12),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              keluhan['judul'],
-              style: blackTextStyle.copyWith(
-                fontSize: 16,
-                fontWeight: semiBold,
-              ),
-            ),
-            // Add more details here as needed
           ],
         ),
       ),
@@ -1115,46 +1137,5 @@ class _BuatKeluhanPageState extends State<BuatKeluhanPage> {
       default:
         return greyColor;
     }
-  }
-  
-  Widget _buildFilterChip(String status) {
-    final isSelected = selectedStatus == status;
-    
-    return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            selectedStatus = status;
-            _filterKeluhan();
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? greenColor : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isSelected ? greenColor : greyColor.withOpacity(0.3),
-            ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: greenColor.withOpacity(0.2),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Text(
-            status,
-            style: isSelected
-                ? whiteTextStyle.copyWith(fontWeight: medium)
-                : greyTextStyle.copyWith(fontWeight: medium),
-          ),
-        ),
-      ),
-    );
   }
 }
