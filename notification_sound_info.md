@@ -15,9 +15,7 @@ Untuk memastikan notifikasi suara berfungsi, sebaiknya gunakan file dengan spesi
 - Durasi pendek (1-3 detik)
 
 ### File Suara
-- `notification_sound.wav` - Suara notifikasi default untuk sebagian besar notifikasi
-- `pickup_sound.wav` - Suara notifikasi khusus untuk pengingat pengambilan sampah
-- `nf_gerobaks.wav` - Suara notifikasi kustom (alternatif)
+- `nf_gerobaks.wav` - Suara notifikasi kustom untuk semua jenis notifikasi
 
 ### Lokasi File
 - Android: `android/app/src/main/res/raw/notification_sound.wav`
@@ -26,13 +24,13 @@ Untuk memastikan notifikasi suara berfungsi, sebaiknya gunakan file dengan spesi
 ## Implementasi
 
 ### Konfigurasi Android
-Semua channel notifikasi dikonfigurasi dengan suara yang sesuai:
-- Notifikasi chat: `notification_sound.wav`
-- Notifikasi pengambilan sampah: `pickup_sound.wav`
-- Pantun harian: `notification_sound.wav`
-- Pantun rutin: `notification_sound.wav`
-- Notifikasi langganan: `notification_sound.wav`
-- Notifikasi OTP: `notification_sound.wav`
+Semua channel notifikasi menggunakan suara notifikasi kustom:
+- Notifikasi chat: `nf_gerobaks.wav`
+- Notifikasi pengambilan sampah: `nf_gerobaks.wav`
+- Pantun harian: `nf_gerobaks.wav`
+- Pantun rutin: `nf_gerobaks.wav`
+- Notifikasi langganan: `nf_gerobaks.wav`
+- Notifikasi OTP: `nf_gerobaks.wav`
 
 ### Konfigurasi iOS
 Semua notifikasi iOS memiliki suara yang diaktifkan melalui:

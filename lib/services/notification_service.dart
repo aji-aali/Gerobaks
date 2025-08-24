@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:typed_data'; // For Uint8List
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
 import '../services/gemini_ai_service.dart';
@@ -14,6 +15,35 @@ class NotificationService {
   Timer? _dailyPantunTimer;
   Timer? _routinePantunTimer;
   bool _isInitialized = false;
+  
+  // Standard notification details for consistent sound across the app
+  static const gerobaksAndroidDetails = AndroidNotificationDetails(
+    'gerobaks_channel',
+    'Gerobaks Notifications',
+    channelDescription: 'Notifikasi untuk aplikasi Gerobaks',
+    importance: Importance.max,
+    priority: Priority.max,
+    sound: RawResourceAndroidNotificationSound('nf_gerobaks'),
+    playSound: true,
+    enableVibration: true,
+    enableLights: true,
+    fullScreenIntent: true,  // Full screen intent to ensure visibility
+    category: AndroidNotificationCategory.alarm, // Treat as alarm category for importance
+    ongoing: true, // Make it persistent until dismissed
+  );
+  
+  static const gerobaksIosDetails = DarwinNotificationDetails(
+    presentAlert: true,
+    presentBadge: true,
+    presentSound: true,
+    sound: 'nf_gerobaks.wav', // Make sure this file exists in iOS bundle
+    interruptionLevel: InterruptionLevel.critical, // Override silent mode
+  );
+  
+  static const gerobaksNotificationDetails = NotificationDetails(
+    android: gerobaksAndroidDetails,
+    iOS: gerobaksIosDetails,
+  );
 
   Future<void> initialize() async {
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -21,6 +51,10 @@ class NotificationService {
       requestSoundPermission: true,
       requestBadgePermission: true,
       requestAlertPermission: true,
+      requestCriticalPermission: true, // Request permission for critical alerts that bypass silent mode
+      defaultPresentSound: true,
+      defaultPresentAlert: true,
+      defaultPresentBadge: true,
     );
     
     const initSettings = InitializationSettings(
@@ -28,14 +62,23 @@ class NotificationService {
       iOS: iosSettings,
     );
 
+    // Request permissions explicitly on Android
+    final androidImplementation = _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    await androidImplementation?.requestNotificationsPermission();
+
     await _notifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
 
+    // Create channels with highest priority
     await _createNotificationChannels();
+    
+    // Other scheduled notifications
     await _scheduleDailyPantun();
     await _startRoutinePantunNotifications();
+    
     _isInitialized = true;
   }
 
@@ -45,8 +88,10 @@ class NotificationService {
       'chat_notifications',
       'Chat Notifications',
       description: 'Notifications for new chat messages',
-      importance: Importance.high,
-      sound: RawResourceAndroidNotificationSound('notification_sound'),
+      importance: Importance.max,
+      sound: RawResourceAndroidNotificationSound('nf_gerobaks'),
+      playSound: true,
+      enableVibration: true,
     );
 
     // Pickup notifications channel
@@ -55,7 +100,9 @@ class NotificationService {
       'Pickup Notifications',
       description: 'Notifications for waste pickup schedules',
       importance: Importance.max,
-      sound: RawResourceAndroidNotificationSound('pickup_sound'),
+      sound: RawResourceAndroidNotificationSound('nf_gerobaks'),
+      playSound: true,
+      enableVibration: true,
     );
 
     // Daily pantun channel
@@ -63,7 +110,10 @@ class NotificationService {
       'daily_pantun',
       'Daily Pantun',
       description: 'Daily motivational pantun about waste management',
-      importance: Importance.defaultImportance,
+      importance: Importance.max,
+      sound: RawResourceAndroidNotificationSound('nf_gerobaks'),
+      playSound: true,
+      enableVibration: true,
     );
 
     // Routine pantun channel
@@ -71,7 +121,10 @@ class NotificationService {
       'routine_pantun',
       'Routine Pantun',
       description: 'Regular motivational pantun reminders every 30-60 minutes',
-      importance: Importance.low,
+      importance: Importance.max, // Upgraded from low to max
+      sound: RawResourceAndroidNotificationSound('nf_gerobaks'),
+      playSound: true,
+      enableVibration: true,
     );
 
     // Subscription notifications channel
@@ -79,7 +132,10 @@ class NotificationService {
       'subscription_notifications',
       'Subscription Notifications',
       description: 'Notifications about subscription status and renewals',
-      importance: Importance.high,
+      importance: Importance.max,
+      sound: RawResourceAndroidNotificationSound('nf_gerobaks'),
+      playSound: true,
+      enableVibration: true,
     );
 
     await _notifications.resolvePlatformSpecificImplementation<
@@ -102,7 +158,10 @@ class NotificationService {
       'otp_notifications',
       'OTP Notifications',
       description: 'Notifications for OTP verification codes',
-      importance: Importance.high,
+      importance: Importance.max,
+      sound: RawResourceAndroidNotificationSound('nf_gerobaks'),
+      playSound: true,
+      enableVibration: true,
     );
     
     await _notifications.resolvePlatformSpecificImplementation<
@@ -156,6 +215,7 @@ class NotificationService {
       ),
       color: _getSubscriptionColor(userSubscriptionStatus),
       colorized: true,
+      sound: const RawResourceAndroidNotificationSound('nf_gerobaks'),
     );
 
     const iosDetails = DarwinNotificationDetails(
@@ -204,6 +264,7 @@ class NotificationService {
       ),
       color: Colors.green,
       colorized: true,
+      sound: const RawResourceAndroidNotificationSound('nf_gerobaks'),
       actions: [
         const AndroidNotificationAction(
           'track_pickup',
@@ -259,8 +320,8 @@ class NotificationService {
         'daily_pantun',
         'Daily Pantun',
         channelDescription: 'Daily motivational pantun about waste management',
-        importance: Importance.defaultImportance,
-        priority: Priority.defaultPriority,
+        importance: Importance.max,
+        priority: Priority.max,
         styleInformation: BigTextStyleInformation(
           pantun,
           htmlFormatBigText: true,
@@ -269,12 +330,18 @@ class NotificationService {
         ),
         color: Colors.green[400],
         colorized: true,
+        sound: const RawResourceAndroidNotificationSound('nf_gerobaks'),
+        playSound: true,
+        enableVibration: true,
+        enableLights: true,
       );
 
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
+        sound: 'nf_gerobaks.wav',
+        interruptionLevel: InterruptionLevel.active,
       );
 
       final details = NotificationDetails(
@@ -313,8 +380,8 @@ class NotificationService {
       'daily_pantun',
       'Daily Pantun',
       channelDescription: 'Daily motivational pantun about waste management',
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
+      importance: Importance.max,
+      priority: Priority.max,
       styleInformation: BigTextStyleInformation(
         randomPantun,
         htmlFormatBigText: true,
@@ -323,12 +390,18 @@ class NotificationService {
       ),
       color: Colors.green[400],
       colorized: true,
+      sound: const RawResourceAndroidNotificationSound('nf_gerobaks'),
+      playSound: true,
+      enableVibration: true,
+      enableLights: true,
     );
 
     const iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
+      sound: 'nf_gerobaks.wav',
+      interruptionLevel: InterruptionLevel.active,
     );
 
     final details = NotificationDetails(
@@ -416,8 +489,8 @@ class NotificationService {
       'routine_pantun',
       'Routine Pantun',
       channelDescription: 'Regular motivational pantun reminders every 30-60 minutes',
-      importance: Importance.low,
-      priority: Priority.low,
+      importance: Importance.max, // Changed from low to max
+      priority: Priority.max, // Changed from low to max
       styleInformation: BigTextStyleInformation(
         selectedPantun,
         htmlFormatBigText: true,
@@ -427,12 +500,18 @@ class NotificationService {
       color: Colors.green[300],
       colorized: true,
       autoCancel: true,
+      sound: const RawResourceAndroidNotificationSound('nf_gerobaks'),
+      playSound: true,
+      enableVibration: true,
+      enableLights: true,
     );
 
     const iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: false, // Don't add badge for routine notifications
-      presentSound: false, // Silent notification
+      presentSound: true, // Enable sound for motivational pantun
+      sound: 'nf_gerobaks.wav',
+      interruptionLevel: InterruptionLevel.active,
     );
 
     final details = NotificationDetails(
@@ -484,6 +563,7 @@ class NotificationService {
       ),
       color: _getSubscriptionColor(subscriptionStatus),
       colorized: true,
+      sound: const RawResourceAndroidNotificationSound('nf_gerobaks'),
       actions: actionUrl != null ? [
         const AndroidNotificationAction(
           'open_subscription',
@@ -557,13 +637,21 @@ class NotificationService {
             'pickup_notifications',
             'Pickup Notifications',
             channelDescription: 'Notifications for waste pickup schedules',
-            importance: Importance.high,
-            priority: Priority.high,
+            importance: Importance.max,
+            priority: Priority.max,
+            sound: RawResourceAndroidNotificationSound('nf_gerobaks'),
+            playSound: true,
+            enableVibration: true,
+            enableLights: true,
+            fullScreenIntent: true, // Make it a full-screen intent for importance
+            category: AndroidNotificationCategory.alarm, // Treat it like an alarm
           ),
           iOS: DarwinNotificationDetails(
             presentAlert: true,
             presentBadge: true,
             presentSound: true,
+            sound: 'nf_gerobaks.wav',
+            interruptionLevel: InterruptionLevel.timeSensitive,
           ),
         ),
         payload: 'pickup:${pickupTime.toIso8601String()}',
@@ -584,27 +672,8 @@ class NotificationService {
   }) async {
     if (!_isInitialized) return;
 
-    const androidDetails = AndroidNotificationDetails(
-      'gerobaks_channel',
-      'Gerobaks Notifications',
-      channelDescription: 'Notifikasi untuk aplikasi Gerobaks',
-      importance: Importance.max,
-      priority: Priority.high,
-      sound: RawResourceAndroidNotificationSound('notification_sound'),
-    );
-
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    const details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    await _notifications.show(id, title, body, details, payload: payload);
+    // Force notification sound to play by adding channel importance
+    await _notifications.show(id, title, body, gerobaksNotificationDetails, payload: payload);
   }
 
   Future<void> showLoginSuccessNotification() async {
@@ -627,21 +696,32 @@ class NotificationService {
   Future<void> showOTPNotification(String otp, String phoneNumber) async {
     if (!_isInitialized) return;
 
-    const androidDetails = AndroidNotificationDetails(
+    // Creating a specific notification detail for OTP with highest priority
+    final androidDetails = const AndroidNotificationDetails(
       'otp_notifications',
       'OTP Notifications',
       channelDescription: 'Notifications for OTP verification codes',
       importance: Importance.max,
-      priority: Priority.high,
+      priority: Priority.max,
+      sound: RawResourceAndroidNotificationSound('nf_gerobaks'),
+      playSound: true,
+      enableVibration: true,
+      enableLights: true,
+      category: AndroidNotificationCategory.alarm,
+      fullScreenIntent: true, // Make it a full-screen intent for importance
+      ongoing: true, // Make it persistent until dismissed
     );
-
+    
+    // Custom iOS details with critical alert level
     const iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
+      sound: 'nf_gerobaks.wav',
+      interruptionLevel: InterruptionLevel.critical, // Override silent mode for OTP
     );
 
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
@@ -681,6 +761,7 @@ class NotificationService {
       ),
       color: Colors.red,
       colorized: true,
+      sound: const RawResourceAndroidNotificationSound('nf_gerobaks'),
       actions: const [
         AndroidNotificationAction(
           'open_subscription',
@@ -724,6 +805,71 @@ class NotificationService {
   Future<void> cancelNotification(int id) async {
     await _notifications.cancel(id);
   }
+  
+  // Test notification with forced sound
+  Future<void> showTestNotification() async {
+    if (!_isInitialized) await initialize();
+    
+    // Create a channel specifically for testing with maximum priority
+    final Int64List vibrationPattern = Int64List(4);
+    vibrationPattern[0] = 0;
+    vibrationPattern[1] = 500;
+    vibrationPattern[2] = 200;
+    vibrationPattern[3] = 500;
+    
+    final testChannel = AndroidNotificationChannel(
+      'test_channel',
+      'Test Notifications',
+      description: 'For testing notification sounds',
+      importance: Importance.max,
+      playSound: true,
+      sound: const RawResourceAndroidNotificationSound('nf_gerobaks'),
+      enableVibration: true,
+      vibrationPattern: vibrationPattern,
+      enableLights: true,
+    );
+    
+    // Register the channel
+    await _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(testChannel);
+        
+    // Create notification with high priority and forced sound
+    final androidDetails = AndroidNotificationDetails(
+      'test_channel',
+      'Test Notifications',
+      channelDescription: 'For testing notification sounds',
+      priority: Priority.max,
+      importance: Importance.max,
+      playSound: true,
+      enableVibration: true,
+      enableLights: true,
+      sound: const RawResourceAndroidNotificationSound('nf_gerobaks'),
+      category: AndroidNotificationCategory.alarm,
+      fullScreenIntent: true,
+      ongoing: true,
+    );
+    
+    // iOS details with critical alert flag to bypass silent mode
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+      sound: 'nf_gerobaks.wav',
+      interruptionLevel: InterruptionLevel.critical, // Override silent mode
+    );
+    
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+    
+    await _notifications.show(
+      DateTime.now().millisecondsSinceEpoch,
+      'Test Notifikasi',
+      'Ini adalah tes notifikasi dengan suara. Apakah Anda mendengar suara notifikasi?',
+      details,
+    );
+  }
 
   // Enable/disable routine pantun notifications
   Future<void> enableRoutinePantun() async {
@@ -751,5 +897,26 @@ class NotificationService {
   void dispose() {
     _dailyPantunTimer?.cancel();
     _routinePantunTimer?.cancel();
+  }
+  
+  // Reset notification settings and recreate channels
+  // Call this method if the user reports issues with notification sounds
+  Future<void> resetNotificationSettings() async {
+    // Cancel all notifications first
+    await _notifications.cancelAll();
+    
+    // Re-create all notification channels
+    await _createNotificationChannels();
+    
+    // Test notification to confirm sound works
+    await showTestNotification();
+    
+    // Reset timers
+    _dailyPantunTimer?.cancel();
+    _routinePantunTimer?.cancel();
+    
+    // Re-setup timers
+    await _scheduleDailyPantun();
+    await _startRoutinePantunNotifications();
   }
 }
