@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/models/subscription_model.dart';
 import 'package:bank_sha/services/subscription_service.dart';
-import 'package:bank_sha/ui/pages/subscription/payment_gateway_page.dart';
+import 'package:bank_sha/ui/pages/end_user/subscription/payment_gateway_page.dart';
 import 'package:bank_sha/services/user_service.dart';
 import 'package:bank_sha/mixins/app_dialog_mixin.dart';
 

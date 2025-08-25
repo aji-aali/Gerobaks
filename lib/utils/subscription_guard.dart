@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:bank_sha/services/subscription_service.dart';
 import 'package:bank_sha/models/subscription_model.dart';
-import 'package:bank_sha/ui/pages/subscription/subscription_plans_page.dart';
+import 'package:bank_sha/ui/pages/end_user/subscription/subscription_plans_page.dart';
 import 'package:bank_sha/ui/widgets/shared/dialog_helper.dart';
 import 'package:bank_sha/shared/theme.dart';
 

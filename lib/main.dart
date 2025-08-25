@@ -1,17 +1,18 @@
-import 'package:bank_sha/ui/pages/buat_keluhan/buat_keluhan_page.dart';
-import 'package:bank_sha/ui/pages/buat_keluhan/golden_keluhan_pages.dart';
-import 'package:bank_sha/ui/pages/profile/List/about_us.dart';
-import 'package:bank_sha/ui/pages/reward/reward_page.dart';
-import 'package:bank_sha/ui/pages/tracking/tracking_full_screen.dart';
-import 'package:bank_sha/ui/pages/wilayah/wilayah_full_screen.dart';
-import 'package:bank_sha/ui/pages/wilayah/wilayah_page.dart';
-import 'package:bank_sha/ui/pages/chat/chat_list_page.dart';
-import 'package:bank_sha/ui/pages/subscription/subscription_plans_page.dart';
-import 'package:bank_sha/ui/pages/subscription/my_subscription_page.dart';
-import 'package:bank_sha/ui/pages/payment/qris_payment_page.dart';
-import 'package:bank_sha/ui/pages/payment/payment_success_page.dart';
-import 'package:bank_sha/ui/pages/payment/payment_timeout_page.dart';
-import 'package:bank_sha/ui/pages/payment/checkout_page.dart';
+import 'package:bank_sha/ui/pages/end_user/buat_keluhan/buat_keluhan_page.dart';
+import 'package:bank_sha/ui/pages/end_user/buat_keluhan/golden_keluhan_pages.dart';
+import 'package:bank_sha/ui/pages/end_user/profile/List/about_us.dart';
+import 'package:bank_sha/ui/pages/end_user/reward/reward_page.dart';
+import 'package:bank_sha/ui/pages/end_user/tracking/tracking_full_screen.dart';
+import 'package:bank_sha/ui/pages/end_user/wilayah/wilayah_full_screen.dart';
+import 'package:bank_sha/ui/pages/end_user/wilayah/wilayah_page.dart';
+import 'package:bank_sha/ui/pages/end_user/chat/chat_list_page.dart';
+import 'package:bank_sha/ui/pages/end_user/subscription/subscription_plans_page.dart';
+import 'package:bank_sha/ui/pages/end_user/subscription/my_subscription_page.dart';
+import 'package:bank_sha/ui/pages/end_user/payment/qris_payment_page.dart';
+import 'package:bank_sha/ui/pages/end_user/payment/payment_success_page.dart';
+import 'package:bank_sha/ui/pages/end_user/payment/payment_timeout_page.dart';
+import 'package:bank_sha/ui/pages/end_user/payment/checkout_page.dart';
+import 'package:bank_sha/ui/pages/mitra/dashboard/mitra_dashboard_page.dart';
 import 'package:bank_sha/services/notification_service.dart';
 import 'package:bank_sha/services/otp_service.dart';
 import 'package:bank_sha/utils/pantun_helper.dart';
@@ -19,9 +20,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-import 'package:bank_sha/ui/pages/home/home_page.dart';
-import 'package:bank_sha/ui/pages/tracking/tracking_page.dart';
-import 'package:bank_sha/ui/pages/noftification_page.dart';
+import 'package:bank_sha/ui/pages/end_user/home/home_page.dart';
+import 'package:bank_sha/ui/pages/end_user/tracking/tracking_page.dart';
+import 'package:bank_sha/ui/pages/end_user/noftification_page.dart';
 import 'package:bank_sha/ui/pages/splash_onboard/onboarding_page.dart';
 import 'package:bank_sha/ui/pages/sign_in/sign_in_page.dart';
 import 'package:bank_sha/ui/pages/sign_up/sign_up_success_page.dart';
@@ -32,16 +33,13 @@ import 'package:bank_sha/ui/pages/sign_up/sign_up_page_batch_3.dart';
 import 'package:bank_sha/ui/pages/sign_up/sign_up_page_batch_4.dart';
 import 'package:bank_sha/ui/pages/sign_up/sign_up_subscription_page.dart';
 import 'package:bank_sha/ui/pages/splash_onboard/splash_page.dart';
-import 'package:bank_sha/ui/pages/tambah_jadwal_page.dart';
+import 'package:bank_sha/ui/pages/end_user/tambah_jadwal_page.dart';
 
 import 'package:bank_sha/services/gemini_ai_service.dart';
 import 'package:bank_sha/services/local_storage_service.dart';
 import 'package:bank_sha/services/subscription_service.dart';
 import 'package:bank_sha/services/user_service.dart';
 import 'package:bank_sha/controllers/profile_controller.dart';
-
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:bank_sha/blocs/tracking/tracking_bloc.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -129,7 +127,8 @@ class MyApp extends StatelessWidget {
         '/sign-up-uplod-profile': (context) => const SignUpUplodProfilePage(),
         '/sign-up-success': (context) => SignUpSuccessPage(),
         '/home': (context) => HomePage(),
-        '/notif': (context) => NotificationPage(),
+        '/mitra-dashboard': (context) => const MitraDashboardPage(),
+        '/notif': (context) => const NotificationPage(),
         '/chat': (context) => ChatListPage(),
         '/subscription-plans': (context) => SubscriptionPlansPage(),
         '/my-subscription': (context) => MySubscriptionPage(),

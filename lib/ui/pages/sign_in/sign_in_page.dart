@@ -86,57 +86,55 @@ class _SignInPageState extends State<SignInPage> {
     });
 
     try {
-      // Make sure service is initialized
-      if (_userService == null) {
-        await _initializeServices();
-      }
-
-      print("Attempting login with: ${_emailController.text}");
-
-      // Login using UserService
-      final user = await _userService?.loginUser(
-        email: _emailController.text,
-        password: _passwordController.text,
+      // Validate login using UserDataMock
+      final user = UserDataMock.validateLogin(
+        _emailController.text,
+        _passwordController.text,
       );
 
       if (user != null) {
-        print("Login successful for: ${user.name} (${user.email})");
+        print("Login successful for: ${user['name']} (${user['email']})");
         
+        // Save user data to local storage
+        final localStorage = await LocalStorageService.getInstance();
+        await localStorage.saveUserData(user);
+
         // Menampilkan notifikasi login berhasil
         await NotificationService().showNotification(
           id: DateTime.now().millisecond,
           title: 'Login Berhasil',
-          body: 'Selamat datang di Gerobaks, ${user.name}!',
+          body: 'Selamat datang di Gerobaks, ${user['name']}!',
         );
 
-        // Menampilkan toast login berhasil dengan poin
+        // Menampilkan toast login berhasil
         if (mounted) {
+          String message = 'Login berhasil! ';
+          if (user['role'] == 'end_user') {
+            message += 'Poin Anda: ${user['points']}';
+          } else {
+            message += 'Selamat bekerja, Mitra!';
+          }
+          
           ToastHelper.showToast(
             context: context,
-            message: 'Login berhasil! Poin Anda: ${user.points}',
+            message: message,
             isSuccess: true,
           );
 
-          // Navigasi ke halaman home
-          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+          // Navigate based on role
+          if (user['role'] == 'mitra') {
+            Navigator.pushNamedAndRemoveUntil(context, '/mitra-dashboard', (route) => false);
+          } else {
+            Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+          }
         }
       } else {
         print("Login failed for: ${_emailController.text}");
         
-        // Check if we can find the email at all to give better error messages
-        final localStorage = await LocalStorageService.getInstance();
-        final userData = await localStorage.getUserData();
-        
-        String errorMessage = 'Email atau password salah!';
-        
-        if (userData != null && userData['email'] == _emailController.text) {
-          errorMessage = 'Password salah untuk email ini';
-        }
-        
         if (mounted) {
           ToastHelper.showToast(
             context: context,
-            message: errorMessage,
+            message: 'Email atau password salah!',
             isSuccess: false,
           );
         }
