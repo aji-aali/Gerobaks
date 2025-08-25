@@ -1,4 +1,5 @@
 import 'package:bank_sha/ui/pages/buat_keluhan/buat_keluhan_page.dart';
+import 'package:bank_sha/ui/pages/buat_keluhan/golden_keluhan_pages.dart';
 import 'package:bank_sha/ui/pages/profile/List/about_us.dart';
 import 'package:bank_sha/ui/pages/reward/reward_page.dart';
 import 'package:bank_sha/ui/pages/tracking/tracking_full_screen.dart';
@@ -138,6 +139,7 @@ class MyApp extends StatelessWidget {
         '/reward': (context) => const RewardPage(),
         '/tracking_full': (context) => const TrackingFullScreen(),
         '/buatKeluhan': (context) => const BuatKeluhanPage(),
+        '/goldenKeluhan': (context) => const GoldenKeluhanPage(),
         '/about-us': (context) => AboutUs(),
         '/wilayah_full': (context) => const WilayahFullScreen(),
         '/qris-payment': (context) => QRISPaymentPage(

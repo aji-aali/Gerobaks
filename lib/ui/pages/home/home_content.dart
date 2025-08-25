@@ -917,7 +917,7 @@ class _HomeContentState extends State<HomeContent> with AppDialogMixin {
         'icon': Icons.assignment_outlined,
         'title': 'Keluhan',
         'subtitle': 'Kirim dan kelola keluhan tentang layanan kami',
-        'route': '/buatKeluhan',
+        'route': '/goldenKeluhan',
       },
       {
         'icon': Icons.redeem,
