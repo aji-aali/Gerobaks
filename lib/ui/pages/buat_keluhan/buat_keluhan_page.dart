@@ -646,6 +646,7 @@ class _BuatKeluhanPageState extends State<BuatKeluhanPage> {
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -1037,39 +1038,6 @@ class _BuatKeluhanPageState extends State<BuatKeluhanPage> {
                 ),
               ],
             ),
-            Center(
-              child: Container(
-                width: 50,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: greyColor.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Title
-            Text(
-              'Detail Keluhan',
-              style: blackTextStyle.copyWith(fontSize: 20, fontWeight: bold),
-            ),
-            const SizedBox(height: 20),
-
-            // Detail content - you can expand this
-            Text(
-              'ID: ${keluhan['id']}',
-              style: greyTextStyle.copyWith(fontSize: 12),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              keluhan['judul'],
-              style: blackTextStyle.copyWith(
-                fontSize: 16,
-                fontWeight: semiBold,
-              ),
-            ),
-            // Add more details here as needed
           ],
         ),
       ),
