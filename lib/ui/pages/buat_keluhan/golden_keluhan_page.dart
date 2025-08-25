@@ -3,6 +3,8 @@ import 'package:bank_sha/ui/pages/buat_keluhan/tanggapan_keluhan_page.dart';
 import 'package:flutter/material.dart';
 import 'package:bank_sha/shared/theme.dart';
 import 'package:bank_sha/ui/widgets/shared/appbar.dart';
+import 'package:bank_sha/ui/pages/buat_keluhan/keluhan_skeleton_loader.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:intl/intl.dart';
 
 class GoldenKeluhanPage extends StatefulWidget {
@@ -14,6 +16,78 @@ class GoldenKeluhanPage extends StatefulWidget {
 
 class _GoldenKeluhanPageState extends State<GoldenKeluhanPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  
+  // Loading state
+  bool isLoading = true;
+  
+  // Helper methods for status colors and icons
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'selesai':
+        return const Color(0xFF388E3C); // Material Green 700 for better visibility
+      case 'sedang diproses':
+        return const Color(0xFFF57C00); // Material Orange 800 for better visibility
+      case 'menunggu':
+        return const Color(0xFF1976D2); // Material Blue 700 for better visibility
+      default:
+        return greyColor;
+    }
+  }
+  
+  IconData _getStatusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'selesai':
+        return Icons.check_circle_rounded;
+      case 'sedang diproses':
+        return Icons.pending_rounded;
+      case 'menunggu':
+        return Icons.access_time_rounded;
+      default:
+        return Icons.help_outline_rounded;
+    }
+  }
+
+  Color _getPrioritasColor(String prioritas) {
+    switch (prioritas.toLowerCase()) {
+      case 'rendah':
+        return Colors.green.shade600;
+      case 'normal':
+        return Colors.blue.shade600;
+      case 'tinggi':
+        return Colors.orange.shade600;
+      case 'urgent':
+        return Colors.red.shade600;
+      default:
+        return greyColor;
+    }
+  }
+  
+  // UI Helper methods for section headers and text details
+  Widget _buildSectionHeader(String title, IconData icon, {Color color = Colors.green}) {
+    return Row(
+      children: [
+        Icon(icon, color: color),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: blackTextStyle.copyWith(
+            fontSize: 16,
+            fontWeight: semiBold,
+          ),
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildDetailText(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 32, top: 8), // Alignment with header
+      child: Text(
+        text,
+        style: blackTextStyle.copyWith(fontSize: 14),
+      ),
+    );
+  }
   
   // Data dummy untuk hasil keluhan yang sudah ada
   final List<Map<String, dynamic>> daftarKeluhan = [
@@ -93,6 +167,42 @@ class _GoldenKeluhanPageState extends State<GoldenKeluhanPage> with SingleTicker
     _tabController.addListener(_handleTabSelection);
     // Initialize filtered list with all keluhan
     filteredKeluhan = List.from(daftarKeluhan);
+    
+    // Simulate loading data from API with staggered effect for more realistic loading
+    _loadData();
+  }
+  
+  // Simulate fetching data from API with more realistic timing
+  void _loadData() async {
+    // In a real app, this would be an API call
+    // Add random factor to simulate network variance
+    final randomDelay = 1500 + (DateTime.now().millisecond % 1000);
+    
+    await Future.delayed(Duration(milliseconds: randomDelay));
+    
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+  
+  // Simulate refreshing data when user performs certain actions
+  void _refreshData() async {
+    if (mounted) {
+      setState(() {
+        isLoading = true;
+      });
+    }
+    
+    // Shorter delay for refresh
+    await Future.delayed(const Duration(milliseconds: 800));
+    
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -138,7 +248,6 @@ class _GoldenKeluhanPageState extends State<GoldenKeluhanPage> with SingleTicker
     // Golden ratio derived sizes
     final phi = 1.618;
     final baseSize = 14.0;
-    final largeSize = baseSize * phi; // ~22.7
     final smallSize = baseSize / phi; // ~8.7
     
     return Tab(
@@ -294,11 +403,7 @@ class _GoldenKeluhanPageState extends State<GoldenKeluhanPage> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
-    // Calculate golden ratio width divisions - approximately 1:1.618
-    final screenWidth = MediaQuery.of(context).size.width;
-    final goldenWidth = screenWidth - 48; // Total width minus padding
-    final primaryWidth = (goldenWidth / 2.618).ceil(); // Main content (larger)
-    final secondaryWidth = goldenWidth - primaryWidth; // Sidebar content (smaller)
+    // Empty placeholder for future screen dimension calculations if needed
 
     // Golden ratio for vertical spacing
     final baseSpacing = 16.0;
@@ -501,21 +606,33 @@ class _GoldenKeluhanPageState extends State<GoldenKeluhanPage> with SingleTicker
           
           const SizedBox(height: 16),
           
-          // Keluhan List Content with Golden Ratio Padding
+          // Keluhan List Content with Golden Ratio Padding and Loading State
           Expanded(
-            child: filteredKeluhan.isEmpty
-                ? _buildEmptyState()
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                    itemCount: filteredKeluhan.length,
-                    itemBuilder: (context, index) {
-                      final keluhan = filteredKeluhan[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _buildKeluhanCard(keluhan),
-                      );
-                    },
-                  ),
+            child: isLoading
+                ? _buildKeluhanSkeletonLoader()
+                : filteredKeluhan.isEmpty
+                    ? _buildEmptyState()
+                    : RefreshIndicator(
+                        color: greenColor,
+                        onRefresh: () async {
+                          // Trigger refresh simulation
+                          _refreshData();
+                        },
+                        child: ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                          itemCount: filteredKeluhan.length,
+                          itemBuilder: (context, index) {
+                            final keluhan = filteredKeluhan[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: _buildKeluhanCard(keluhan),
+                            );
+                          },
+                        ),
+                      ),
           ),
         ],
       ),
@@ -632,7 +749,6 @@ class _GoldenKeluhanPageState extends State<GoldenKeluhanPage> with SingleTicker
     final phi = 1.618;
     final basePadding = 16.0;
     final smallPadding = basePadding / phi; // ~9.9
-    final largePadding = basePadding * phi; // ~25.9
     
     // Calculate animations based on golden ratio
     final animationDuration = const Duration(milliseconds: 300);
@@ -659,11 +775,18 @@ class _GoldenKeluhanPageState extends State<GoldenKeluhanPage> with SingleTicker
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Status bar at top for visual hierarchy
+            // Status bar at top with enhanced gradient for visual hierarchy
             Container(
               height: 6,
               decoration: BoxDecoration(
-                color: _getStatusColor(keluhan['status']),
+                gradient: LinearGradient(
+                  colors: [
+                    _getStatusColor(keluhan['status']).withOpacity(0.8),
+                    _getStatusColor(keluhan['status']),
+                  ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               ),
             ),
@@ -963,6 +1086,228 @@ class _GoldenKeluhanPageState extends State<GoldenKeluhanPage> with SingleTicker
     );
   }
 
+  // Skeleton loader untuk keluhan
+  Widget _buildKeluhanSkeletonLoader() {
+    // Golden ratio calculations
+    final phi = 1.618;
+    final baseHeight = 18.0;
+    final smallHeight = baseHeight / phi; // ~11.1
+    
+    // Colors for the skeleton loader with better visual hierarchy
+    final baseColor = Colors.grey.shade300;
+    final highlightColor = Colors.grey.shade100;
+    
+    // Generate random status colors for the skeleton
+    final List<Color> statusColors = [
+      const Color(0xFF388E3C).withOpacity(0.5), // Green for Selesai
+      const Color(0xFFF57C00).withOpacity(0.5), // Orange for Diproses
+      const Color(0xFF1976D2).withOpacity(0.5), // Blue for Menunggu
+    ];
+    
+    return Shimmer.fromColors(
+      baseColor: baseColor,
+      highlightColor: highlightColor,
+      child: ListView.builder(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        itemCount: 5,
+        itemBuilder: (context, index) {
+          // Create a more realistic variation in the skeleton cards
+          final randomHeight = 180.0 + (index % 3) * 10.0;
+          final randomStatusColor = statusColors[index % statusColors.length];
+          final isLongTitle = index % 2 == 0;
+          
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Container(
+              height: randomHeight,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+                border: Border.all(
+                  color: baseColor.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Status bar at top with gradient for more visual interest
+                  Container(
+                    height: 6,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          randomStatusColor,
+                          randomStatusColor.withOpacity(0.7),
+                        ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    ),
+                  ),
+                  
+                  // Header with ID and status
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // ID with icon
+                        Row(
+                          children: [
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: randomStatusColor.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              width: 80,
+                              height: smallHeight,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ],
+                        ),
+                        
+                        // Status pill with rounded corners
+                        Container(
+                          width: 85,
+                          height: baseHeight,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: randomStatusColor.withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Title skeleton
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Container(
+                      width: double.infinity,
+                      height: baseHeight,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 8),
+                  
+                  // Second line of title (only for some cards)
+                  if (isLongTitle)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Container(
+                        width: 200,
+                        height: baseHeight,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Category chips
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 100,
+                          height: baseHeight,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: baseColor.withOpacity(0.5),
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 80,
+                          height: baseHeight,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: baseColor.withOpacity(0.5),
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const Spacer(),
+                  
+                  // Divider
+                  Container(
+                    height: 1,
+                    color: Colors.grey.shade200,
+                  ),
+                  
+                  // Footer with date
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          width: 120,
+                          height: smallHeight,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        Container(
+                          width: 80,
+                          height: smallHeight,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+  
   void _showFilterBottomSheet(BuildContext context) {
     // Temporary variables for filter values
     String tempCategory = selectedCategory;
@@ -1206,36 +1551,64 @@ class _GoldenKeluhanPageState extends State<GoldenKeluhanPage> with SingleTicker
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: goldenHeight,
-        decoration: BoxDecoration(
-          color: whiteColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            // Status bar at top
-            Container(
-              height: 6,
-              width: double.infinity,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            // Get status color with proper opacity
+            final statusColor = _getStatusColor(keluhan['status']);
+            
+            // Add a loading state for the detail view
+            // Define this at StatefulBuilder level
+            bool isDetailLoading = true;
+            
+            // Simulate loading data - called only once per StatefulBuilder lifecycle
+            Future.delayed(const Duration(milliseconds: 800), () {
+              if (Navigator.of(context).mounted) {
+                setModalState(() {
+                  isDetailLoading = false;
+                });
+              }
+            });
+            
+            return Container(
+              height: goldenHeight,
               decoration: BoxDecoration(
-                color: _getStatusColor(keluhan['status']),
+                color: whiteColor,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
               ),
-            ),
+              child: Column(
+                children: [
+                  // Enhanced status bar at top with gradient effect
+                  Container(
+                    height: 6,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          statusColor.withOpacity(0.8),
+                          statusColor,
+                        ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+                    ),
+                  ),
             
             // Main content
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
-                child: Column(
+                child: isDetailLoading
+                  ? const KeluhanDetailSkeletonLoader() 
+                  : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Handle bar
@@ -1471,10 +1844,10 @@ class _GoldenKeluhanPageState extends State<GoldenKeluhanPage> with SingleTicker
                         margin: const EdgeInsets.only(top: 12),
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.green.shade50,
+                          color: const Color(0xFFE8F5E9),  // Material Green 50
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.green.shade100,
+                            color: const Color(0xFFC8E6C9),  // Material Green 100
                           ),
                         ),
                         child: Column(
@@ -1483,11 +1856,11 @@ class _GoldenKeluhanPageState extends State<GoldenKeluhanPage> with SingleTicker
                             Row(
                               children: [
                                 CircleAvatar(
-                                  backgroundColor: Colors.green.shade200,
+                                  backgroundColor: const Color(0xFFA5D6A7),  // Material Green 200
                                   radius: 16,
-                                  child: Icon(
+                                  child: const Icon(
                                     Icons.support_agent,
-                                    color: Colors.green.shade700,
+                                    color: Color(0xFF388E3C),  // Material Green 700
                                     size: 18,
                                   ),
                                 ),
@@ -1612,72 +1985,5 @@ class _GoldenKeluhanPageState extends State<GoldenKeluhanPage> with SingleTicker
         ),
       ),
     );
-  }
-
-  Widget _buildSectionHeader(String title, IconData icon, {Color color = Colors.green}) {
-    return Row(
-      children: [
-        Icon(icon, color: color),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: blackTextStyle.copyWith(
-            fontSize: 16,
-            fontWeight: semiBold,
-          ),
-        ),
-      ],
-    );
-  }
-  
-  Widget _buildDetailText(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 32, top: 8), // Alignment with header
-      child: Text(
-        text,
-        style: blackTextStyle.copyWith(fontSize: 14),
-      ),
-    );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'selesai':
-        return Colors.green.shade600;
-      case 'sedang diproses':
-        return Colors.orange.shade600;
-      case 'menunggu':
-        return Colors.blue.shade600;
-      default:
-        return greyColor;
-    }
-  }
-  
-  IconData _getStatusIcon(String status) {
-    switch (status.toLowerCase()) {
-      case 'selesai':
-        return Icons.check_circle_rounded;
-      case 'sedang diproses':
-        return Icons.pending_rounded;
-      case 'menunggu':
-        return Icons.access_time_rounded;
-      default:
-        return Icons.help_outline_rounded;
-    }
-  }
-
-  Color _getPrioritasColor(String prioritas) {
-    switch (prioritas.toLowerCase()) {
-      case 'rendah':
-        return Colors.green.shade600;
-      case 'normal':
-        return Colors.blue.shade600;
-      case 'tinggi':
-        return Colors.orange.shade600;
-      case 'urgent':
-        return Colors.red.shade600;
-      default:
-        return greyColor;
-    }
   }
 }

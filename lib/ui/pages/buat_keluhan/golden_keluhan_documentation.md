@@ -52,7 +52,6 @@ The Golden Ratio (φ, approximately 1.618) is implemented in:
 - Spacing hierarchies (based on φ and its powers)
 - Visual element sizing
 - Content prioritization
-- Interactive elements and animation timing
 
 ## Design Philosophy
 
@@ -61,10 +60,8 @@ The redesign focuses on:
 1. **Visual Hierarchy**: Important information stands out through golden ratio spacing
 2. **Scannable Content**: Users can quickly find and understand complaint information
 3. **Consistent Experience**: Visual patterns that create a cohesive experience
-4. **Status Clarity**: Clear visual cues for different complaint statuses with color-coding
+4. **Status Clarity**: Clear visual cues for different complaint statuses
 5. **Intuitive Navigation**: Golden ratio-based spacing for comfortable interaction targets
-6. **Responsive Feedback**: Animated interactions provide visual confirmation of user actions
-7. **Optimized Space Usage**: Simplified tab labels prevent overflow issues while maintaining clarity
 
 ## Usage in Routes
 
