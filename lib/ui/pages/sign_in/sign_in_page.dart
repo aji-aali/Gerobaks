@@ -58,10 +58,21 @@ class _SignInPageState extends State<SignInPage> {
       await _userService!.init();
 
       // Check if user is already logged in
-      final isLoggedIn = await _userService!.getCurrentUser() != null;
+      final currentUser = await _userService!.getCurrentUser();
+      final isLoggedIn = currentUser != null;
+      
       if (isLoggedIn && mounted) {
-        // If already logged in, navigate to home page
-        Navigator.pushReplacementNamed(context, '/home');
+        // Get user data to check role
+        final localStorage = await LocalStorageService.getInstance();
+        final userData = await localStorage.getUserData();
+        
+        // Navigate based on role
+        if (userData != null && userData['role'] == 'mitra') {
+          Navigator.pushReplacementNamed(context, '/mitra-dashboard');
+        } else {
+          // Default to end_user dashboard
+          Navigator.pushReplacementNamed(context, '/home');
+        }
       }
     } catch (e) {
       print("Error initializing services: $e");

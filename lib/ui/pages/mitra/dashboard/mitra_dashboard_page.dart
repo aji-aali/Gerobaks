@@ -102,8 +102,31 @@ class _MitraDashboardPageState extends State<MitraDashboardPage> {
   }
 }
 
-class MitraDashboardContent extends StatelessWidget {
+class MitraDashboardContent extends StatefulWidget {
   const MitraDashboardContent({super.key});
+
+  @override
+  State<MitraDashboardContent> createState() => _MitraDashboardContentState();
+}
+
+class _MitraDashboardContentState extends State<MitraDashboardContent> {
+  Map<String, dynamic>? currentUser;
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentUser();
+  }
+  
+  Future<void> _loadCurrentUser() async {
+    final localStorage = await LocalStorageService.getInstance();
+    final userData = await localStorage.getUserData();
+    if (userData != null) {
+      setState(() {
+        currentUser = userData;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,12 +135,21 @@ class MitraDashboardContent extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: greenColor,
         elevation: 0,
-        title: Text(
-          'Dashboard Mitra',
-          style: whiteTextStyle.copyWith(
-            fontSize: 18,
-            fontWeight: semiBold,
-          ),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/img_logo_light.png',
+              height: 24,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Gerobaks Mitra',
+              style: whiteTextStyle.copyWith(
+                fontSize: 18,
+                fontWeight: semiBold,
+              ),
+            ),
+          ],
         ),
         actions: [
           IconButton(
@@ -159,7 +191,7 @@ class MitraDashboardContent extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Selamat Datang, Mitra!',
+                    'Selamat Datang, ${currentUser != null ? currentUser!['name'].split(' ')[0] : 'Mitra'}!',
                     style: whiteTextStyle.copyWith(
                       fontSize: 20,
                       fontWeight: bold,
@@ -167,13 +199,33 @@ class MitraDashboardContent extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Mari mulai hari dengan semangat melayani masyarakat',
+                    currentUser != null 
+                        ? 'Area: ${currentUser!['work_area']}' 
+                        : 'Mari mulai hari dengan semangat melayani masyarakat',
                     style: whiteTextStyle.copyWith(
                       fontSize: 14,
                       color: whiteColor.withOpacity(0.9),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.badge_rounded,
+                        color: whiteColor,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'ID: ${currentUser != null ? currentUser!['employee_id'] : 'DRV-0000'}',
+                        style: whiteTextStyle.copyWith(
+                          fontSize: 14,
+                          fontWeight: medium,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       Icon(
@@ -183,7 +235,7 @@ class MitraDashboardContent extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Status: Aktif',
+                        'Status: ${currentUser != null ? currentUser!['status'].toString().toUpperCase() : 'AKTIF'}',
                         style: whiteTextStyle.copyWith(
                           fontSize: 14,
                           fontWeight: medium,
@@ -212,7 +264,7 @@ class MitraDashboardContent extends StatelessWidget {
                 Expanded(
                   child: _buildStatCard(
                     title: 'Pengambilan',
-                    value: '12',
+                    value: currentUser != null ? '${currentUser!['total_collections'] ~/ 100}' : '12',
                     icon: Icons.local_shipping_rounded,
                     color: Colors.blue,
                   ),
@@ -245,12 +297,75 @@ class MitraDashboardContent extends StatelessWidget {
                 Expanded(
                   child: _buildStatCard(
                     title: 'Rating',
-                    value: '4.8',
+                    value: currentUser != null ? '${currentUser!['rating']}' : '4.8',
                     icon: Icons.star_rounded,
                     color: Colors.amber,
                   ),
                 ),
               ],
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // Vehicle Information Card
+            Text(
+              'Informasi Kendaraan',
+              style: blackTextStyle.copyWith(
+                fontSize: 18,
+                fontWeight: semiBold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: greenColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.local_shipping_rounded,
+                      color: greenColor,
+                      size: 30,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          currentUser != null ? currentUser!['vehicle_type'] : 'Truck Sampah',
+                          style: blackTextStyle.copyWith(
+                            fontSize: 16,
+                            fontWeight: semiBold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Plat No: ${currentUser != null ? currentUser!['vehicle_plate'] : 'B 1234 ABC'}',
+                          style: greyTextStyle.copyWith(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
             
             const SizedBox(height: 24),
