@@ -38,14 +38,29 @@ class _ProfileMitraPageState extends State<ProfileMitraPage> {
       appBar: AppBar(
         backgroundColor: greenColor,
         elevation: 0,
-        title: Text(
-          'Profil Mitra',
-          style: whiteTextStyle.copyWith(
-            fontSize: 18,
-            fontWeight: semiBold,
-          ),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/img_gerobakss.png',
+              height: 30,
+            ),
+            const SizedBox(width: 10),
+          ],
         ),
         automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            onPressed: () {
+              // TODO: Implement edit profile
+            },
+            icon: Image.asset(
+              'assets/ic_edit_profile2.png',
+              width: 24,
+              height: 24,
+              color: whiteColor,
+            ),
+          ),
+        ],
       ),
       body: currentUser == null
           ? const Center(child: CircularProgressIndicator())
@@ -58,13 +73,17 @@ class _ProfileMitraPageState extends State<ProfileMitraPage> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: whiteColor,
+                      gradient: LinearGradient(
+                        colors: [greenColor, greenColor.withOpacity(0.8)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: greenColor.withOpacity(0.3),
                           blurRadius: 10,
-                          offset: const Offset(0, 2),
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
@@ -72,18 +91,29 @@ class _ProfileMitraPageState extends State<ProfileMitraPage> {
                       children: [
                         // Profile Picture
                         Container(
-                          width: 80,
-                          height: 80,
+                          width: 90,
+                          height: 90,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: greenColor.withOpacity(0.1),
+                            color: Colors.white,
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 3,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
                           child: Center(
                             child: Text(
                               currentUser!['name'].substring(0, 1),
                               style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: bold,
+                                fontSize: 36,
+                                fontWeight: extraBold,
                                 color: greenColor,
                               ),
                             ),
@@ -92,40 +122,44 @@ class _ProfileMitraPageState extends State<ProfileMitraPage> {
                         const SizedBox(height: 16),
                         Text(
                           currentUser!['name'],
-                          style: blackTextStyle.copyWith(
-                            fontSize: 20,
-                            fontWeight: bold,
+                          style: whiteTextStyle.copyWith(
+                            fontSize: 24,
+                            fontWeight: extraBold,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           currentUser!['employee_id'],
-                          style: greyTextStyle.copyWith(
+                          style: whiteTextStyle.copyWith(
                             fontSize: 14,
+                            color: Colors.white.withOpacity(0.9),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                           decoration: BoxDecoration(
-                            color: greenColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.white.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.5),
+                              width: 1,
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
                                 Icons.verified_rounded,
-                                size: 16,
-                                color: greenColor,
+                                size: 18,
+                                color: Colors.white,
                               ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: 6),
                               Text(
                                 'Mitra Aktif',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: greenColor,
-                                  fontWeight: medium,
+                                style: whiteTextStyle.copyWith(
+                                  fontSize: 14,
+                                  fontWeight: semiBold,
                                 ),
                               ),
                             ],
@@ -145,7 +179,7 @@ class _ProfileMitraPageState extends State<ProfileMitraPage> {
                           title: 'Rating',
                           value: currentUser!['rating'].toString(),
                           icon: Icons.star_rounded,
-                          color: Colors.amber,
+                          color: Color(0xFFEAB308), // Vibrant amber
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -154,7 +188,7 @@ class _ProfileMitraPageState extends State<ProfileMitraPage> {
                           title: 'Total Pengambilan',
                           value: currentUser!['total_collections'].toString(),
                           icon: Icons.local_shipping_rounded,
-                          color: Colors.blue,
+                          color: Color(0xFF3B82F6), // Vibrant blue
                         ),
                       ),
                     ],
@@ -224,40 +258,62 @@ class _ProfileMitraPageState extends State<ProfileMitraPage> {
                     children: [
                       SizedBox(
                         width: double.infinity,
-                        child: OutlinedButton.icon(
+                        child: ElevatedButton.icon(
                           onPressed: () {
                             // TODO: Edit profile
                           },
-                          icon: const Icon(Icons.edit_rounded),
-                          label: const Text('Edit Profil'),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: greenColor),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                          icon: Image.asset(
+                            'assets/ic_edit_profile.png',
+                            width: 20,
+                            height: 20,
+                            color: Colors.white,
+                          ),
+                          label: Text(
+                            'Edit Profil',
+                            style: whiteTextStyle.copyWith(
+                              fontSize: 16,
+                              fontWeight: semiBold,
                             ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: greenColor,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 2,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
-                        child: OutlinedButton.icon(
+                        child: ElevatedButton.icon(
                           onPressed: () {
                             // TODO: Change password
                           },
-                          icon: const Icon(Icons.lock_rounded),
-                          label: const Text('Ubah Password'),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: greyColor),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                          icon: Icon(
+                            Icons.lock_rounded,
+                            color: whiteColor,
+                          ),
+                          label: Text(
+                            'Ubah Password',
+                            style: whiteTextStyle.copyWith(
+                              fontSize: 16,
+                              fontWeight: semiBold,
                             ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF3B82F6), // Vibrant blue
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 2,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
@@ -274,14 +330,26 @@ class _ProfileMitraPageState extends State<ProfileMitraPage> {
                               );
                             }
                           },
-                          icon: const Icon(Icons.logout_rounded),
-                          label: const Text('Logout'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                          icon: Image.asset(
+                            'assets/ic_logout.png',
+                            width: 20,
+                            height: 20,
+                            color: Colors.white,
+                          ),
+                          label: Text(
+                            'Logout',
+                            style: whiteTextStyle.copyWith(
+                              fontSize: 16,
+                              fontWeight: semiBold,
                             ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFFEF4444), // Vibrant red
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 2,
                           ),
                         ),
                       ),
@@ -302,35 +370,47 @@ class _ProfileMitraPageState extends State<ProfileMitraPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: whiteColor,
-        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          colors: [color, color.withOpacity(0.7)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: color.withOpacity(0.3),
             blurRadius: 10,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         children: [
-          Icon(
-            icon,
-            color: color,
-            size: 32,
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.3),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: Colors.white,
+              size: 28,
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             value,
-            style: blackTextStyle.copyWith(
-              fontSize: 20,
-              fontWeight: bold,
+            style: whiteTextStyle.copyWith(
+              fontSize: 24,
+              fontWeight: extraBold,
             ),
           ),
           Text(
             title,
-            style: greyTextStyle.copyWith(
-              fontSize: 12,
+            style: whiteTextStyle.copyWith(
+              fontSize: 14,
+              fontWeight: medium,
             ),
           ),
         ],
@@ -344,29 +424,42 @@ class _ProfileMitraPageState extends State<ProfileMitraPage> {
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: whiteColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(
+          color: Colors.grey.withOpacity(0.1),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: blackTextStyle.copyWith(
-              fontSize: 16,
-              fontWeight: semiBold,
-            ),
+          Row(
+            children: [
+              Image.asset(
+                'assets/img_gerobakss.png',
+                height: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: blackTextStyle.copyWith(
+                  fontSize: 18,
+                  fontWeight: semiBold,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           ...items,
         ],
       ),
@@ -375,15 +468,22 @@ class _ProfileMitraPageState extends State<ProfileMitraPage> {
 
   Widget _buildInfoItem(String label, String value, IconData icon) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 20,
-            color: greyColor,
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: greenColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              size: 22,
+              color: greenColor,
+            ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -391,14 +491,15 @@ class _ProfileMitraPageState extends State<ProfileMitraPage> {
                 Text(
                   label,
                   style: greyTextStyle.copyWith(
-                    fontSize: 12,
+                    fontSize: 14,
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
                   value,
                   style: blackTextStyle.copyWith(
-                    fontSize: 14,
-                    fontWeight: medium,
+                    fontSize: 16,
+                    fontWeight: semiBold,
                   ),
                 ),
               ],

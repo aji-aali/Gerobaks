@@ -12,6 +12,7 @@ import 'package:bank_sha/ui/pages/end_user/payment/qris_payment_page.dart';
 import 'package:bank_sha/ui/pages/end_user/payment/payment_success_page.dart';
 import 'package:bank_sha/ui/pages/end_user/payment/payment_timeout_page.dart';
 import 'package:bank_sha/ui/pages/end_user/payment/checkout_page.dart';
+import 'package:bank_sha/ui/pages/end_user/payment/payment_methods_page.dart';
 import 'package:bank_sha/ui/pages/mitra/dashboard/mitra_dashboard_page.dart';
 import 'package:bank_sha/services/notification_service.dart';
 import 'package:bank_sha/services/otp_service.dart';
@@ -158,6 +159,7 @@ class MyApp extends StatelessWidget {
         '/payment-success': (context) => const PaymentSuccessPage(),
         '/payment-timeout': (context) => const PaymentTimeoutPage(),
         '/checkout': (context) => const CheckoutPage(),
+        '/payment-methods': (context) => const PaymentMethodsPage(),
       },
     );
   }

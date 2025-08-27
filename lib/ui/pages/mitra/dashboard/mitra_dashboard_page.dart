@@ -5,6 +5,7 @@ import 'package:bank_sha/ui/pages/mitra/laporan/laporan_mitra_page.dart';
 import 'package:bank_sha/ui/pages/mitra/profile/profile_mitra_page.dart';
 import 'package:bank_sha/utils/user_data_mock.dart';
 import 'package:bank_sha/services/local_storage_service.dart';
+import 'package:bank_sha/ui/widgets/shared/navbar_mitra.dart';
 import 'package:flutter/material.dart';
 
 class MitraDashboardPage extends StatefulWidget {
@@ -47,56 +48,47 @@ class _MitraDashboardPageState extends State<MitraDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: lightBackgroundColor,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: whiteColor,
-          selectedItemColor: greenColor,
-          unselectedItemColor: greyColor,
-          selectedFontSize: 12,
-          unselectedFontSize: 12,
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
+      floatingActionButton: Container(
+        height: 60,
+        width: 60,
+        margin: const EdgeInsets.only(top: 30),
+        child: FloatingActionButton(
+          onPressed: () {
+            // Navigate to pengambilan page
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const PengambilanListPage()),
+            );
           },
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard_rounded),
-              label: 'Dashboard',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.schedule_rounded),
-              label: 'Jadwal',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.local_shipping_rounded),
-              label: 'Pengambilan',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.assessment_rounded),
-              label: 'Laporan',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_rounded),
-              label: 'Profil',
-            ),
-          ],
+          elevation: 4,
+          highlightElevation: 8,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+            side: BorderSide(color: Colors.white, width: 3),
+          ),
+          backgroundColor: greenColor,
+          child: Icon(
+            Icons.local_shipping_rounded,
+            color: whiteColor,
+            size: 28,
+          ),
         ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: CustomBottomNavBarMitra(
+        currentIndex: _currentIndex,
+        onTabTapped: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+      ),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (child, animation) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        child: _pages[_currentIndex],
       ),
     );
   }
@@ -135,32 +127,23 @@ class _MitraDashboardContentState extends State<MitraDashboardContent> {
       appBar: AppBar(
         backgroundColor: greenColor,
         elevation: 0,
-        title: Row(
-          children: [
-            Image.asset(
-              'assets/img_logo_light.png',
-              height: 24,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Gerobaks Mitra',
-              style: whiteTextStyle.copyWith(
-                fontSize: 18,
-                fontWeight: semiBold,
-              ),
-            ),
-          ],
+        title: Image.asset(
+          'assets/img_gerobakss.png',
+          height: 32,
         ),
+        centerTitle: false,
         actions: [
           IconButton(
             onPressed: () {
               // TODO: Implement notifications
             },
             icon: const Icon(
-              Icons.notifications_rounded,
+              Icons.notifications_outlined,
               color: Colors.white,
+              size: 26,
             ),
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(
@@ -171,77 +154,134 @@ class _MitraDashboardContentState extends State<MitraDashboardContent> {
             // Welcome Card
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [greenColor, greenColor.withOpacity(0.8)],
+                  colors: [
+                    greenColor,
+                    greenColor.withOpacity(0.8),
+                    greenColor.withOpacity(0.7),
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: greenColor.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
+                    color: greenColor.withOpacity(0.25),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
+                    spreadRadius: 0,
                   ),
                 ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Selamat Datang, ${currentUser != null ? currentUser!['name'].split(' ')[0] : 'Mitra'}!',
-                    style: whiteTextStyle.copyWith(
-                      fontSize: 20,
-                      fontWeight: bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    currentUser != null 
-                        ? 'Area: ${currentUser!['work_area']}' 
-                        : 'Mari mulai hari dengan semangat melayani masyarakat',
-                    style: whiteTextStyle.copyWith(
-                      fontSize: 14,
-                      color: whiteColor.withOpacity(0.9),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
                   Row(
                     children: [
-                      Icon(
-                        Icons.badge_rounded,
-                        color: whiteColor,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'ID: ${currentUser != null ? currentUser!['employee_id'] : 'DRV-0000'}',
-                        style: whiteTextStyle.copyWith(
-                          fontSize: 14,
-                          fontWeight: medium,
+                      Container(
+                        height: 52,
+                        width: 52,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.8),
+                            width: 2,
+                          ),
+                          image: DecorationImage(
+                            image: AssetImage(
+                              currentUser != null && currentUser!['profile_picture'] != null
+                                ? currentUser!['profile_picture']
+                                : 'assets/img_friend1.png',
+                            ),
+                            fit: BoxFit.cover,
+                          ),
                         ),
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Selamat Datang,',
+                            style: whiteTextStyle.copyWith(
+                              fontSize: 14,
+                              fontWeight: medium,
+                              height: 1.2,
+                            ),
+                          ),
+                          Text(
+                            '${currentUser != null ? currentUser!['name'].split(' ')[0] : 'Mitra'}!',
+                            style: whiteTextStyle.copyWith(
+                              fontSize: 20,
+                              fontWeight: bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time_rounded,
-                        color: whiteColor,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Status: ${currentUser != null ? currentUser!['status'].toString().toUpperCase() : 'AKTIF'}',
-                        style: whiteTextStyle.copyWith(
-                          fontSize: 14,
-                          fontWeight: medium,
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          currentUser != null 
+                            ? 'Area: ${currentUser!['work_area']}' 
+                            : 'Mari mulai hari dengan semangat melayani',
+                          style: whiteTextStyle.copyWith(
+                            fontSize: 14,
+                            fontWeight: semiBold,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.badge_rounded,
+                              color: whiteColor.withOpacity(0.9),
+                              size: 16,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'ID: ${currentUser != null ? currentUser!['employee_id'] : 'DRV-0000'}',
+                              style: whiteTextStyle.copyWith(
+                                fontSize: 14,
+                                fontWeight: medium,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.access_time_rounded,
+                              color: whiteColor.withOpacity(0.9),
+                              size: 16,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Status: ${currentUser != null ? currentUser!['status'].toString().toUpperCase() : 'AKTIF'}',
+                              style: whiteTextStyle.copyWith(
+                                fontSize: 14,
+                                fontWeight: medium,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -250,57 +290,89 @@ class _MitraDashboardContentState extends State<MitraDashboardContent> {
             const SizedBox(height: 24),
             
             // Quick Stats
-            Text(
-              'Statistik Hari Ini',
-              style: blackTextStyle.copyWith(
-                fontSize: 18,
-                fontWeight: semiBold,
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              child: Row(
+                children: [
+                  Container(
+                    height: 32,
+                    width: 4,
+                    decoration: BoxDecoration(
+                      color: greenColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Statistik Hari Ini',
+                    style: blackTextStyle.copyWith(
+                      fontSize: 18,
+                      fontWeight: semiBold,
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: greenColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.refresh_rounded,
+                          color: greenColor,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Refresh',
+                          style: greentextstyle2.copyWith(
+                            fontSize: 12,
+                            fontWeight: medium,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
             
-            Row(
+            GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               children: [
-                Expanded(
-                  child: _buildStatCard(
-                    title: 'Pengambilan',
-                    value: currentUser != null ? '${currentUser!['total_collections'] ~/ 100}' : '12',
-                    icon: Icons.local_shipping_rounded,
-                    color: Colors.blue,
-                  ),
+                _buildStatCard(
+                  title: 'Pengambilan',
+                  value: currentUser != null ? '${currentUser!['total_collections'] ~/ 100}' : '12',
+                  icon: Icons.local_shipping_rounded,
+                  color: const Color(0xFF3B82F6), // Vibrant blue
+                  iconBackgroundColor: const Color(0xFF3B82F6).withOpacity(0.1),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    title: 'Selesai',
-                    value: '8',
-                    icon: Icons.check_circle_rounded,
-                    color: greenColor,
-                  ),
+                _buildStatCard(
+                  title: 'Selesai',
+                  value: '8',
+                  icon: Icons.check_circle_rounded,
+                  color: const Color(0xFF22C55E), // Vibrant green
+                  iconBackgroundColor: const Color(0xFF22C55E).withOpacity(0.1),
                 ),
-              ],
-            ),
-            
-            const SizedBox(height: 12),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    title: 'Pending',
-                    value: '4',
-                    icon: Icons.pending_rounded,
-                    color: Colors.orange,
-                  ),
+                _buildStatCard(
+                  title: 'Pending',
+                  value: '4',
+                  icon: Icons.pending_rounded,
+                  color: const Color(0xFFF97316), // Vibrant orange
+                  iconBackgroundColor: const Color(0xFFF97316).withOpacity(0.1),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    title: 'Rating',
-                    value: currentUser != null ? '${currentUser!['rating']}' : '4.8',
-                    icon: Icons.star_rounded,
-                    color: Colors.amber,
-                  ),
+                _buildStatCard(
+                  title: 'Rating',
+                  value: currentUser != null ? '${currentUser!['rating']}' : '4.8',
+                  icon: Icons.star_rounded,
+                  color: const Color(0xFFEAB308), // Vibrant amber
+                  iconBackgroundColor: const Color(0xFFEAB308).withOpacity(0.1),
                 ),
               ],
             ),
@@ -308,40 +380,60 @@ class _MitraDashboardContentState extends State<MitraDashboardContent> {
             const SizedBox(height: 24),
             
             // Vehicle Information Card
-            Text(
-              'Informasi Kendaraan',
-              style: blackTextStyle.copyWith(
-                fontSize: 18,
-                fontWeight: semiBold,
-              ),
-            ),
-            const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
+              margin: const EdgeInsets.only(bottom: 16),
+              child: Row(
+                children: [
+                  Container(
+                    height: 32,
+                    width: 4,
+                    decoration: BoxDecoration(
+                      color: greenColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Informasi Kendaraan',
+                    style: blackTextStyle.copyWith(
+                      fontSize: 18,
+                      fontWeight: semiBold,
+                    ),
                   ),
                 ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                    spreadRadius: 0,
+                  ),
+                ],
+                border: Border.all(
+                  color: const Color(0xFF0F766E).withOpacity(0.2),
+                  width: 1,
+                ),
               ),
               child: Row(
                 children: [
                   Container(
-                    width: 50,
-                    height: 50,
+                    width: 64,
+                    height: 64,
                     decoration: BoxDecoration(
-                      color: greenColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      color: const Color(0xFF0F766E).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.local_shipping_rounded,
-                      color: greenColor,
-                      size: 30,
+                      color: Color(0xFF0F766E),
+                      size: 36,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -352,14 +444,25 @@ class _MitraDashboardContentState extends State<MitraDashboardContent> {
                         Text(
                           currentUser != null ? currentUser!['vehicle_type'] : 'Truck Sampah',
                           style: blackTextStyle.copyWith(
-                            fontSize: 16,
+                            fontSize: 18,
                             fontWeight: semiBold,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Plat No: ${currentUser != null ? currentUser!['vehicle_plate'] : 'B 1234 ABC'}',
-                          style: greyTextStyle.copyWith(fontSize: 14),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0F766E).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Plat No: ${currentUser != null ? currentUser!['vehicle_plate'] : 'B 1234 ABC'}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: medium,
+                              color: const Color(0xFF0F766E),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -371,14 +474,29 @@ class _MitraDashboardContentState extends State<MitraDashboardContent> {
             const SizedBox(height: 24),
             
             // Quick Actions
-            Text(
-              'Aksi Cepat',
-              style: blackTextStyle.copyWith(
-                fontSize: 18,
-                fontWeight: semiBold,
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              child: Row(
+                children: [
+                  Container(
+                    height: 32,
+                    width: 4,
+                    decoration: BoxDecoration(
+                      color: greenColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Aksi Cepat',
+                    style: blackTextStyle.copyWith(
+                      fontSize: 18,
+                      fontWeight: semiBold,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
             
             GridView.count(
               shrinkWrap: true,
@@ -392,34 +510,46 @@ class _MitraDashboardContentState extends State<MitraDashboardContent> {
                   title: 'Lihat Jadwal',
                   subtitle: 'Jadwal pengambilan hari ini',
                   icon: Icons.schedule_rounded,
-                  color: Colors.blue,
+                  color: const Color(0xFF3B82F6), // Vibrant blue
                   onTap: () {
                     // Navigate to schedule
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const JadwalMitraPage()),
+                    );
                   },
                 ),
                 _buildActionCard(
                   title: 'Mulai Pengambilan',
                   subtitle: 'Mulai rute pengambilan',
                   icon: Icons.play_arrow_rounded,
-                  color: greenColor,
+                  color: greenColor, // Match green theme
                   onTap: () {
                     // Navigate to pickup
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const PengambilanListPage()),
+                    );
                   },
                 ),
                 _buildActionCard(
                   title: 'Laporan',
                   subtitle: 'Buat laporan harian',
                   icon: Icons.assignment_rounded,
-                  color: Colors.purple,
+                  color: const Color(0xFF6366F1), // Better purple
                   onTap: () {
                     // Navigate to reports
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LaporanMitraPage()),
+                    );
                   },
                 ),
                 _buildActionCard(
                   title: 'Bantuan',
                   subtitle: 'Hubungi support',
                   icon: Icons.help_rounded,
-                  color: Colors.red,
+                  color: const Color(0xFFF97316), // Warmer orange
                   onTap: () {
                     // Navigate to help
                   },
@@ -437,17 +567,19 @@ class _MitraDashboardContentState extends State<MitraDashboardContent> {
     required String value,
     required IconData icon,
     required Color color,
+    Color? iconBackgroundColor,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: whiteColor,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 5),
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -457,25 +589,34 @@ class _MitraDashboardContentState extends State<MitraDashboardContent> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(
-                icon,
-                color: color,
-                size: 24,
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: iconBackgroundColor ?? color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 24,
+                ),
               ),
               Text(
                 value,
-                style: blackTextStyle.copyWith(
-                  fontSize: 24,
-                  fontWeight: bold,
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: extraBold,
+                  color: color,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           Text(
             title,
-            style: greyTextStyle.copyWith(
-              fontSize: 12,
+            style: blackTextStyle.copyWith(
+              fontSize: 15,
+              fontWeight: semiBold,
             ),
           ),
         ],
@@ -492,47 +633,66 @@ class _MitraDashboardContentState extends State<MitraDashboardContent> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: whiteColor,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 5),
+            spreadRadius: 0,
           ),
         ],
+        border: Border.all(
+          color: color.withOpacity(0.2),
+          width: 1,
+        ),
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           onTap: onTap,
+          splashColor: color.withOpacity(0.1),
+          highlightColor: color.withOpacity(0.05),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(
-                  icon,
-                  color: color,
-                  size: 32,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  title,
-                  style: blackTextStyle.copyWith(
-                    fontSize: 14,
-                    fontWeight: semiBold,
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 28,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: greyTextStyle.copyWith(
-                    fontSize: 12,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: blackTextStyle.copyWith(
+                        fontSize: 16,
+                        fontWeight: bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: greyTextStyle.copyWith(
+                        fontSize: 12,
+                        fontWeight: medium,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

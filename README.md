@@ -30,7 +30,7 @@ Gerobaks adalah aplikasi mobile berbasis Flutter yang bertujuan untuk menciptaka
 - 📝 **Digital History**: Riwayat lengkap aktivitas pengelolaan sampah
 - 🗺️ **Area Coverage**: Monitoring wilayah layanan yang komprehensif
 - 🔔 **Contextual Alerts**: Notifikasi real-time yang relevan dan personal
-- 💳 **QRIS Payment**: Metode pembayaran digital melalui QRIS
+- 💳 **Payment Gateway**: Mendukung pembayaran melalui QRIS, e-Wallet (ShopeePay, GoPay, DANA), dan Transfer Bank
 
 ## ✨ Fitur Utama
 

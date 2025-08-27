@@ -21,10 +21,12 @@ class _LaporanMitraPageState extends State<LaporanMitraPage> {
         title: Text(
           'Laporan Kinerja',
           style: whiteTextStyle.copyWith(
-            fontSize: 18,
+            fontSize: 20,
             fontWeight: semiBold,
+            letterSpacing: 0.3,
           ),
         ),
+        centerTitle: true,
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
@@ -35,37 +37,66 @@ class _LaporanMitraPageState extends State<LaporanMitraPage> {
             // Period Selector
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: whiteColor,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                    spreadRadius: 0,
                   ),
                 ],
+                border: Border.all(
+                  color: greenColor.withOpacity(0.2),
+                  width: 1,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Periode Laporan',
-                    style: blackTextStyle.copyWith(
-                      fontSize: 16,
-                      fontWeight: semiBold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      _buildPeriodChip('Hari Ini', 'today'),
-                      const SizedBox(width: 8),
-                      _buildPeriodChip('Minggu Ini', 'week'),
-                      const SizedBox(width: 8),
-                      _buildPeriodChip('Bulan Ini', 'month'),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: greenColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.insert_chart_rounded,
+                          color: greenColor,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Text(
+                        'Periode Laporan',
+                        style: blackTextStyle.copyWith(
+                          fontSize: 16,
+                          fontWeight: semiBold,
+                        ),
+                      ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildPeriodChip('Hari Ini', 'today'),
+                        const SizedBox(width: 12),
+                        _buildPeriodChip('Minggu Ini', 'week'),
+                        const SizedBox(width: 12),
+                        _buildPeriodChip('Bulan Ini', 'month'),
+                        const SizedBox(width: 12),
+                        _buildPeriodChip('3 Bulan', 'quarter'),
+                        const SizedBox(width: 12),
+                        _buildPeriodChip('1 Tahun', 'year'),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -74,21 +105,61 @@ class _LaporanMitraPageState extends State<LaporanMitraPage> {
             const SizedBox(height: 24),
 
             // Performance Stats
-            Text(
-              'Statistik Kinerja',
-              style: blackTextStyle.copyWith(
-                fontSize: 18,
-                fontWeight: semiBold,
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              child: Row(
+                children: [
+                  Container(
+                    height: 32,
+                    width: 4,
+                    decoration: BoxDecoration(
+                      color: greenColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Statistik Kinerja',
+                    style: blackTextStyle.copyWith(
+                      fontSize: 18,
+                      fontWeight: semiBold,
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: greenColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.download_rounded,
+                          color: greenColor,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Ekspor',
+                          style: greentextstyle2.copyWith(
+                            fontSize: 12,
+                            fontWeight: medium,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
 
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
               childAspectRatio: 1.2,
               children: [
                 _buildStatCard(
@@ -178,17 +249,26 @@ class _LaporanMitraPageState extends State<LaporanMitraPage> {
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? greenColor : Colors.grey.shade200,
+          color: isSelected ? greenColor : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(20),
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: greenColor.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+              spreadRadius: 0,
+            ),
+          ] : [],
         ),
         child: Text(
           title,
           style: TextStyle(
-            fontSize: 12,
-            color: isSelected ? whiteColor : greyColor,
-            fontWeight: isSelected ? medium : regular,
+            fontSize: 13,
+            color: isSelected ? whiteColor : Colors.grey.shade700,
+            fontWeight: isSelected ? semiBold : medium,
+            letterSpacing: 0.2,
           ),
         ),
       ),
@@ -203,17 +283,22 @@ class _LaporanMitraPageState extends State<LaporanMitraPage> {
     required Color color,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: whiteColor,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 5),
+            spreadRadius: 0,
           ),
         ],
+        border: Border.all(
+          color: color.withOpacity(0.2),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,32 +306,42 @@ class _LaporanMitraPageState extends State<LaporanMitraPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(
-                icon,
-                color: color,
-                size: 24,
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 22,
+                ),
               ),
               Text(
                 value,
-                style: blackTextStyle.copyWith(
-                  fontSize: 24,
-                  fontWeight: bold,
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: extraBold,
+                  color: color,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           Text(
             title,
             style: blackTextStyle.copyWith(
-              fontSize: 12,
-              fontWeight: medium,
+              fontSize: 15,
+              fontWeight: semiBold,
             ),
           ),
+          const SizedBox(height: 4),
           Text(
             subtitle,
             style: greyTextStyle.copyWith(
-              fontSize: 10,
+              fontSize: 12,
+              fontWeight: medium,
             ),
           ),
         ],
@@ -291,41 +386,57 @@ class _LaporanMitraPageState extends State<LaporanMitraPage> {
     final activity = activities[index];
     Color statusColor;
     IconData statusIcon;
+    String statusText;
 
     switch (activity['status']) {
       case 'completed':
         statusColor = greenColor;
         statusIcon = Icons.check_circle_rounded;
+        statusText = 'Selesai';
         break;
       case 'in_progress':
         statusColor = Colors.blue;
         statusIcon = Icons.access_time_rounded;
+        statusText = 'Proses';
         break;
       case 'break':
         statusColor = Colors.orange;
         statusIcon = Icons.coffee_rounded;
+        statusText = 'Istirahat';
         break;
       default:
         statusColor = greyColor;
         statusIcon = Icons.help_outline_rounded;
+        statusText = 'Lainnya';
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: whiteColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+            spreadRadius: 0,
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            width: 8,
-            height: 8,
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: statusColor,
+              color: statusColor.withOpacity(0.1),
               shape: BoxShape.circle,
+            ),
+            child: Icon(
+              statusIcon,
+              color: statusColor,
+              size: 18,
             ),
           ),
           const SizedBox(width: 12),
@@ -337,22 +448,33 @@ class _LaporanMitraPageState extends State<LaporanMitraPage> {
                   activity['action'] as String,
                   style: blackTextStyle.copyWith(
                     fontSize: 14,
-                    fontWeight: medium,
+                    fontWeight: semiBold,
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
                   activity['location'] as String,
                   style: greyTextStyle.copyWith(
                     fontSize: 12,
+                    fontWeight: medium,
                   ),
                 ),
               ],
             ),
           ),
-          Text(
-            activity['time'] as String,
-            style: greyTextStyle.copyWith(
-              fontSize: 12,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: statusColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              activity['time'] as String,
+              style: TextStyle(
+                fontSize: 12,
+                color: statusColor,
+                fontWeight: medium,
+              ),
             ),
           ),
         ],
