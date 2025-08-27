@@ -94,11 +94,11 @@ class _HomeContentState extends State<HomeContent> with AppDialogMixin {
 
     // Load Data Akun Login
     _loadUserData();
-    
+
     // Set up timer to refresh user data periodically to ensure points are up to date
     _setupRefreshTimer();
   }
-  
+
   void _setupRefreshTimer() {
     // Refresh user data every minute to keep points up to date
     Future.delayed(const Duration(minutes: 1), () {
@@ -108,7 +108,7 @@ class _HomeContentState extends State<HomeContent> with AppDialogMixin {
       }
     });
   }
-  
+
   Future<void> _refreshUserData() async {
     try {
       final user = await _userService.getCurrentUser();
@@ -142,24 +142,99 @@ class _HomeContentState extends State<HomeContent> with AppDialogMixin {
   }
 
   Future<void> _loadUserData() async {
-    try {
-      _userService = await UserService.getInstance();
-      await _userService.init();
+  try {
+    // print("🏠 === HOME INIT START ===");
+    // print("🏠 Step 1: Getting UserService instance...");
+    
+    _userService = await UserService.getInstance();
+    // print("🏠 UserService instance obtained");
+    
+    // print("🏠 Step 2: Initializing UserService...");
+    await _userService.init();
+    // print("🏠 UserService initialized");
+    
+    // print("🏠 Step 3: Getting current user...");
+    final user = await _userService.getCurrentUser();
+    // print("🏠 Current user from service:");
+    // print("   Name: ${user?.name ?? 'NULL'}");
+    // print("   Email: ${user?.email ?? 'NULL'}");
+    // print("   Points: ${user?.points ?? 'NULL'}");
+    // print("   ID: ${user?.id ?? 'NULL'}");
 
-      // Get initial user data
-      final user = await _userService.getCurrentUser();
+    if (user == null) {
+      print("🏠 === USER IS NULL - DETAILED INVESTIGATION ===");
       
-      // Debug log for user data
-      print("Home Content loaded user: ${user?.name ?? 'null'} (${user?.email ?? 'null'})");
+      // Direct localStorage investigation
+      final localStorage = await LocalStorageService.getInstance();
       
-      _handleUserChange(user);
+      // Check login status step by step
+      print("🏠 Step 4a: Checking login flag...");
+      final isLoggedIn = await localStorage.isLoggedIn();
+      // print("   IsLoggedIn flag: $isLoggedIn");
+      
+      // Check raw user data
+      // print("🏠 Step 4b: Checking raw userData...");
+      final rawUserData = await localStorage.getUserData();
+      // print("   Raw userData exists: ${rawUserData != null}");
+      // if (rawUserData != null) {
+      //   print("   Raw userData name: ${rawUserData['name']}");
+      //   print("   Raw userData email: ${rawUserData['email']}");
+      //   print("   Raw userData structure keys: ${rawUserData.keys.toList()}");
+      // }
 
-      // Set up listener for user changes
-      _userService.addUserChangeListener(_handleUserChange);
-    } catch (e) {
-      print("Error loading user data: $e");
+      // Check UserModel creation
+      // print("🏠 Step 4c: Trying to get UserModel directly...");
+      final directUser = await localStorage.getUser();
+      // print("   Direct UserModel exists: ${directUser != null}");
+      if (directUser != null) {
+        print("   Direct UserModel name: ${directUser.name}");
+        print("   Direct UserModel email: ${directUser.email}");
+      }
+
+      // If we have userData but login flag is false, try to fix it
+      if (rawUserData != null && !isLoggedIn) {
+        print("🏠 === ATTEMPTING TO FIX LOGIN STATE ===");
+        print("🏠 We have userData but isLoggedIn is false. This should be fixed.");
+        
+        // Set login flag to true
+        await localStorage.saveBool(localStorage.getLoginKey(), true);
+        
+        // Verify the fix
+        final fixedLoginState = await localStorage.isLoggedIn();
+        print("🏠 Fixed login state: $fixedLoginState");
+        
+        if (fixedLoginState) {
+          // Try to get user again
+          final fixedUser = await _userService.getCurrentUser();
+          // print("🏠 User after fixing login state: ${fixedUser?.name ?? 'Still NULL'}");
+          
+          if (fixedUser != null) {
+            setState(() {
+              _user = fixedUser;
+            });
+            print("🏠 ✅ Successfully recovered user");
+            return;
+          }
+        }
+      }
+    } else {
+      print("🏠 ✅ User loaded successfully: ${user.name}");
     }
+
+    _handleUserChange(user);
+    _userService.addUserChangeListener(_handleUserChange);
+    
+    print("🏠 === HOME INIT END ===");
+    
+  } catch (e, stackTrace) {
+    print("🏠 ❌ ERROR in _loadUserData: $e");
+    print("🏠 StackTrace: $stackTrace");
+    
+    setState(() {
+      _isLoading = false;
+    });
   }
+}
 
   @override
   void dispose() {
@@ -321,60 +396,60 @@ class _HomeContentState extends State<HomeContent> with AppDialogMixin {
                   Container(
                     padding: const EdgeInsets.only(bottom: 30),
                     child: Column(
-                    children: [
-                      // Greeting dengan padding yang lebih seimbang
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: horizontalPadding,
+                      children: [
+                        // Greeting dengan padding yang lebih seimbang
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: horizontalPadding,
+                          ),
+                          child: buildGreeting(),
                         ),
-                        child: buildGreeting(),
-                      ),
 
-                      // Quick Picks dengan padding konsisten dan jarak yang lebih baik
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: horizontalPadding,
+                        // Quick Picks dengan padding konsisten dan jarak yang lebih baik
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: horizontalPadding,
+                          ),
+                          child: buildQuickPicks(context),
                         ),
-                        child: buildQuickPicks(context),
-                      ),
 
-                      // Spacer yang proporsional antara konten
-                      const SizedBox(height: 28),
+                        // Spacer yang proporsional antara konten
+                        const SizedBox(height: 28),
 
-                      // Informasi Carousel dengan struktur yang lebih terorganisir
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: horizontalPadding,
-                            ),
-                            child: Text(
-                              'Informasi',
-                              style: blackTextStyle.copyWith(
-                                fontSize: 18,
-                                fontWeight: semiBold,
+                        // Informasi Carousel dengan struktur yang lebih terorganisir
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: horizontalPadding,
+                              ),
+                              child: Text(
+                                'Informasi',
+                                style: blackTextStyle.copyWith(
+                                  fontSize: 18,
+                                  fontWeight: semiBold,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          buildComingSoonCarousel(),
-                        ],
-                      ),
-
-                      // About Us dengan padding konsisten
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: horizontalPadding,
+                            const SizedBox(height: 16),
+                            buildComingSoonCarousel(),
+                          ],
                         ),
-                        child: buildAboutUs(context),
-                      ),
-                    ],
+
+                        // About Us dengan padding konsisten
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: horizontalPadding,
+                          ),
+                          child: buildAboutUs(context),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
     );
   }
 
@@ -925,7 +1000,6 @@ class _HomeContentState extends State<HomeContent> with AppDialogMixin {
         'subtitle': 'Kumpulkan dan tukarkan poin reward Anda',
         'route': '/reward',
       },
-
     ];
 
     return Container(
@@ -1024,7 +1098,9 @@ class _HomeContentState extends State<HomeContent> with AppDialogMixin {
                                         height: 30,
                                         decoration: BoxDecoration(
                                           color: Colors.white.withOpacity(0.3),
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                         ),
                                       )
                                     : Row(
@@ -1043,7 +1119,9 @@ class _HomeContentState extends State<HomeContent> with AppDialogMixin {
                                             style: whiteTextStyle.copyWith(
                                               fontSize: 16,
                                               fontWeight: medium,
-                                              color: Colors.white.withOpacity(0.95),
+                                              color: Colors.white.withOpacity(
+                                                0.95,
+                                              ),
                                             ),
                                           ),
                                         ],
