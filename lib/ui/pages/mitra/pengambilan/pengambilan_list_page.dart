@@ -1,4 +1,5 @@
 import 'package:bank_sha/shared/theme.dart';
+import 'package:bank_sha/ui/widgets/shared/appbar.dart';
 import 'package:flutter/material.dart';
 
 class PengambilanListPage extends StatefulWidget {
@@ -10,31 +11,87 @@ class PengambilanListPage extends StatefulWidget {
 
 class _PengambilanListPageState extends State<PengambilanListPage> {
   String selectedFilter = 'all';
+  DateTime selectedDate = DateTime.now();
+  bool isLoading = false;
+  
+  void _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            colorScheme: ColorScheme.light(primary: greenColor),
+            buttonTheme: const ButtonThemeData(
+              textTheme: ButtonTextTheme.primary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = picked;
+        _refreshPickups();
+      });
+    }
+  }
+  
+  void _refreshPickups() {
+    setState(() {
+      isLoading = true;
+    });
+    
+    // Simulate network request
+    Future.delayed(const Duration(milliseconds: 800), () {
+      setState(() {
+        isLoading = false;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: lightBackgroundColor,
       appBar: AppBar(
-        backgroundColor: greenColor,
-        elevation: 0,
         title: Text(
           'Daftar Pengambilan',
-          style: whiteTextStyle.copyWith(
-            fontSize: 18,
+          style: blackTextStyle.copyWith(
+            fontSize: 20,
             fontWeight: semiBold,
           ),
         ),
-        automaticallyImplyLeading: false,
+        centerTitle: true,
+        backgroundColor: whiteColor,
+        elevation: 0,
+        iconTheme: IconThemeData(color: blackColor),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         actions: [
           IconButton(
             onPressed: () {
-              // TODO: Implement filter
+              showModalBottomSheet(
+                context: context,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
+                ),
+                builder: (context) => _buildFilterBottomSheet(context),
+              );
             },
-            icon: const Icon(
-              Icons.filter_list_rounded,
-              color: Colors.white,
-            ),
+            icon: const Icon(Icons.filter_list_rounded),
+          ),
+          IconButton(
+            onPressed: () => _selectDate(context),
+            icon: const Icon(Icons.calendar_today_rounded),
           ),
         ],
       ),
@@ -42,31 +99,78 @@ class _PengambilanListPageState extends State<PengambilanListPage> {
         children: [
           // Filter Tabs
           Container(
-            margin: const EdgeInsets.all(24),
-            padding: const EdgeInsets.all(4),
+            padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(12),
+              color: whiteColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  _buildFilterTab('Semua', 'all'),
+                  _buildFilterTab('Menunggu', 'pending'),
+                  _buildFilterTab('Proses', 'in_progress'),
+                  _buildFilterTab('Selesai', 'completed'),
+                ],
+              ),
+            ),
+          ),
+          
+          // Date selection indicator
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildFilterTab('Semua', 'all'),
-                _buildFilterTab('Pending', 'pending'),
-                _buildFilterTab('Proses', 'in_progress'),
-                _buildFilterTab('Selesai', 'completed'),
+                Text(
+                  'Tanggal: ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                  style: blackTextStyle.copyWith(
+                    fontSize: 14,
+                    fontWeight: medium,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedDate = DateTime.now();
+                      _refreshPickups();
+                    });
+                  },
+                  child: Text(
+                    'Reset',
+                    style: greentextstyle2.copyWith(
+                      fontSize: 14,
+                      fontWeight: semiBold,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
 
-          // Pickup List
+          // Pickup List with loading state
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              itemCount: 8,
-              itemBuilder: (context, index) {
-                return _buildPickupItem(index);
-              },
-            ),
+            child: isLoading 
+            ? Center(
+                child: CircularProgressIndicator(
+                  color: greenColor,
+                ),
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                itemCount: 8,
+                itemBuilder: (context, index) {
+                  return _buildPickupItem(index);
+                },
+              ),
           ),
         ],
       ),
@@ -75,36 +179,37 @@ class _PengambilanListPageState extends State<PengambilanListPage> {
 
   Widget _buildFilterTab(String title, String value) {
     final isSelected = selectedFilter == value;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            selectedFilter = value;
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? whiteColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isSelected ? semiBold : regular,
-              color: isSelected ? greenColor : greyColor,
-            ),
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedFilter = value;
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? greenColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: greenColor.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                    spreadRadius: 0,
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          title,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isSelected ? semiBold : medium,
+            color: isSelected ? whiteColor : greyColor,
+            letterSpacing: 0.2,
           ),
         ),
       ),
@@ -213,169 +318,378 @@ class _PengambilanListPageState extends State<PengambilanListPage> {
         typeColor = Colors.blue;
     }
 
-    return Container(
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
+    child: InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () {
+        // TODO: Navigate to detail page
+      },
+      child: Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: whiteColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 3),
+            spreadRadius: -2,
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // ID with improved styling
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: greenColor.withOpacity(0.07),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      pickup['id'] as String,
+                      style: blackTextStyle.copyWith(
+                        fontSize: 14,
+                        fontWeight: semiBold,
+                        color: greenColor,
+                      ),
+                    ),
+                  ),
+                  // Status tags row
+                  Row(
+                    children: [
+                      // Type tag
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: typeColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          pickup['type'] as String,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: typeColor,
+                            fontWeight: medium,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Status tag
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              statusIcon,
+                              size: 12,
+                              color: statusColor,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              statusText,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: statusColor,
+                                fontWeight: medium,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Customer name
               Text(
-                pickup['id'] as String,
+                pickup['customer'] as String,
                 style: blackTextStyle.copyWith(
                   fontSize: 16,
                   fontWeight: semiBold,
                 ),
               ),
+              const SizedBox(height: 8),
+              // Address with icon
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: typeColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
+                      color: greenColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Text(
-                      pickup['type'] as String,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: typeColor,
-                        fontWeight: medium,
-                      ),
+                    child: Icon(
+                      Icons.location_on_rounded,
+                      size: 14,
+                      color: greenColor,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          statusIcon,
-                          size: 10,
-                          color: statusColor,
-                        ),
-                        const SizedBox(width: 2),
-                        Text(
-                          statusText,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: statusColor,
-                            fontWeight: medium,
-                          ),
-                        ),
-                      ],
+                  Expanded(
+                    child: Text(
+                      pickup['address'] as String,
+                      style: greyTextStyle.copyWith(
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ],
               ),
+              const SizedBox(height: 8),
+              // Time with icon
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: greenColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Icon(
+                      Icons.access_time_rounded,
+                      size: 14,
+                      color: greenColor,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Estimasi: ${pickup['time']}',
+                    style: greyTextStyle.copyWith(
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Action buttons with improved styling
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () {
+                        // TODO: View details
+                      },
+                      style: TextButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(color: greenColor),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                      child: Text(
+                        'Detail',
+                        style: TextStyle(
+                          color: greenColor,
+                          fontSize: 14,
+                          fontWeight: medium,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: pickup['status'] == 'pending'
+                          ? () {
+                              // TODO: Start pickup
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: greenColor,
+                        foregroundColor: whiteColor,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 1,
+                      ),
+                      child: Text(
+                        pickup['status'] == 'pending' ? 'Mulai' : 'Selesai',
+                        style: whiteTextStyle.copyWith(
+                          fontSize: 14,
+                          fontWeight: medium,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+        ],
+      ),
+    ),
+    ),
+    );
+  }
+  
+  Widget _buildFilterBottomSheet(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Filter Pengambilan',
+                style: blackTextStyle.copyWith(
+                  fontSize: 18,
+                  fontWeight: semiBold,
+                ),
+              ),
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: Icon(
+                  Icons.close,
+                  color: blackColor,
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
+          
+          // Filter Options
           Text(
-            pickup['customer'] as String,
+            'Status',
             style: blackTextStyle.copyWith(
-              fontSize: 14,
-              fontWeight: medium,
+              fontSize: 16,
+              fontWeight: semiBold,
             ),
           ),
-          const SizedBox(height: 4),
-          Row(
+          const SizedBox(height: 12),
+          
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              Icon(
-                Icons.location_on_rounded,
-                size: 14,
-                color: greyColor,
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  pickup['address'] as String,
-                  style: greyTextStyle.copyWith(
-                    fontSize: 12,
-                  ),
-                ),
-              ),
+              _buildFilterChip('Semua', 'all'),
+              _buildFilterChip('Menunggu', 'pending'),
+              _buildFilterChip('Proses', 'in_progress'),
+              _buildFilterChip('Selesai', 'completed'),
             ],
           ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Icon(
-                Icons.access_time_rounded,
-                size: 14,
-                color: greyColor,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                'Estimasi: ${pickup['time']}',
-                style: greyTextStyle.copyWith(
-                  fontSize: 12,
-                ),
-              ),
-            ],
+          const SizedBox(height: 24),
+          
+          // Date Range
+          Text(
+            'Rentang Tanggal',
+            style: blackTextStyle.copyWith(
+              fontSize: 16,
+              fontWeight: semiBold,
+            ),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    // TODO: View details
-                  },
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: greenColor),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+          
+          // Date Selector
+          InkWell(
+            onTap: () => _selectDate(context),
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.calendar_today,
+                    size: 18,
+                    color: greenColor,
                   ),
-                  child: Text(
-                    'Detail',
-                    style: TextStyle(
-                      color: greenColor,
-                      fontSize: 12,
+                  const SizedBox(width: 12),
+                  Text(
+                    '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                    style: blackTextStyle.copyWith(
+                      fontSize: 14,
+                      fontWeight: medium,
                     ),
                   ),
+                  const Spacer(),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: greyColor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          
+          // Apply Button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                _refreshPickups();
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: greenColor,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 0,
+              ),
+              child: Text(
+                'Terapkan Filter',
+                style: whiteTextStyle.copyWith(
+                  fontSize: 16,
+                  fontWeight: semiBold,
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: pickup['status'] == 'pending'
-                      ? () {
-                          // TODO: Start pickup
-                        }
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: greenColor,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                  ),
-                  child: Text(
-                    pickup['status'] == 'pending' ? 'Mulai' : 'Selesai',
-                    style: whiteTextStyle.copyWith(
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String value) {
+    final isSelected = selectedFilter == value;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedFilter = value;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? greenColor : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? greenColor : Colors.grey.shade300,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? whiteColor : blackColor,
+            fontSize: 14,
+            fontWeight: isSelected ? semiBold : regular,
+          ),
+        ),
       ),
     );
   }
