@@ -213,7 +213,7 @@ class _MitraDashboardContentState extends State<MitraDashboardContent> {
         preferredSize: const Size.fromHeight(60),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: greenColor,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.05),
@@ -240,7 +240,7 @@ class _MitraDashboardContentState extends State<MitraDashboardContent> {
                       },
                       icon: const Icon(
                         Icons.notifications_outlined,
-                        color: Colors.green,
+                        color: Colors.white,
                         size: 24,
                       ),
                       tooltip: 'Notifikasi',
